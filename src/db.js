@@ -1,8 +1,11 @@
 var MongoClient = require('mongodb').MongoClient, //TODO: Pooling
+//////////////////////////////////////
 // If node.js cannot find module 'mongodb'
 // npm install mongodb -g
 // cd /path/to/my/app/folder
 // npm link mongodb
+/////////////////////////////////////
+// Fixed: npm install mongodb --save
 assert = require('assert'),
 config = require('../config').db.mongo;
 

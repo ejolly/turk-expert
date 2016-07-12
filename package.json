@@ -11,6 +11,7 @@
     "ejs": "latest",
     "express": "latest",
     "fs-extra": "^0.30.0",
+    "mongodb": "^2.2.1",
     "mturk-api": "^2.2.2",
     "typescript": "latest"
   }
