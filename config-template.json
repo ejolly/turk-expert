@@ -1,0 +1,19 @@
+{
+    "mTurk": {
+        "access": "<yourAccessKey>",
+        "secret": "<yourSecretId>",
+        "sandbox": true
+    },
+    "admin": {
+        "username": "name",
+        "password": "pass"
+    },
+    "server": {
+        "url" : "<yourExternalUrl>"
+    },
+    "db":{
+        "mongo":{
+            "url": "<yourMongoUrl>"
+        }
+    }
+}

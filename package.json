@@ -1,0 +1,17 @@
+{
+  "name": "turk-expert",
+  "description": "A Mechanical Turk Expert Utility App",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "basic-auth": "latest",
+    "connect-busboy": "0.0.2",
+    "ejs": "latest",
+    "express": "latest",
+    "fs-extra": "^0.30.0",
+    "mturk-api": "^2.2.2",
+    "typescript": "latest"
+  }
+}

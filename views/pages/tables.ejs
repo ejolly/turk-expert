@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<% include ../includes/head %>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <% include ../includes/nav %>
+
+        <div id="page-wrapper">
+
+            <div class="container-fluid">
+
+                <!-- Page Heading -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            Database
+                        </h1>
+                        <ol class="breadcrumb">
+                            <li>
+                                <i class="fa fa-dashboard"></i>  <a href="index.html">Dashboard</a>
+                            </li>
+                            <li class="active">
+                                <i class="fa fa-table"></i> Database
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <!-- /.row -->
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2>HIT Database</h2>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>_id</th>
+                                        <th>Data</th>
+                                        <th>QueryName</th>
+                                        <th>Url</th>
+                                        <th>URLTitle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                       <% for(var i=0; i<hit.length; i++) { %>
+                                        <tr>
+                                            <td><%= hit[i]._id %></td>
+                                            <td><%= hit[i].Data %></td>
+                                            <td><%= hit[i].QueryName %></td>
+                                            <td><%= hit[i].Url %></td>
+                                            <td><%= hit[i].URLTitle %></td>
+                                        </tr>
+                                        <% } %>                                 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-6">
+                        <h2>NOTICE Database</h2>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>_id</th>
+                                        <th>Data</th>
+                                        <th>QueryName</th>
+                                        <th>Url</th>
+                                        <th>URLTitle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                       <% for(var i=0; i<notice.length; i++) { %>
+                                        <tr>
+                                            <td><%= notice[i]._id %></td>
+                                            <td><%= notice[i].Data %></td>
+                                            <td><%= notice[i].QueryName %></td>
+                                            <td><%= notice[i].Url %></td>
+                                            <td><%= notice[i].URLTitle %></td>
+                                        </tr>
+                                        <% } %>                                 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+
+            </div>
+            <!-- /.container-fluid -->
+
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+</body>
+
+</html>

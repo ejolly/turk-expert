@@ -1,0 +1,492 @@
+<html>
+<% include ../includes/head %>
+
+    <body>
+        <div id="wrapper">
+
+            <!-- Navigation -->
+            <% include ../includes/nav %>
+
+                <div id="page-wrapper">
+
+                    <div class="container-fluid">
+
+                        <!-- Page Heading -->
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h1 class="page-header">
+                                    Management
+                                </h1>
+                                <ol class="breadcrumb">
+                                    <li>
+                                        <i class="fa fa-dashboard"></i> <a href="/">Dashboard</a>
+                                    </li>
+                                    <li class="active">
+                                        <i class="fa fa-file"></i> Management
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        <!-- /.row -->
+                        <div class="page-header">
+                            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#create-hit"> <h2>Create HIT</h2></button>
+                        </div>
+
+                        <div id="create-hit" class="row collapse in">
+                            <div class="col-lg-6">
+                                <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>New HIT Type</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Batch</label>
+                                                <div class="col-sm-8">
+                                                    <select required="" name="batch" class="form-control">
+                                        <option value="" selected="" disabled=""></option>
+                                        
+                                        <option value="K3jbBcW3C7dwjRwn3">main (K3jbBcW3C7dwjRwn3)</option>
+                                        
+                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Title</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="title" required="" type="text" placeholder="Enter text">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Description</label>
+                                                <div class="col-sm-8">
+                                                    <textarea required="" name="desc" class="form-control" placeholder="Enter text"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Keywords</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="keywords" required="" type="text">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Reward</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" min="0" step="0.01" value="0.10" name="reward" required="" type="number">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Qualification Requirements</label>
+                                                <div class="col-sm-8">
+                                                    <select multiple="" name="quals" class="form-control">
+                                        
+                                        <option value="pK82jLKdHTrvfBKEc">US Worker</option>
+                                        
+                                        <option value="cJM4sCDJiAtpX56iL">US or CA Worker</option>
+                                        
+                                        <option value="3JMBrgNHSWBBypoEh">&gt; 100 HITs</option>
+                                        
+                                        <option value="aCEbkxZRuE9f5QGTW">95% Approval</option>
+                                        
+                                        <option value="CBi8Da3HSMtQ8wC93">Adult Worker</option>
+                                        
+                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Assignment Duration in Seconds</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" min="30" max="3153600" value="86400" name="duration" required="" type="number">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Auto Approval Delay in Seconds</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" min="0" max="2592000" value="604800" name="delay" required="" type="number">
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary pull-right">Create</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>New HIT</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-3">HIT Type</label>
+                                                <div class="col-sm-9">
+                                                    <select required="" name="hittype" class="form-control">
+                                                <option value="" selected="" disabled=""></option>
+                                                
+                                                <option value="30XGWYMV4L5R1955L8ZW8B6153SV5K">Test (30XGWYMV4L5R1955L8ZW8B6153SV5K)</option>
+                                                
+                                            </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3">Max Assignments</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-control" name="maxAssts" min="1" max="1000000" value="1" type="number">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3">Lifetime in Seconds</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-control" name="lifetime" min="30" max="31536000" value="86400" type="number">
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-primary pull-right" type="submit">Create</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Upload From CSV</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal" method='post' action='uploadHit' enctype="multipart/form-data">
+                                            <div class="form-group">
+                                                <label class="col-sm-3">File input</label>
+                                                <div class="col-sm-9">
+                                                    <input type="file" name='HIT-CSV-Uploader' accept=".csv">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label id ="HIT-CSV-Result" class="col-sm-9">
+                                                    <script>
+                                                    var hitUploadResult = window.location.href.split('hitUploadResult=')[1];
+                                                    if(hitUploadResult){
+                                                        document.getElementById("HIT-CSV-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(hitUploadResult) +'</p>';
+                                                    }
+                                                    </script>
+                                                </label>
+                                            </div>
+                                            <button class="btn btn-success pull-right" type="submit">Upload</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Publish From DB</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <button class="btn btn-success pull-right" type="submit">Publish</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+
+                        <div class="page-header">
+                            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#manage-hit"> <h2>Manage HIT</h2></button>
+                        </div>
+
+                        <div id="manage-hit" class="row collapse in">
+                            <div class="col-lg-6">
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Get HIT</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">HIT ID</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="hitId" required="" type="text" placeholder="Enter text">
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-success pull-right" type="submit">Get</button>
+                                        </form>
+                                    </div>
+                                </div>
+ 
+                                <div class="panel panel-warning">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Search HITs</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Total Number of Results</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" min="1" max="100" value="1" name="TotalNumResults" required="" type="number">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Sort Property</label>
+                                                <div class="col-sm-8">
+                                                    <select name="SortProperty" class="form-control">
+                                        
+                                                        <option value="CreationTime">CreationTime</option>
+                                                        
+                                                        <option value="Reward ">Reward </option>
+                                                        
+                                                        <option value="Expiration ">Expiration </option>
+                                                        
+                                                        <option value="Enumeration ">Enumeration </option>
+                                                        
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Sort Direction</label>
+                                                <div class="col-sm-8">
+                                                    <select name="SortDirection" class="form-control">
+                                        
+                                                        <option value="Ascending">Ascending</option>
+                                                        
+                                                        <option value="Descending">Descending</option>
+                                                        
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-warning pull-right" type="submit">Search</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="panel panel-danger">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Expire HIT</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">HIT ID</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="expire-id" required="" type="text" placeholder="Enter text">
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-danger pull-right" type="submit">Expire</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Extend HIT</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">HIT ID</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="extend-id" required="" type="text" placeholder="Enter text">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Max Assignments Increment</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" min="1" max="1000000000" value="10" name="MaxAssignmentsIncrement" required="" type="number">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Expiration Increment In Seconds</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" min="30" max="3153600" value="43200" name="ExpirationIncrementInSeconds" required="" type="number">
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-info pull-right" type="submit">Extend</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="page-header">
+                            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#manage-assignment"> <h2>Manage Assignment</h2></button>
+                        </div>
+
+                        <div id="manage-assignment" class="row collapse in">
+                            <div class="col-lg-6">
+                                 <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Get Assignment</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Assignment ID</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="assignmentId" required="" type="text" placeholder="Enter text">
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-success pull-right" type="submit">Get</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="page-header">
+                            <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#contact-user"> <h2>Contact User</h2></button>
+                        </div>
+
+                        <div id="contact-user" class="row collapse in">
+                            <div class="col-lg-6">
+                                 <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Notify Worker</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Worker ID</label>
+                                                <div class="col-sm-8">
+                                                    <input class="form-control" name="workerId" required="" type="text" placeholder="Enter text">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Subject</label>
+                                                <div class="col-sm-8">
+                                                    <textarea required="" name="Subject" class="form-control" placeholder="Enter text"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-4">Message</label>
+                                                <div class="col-sm-8">
+                                                    <textarea required="" name="MessageText" class="form-control" placeholder="Enter text"></textarea>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-info pull-right" type="submit">Send</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Upload From CSV</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal" method='post' action='uploadNotice' enctype="multipart/form-data">
+                                            <div class="form-group">
+                                                <label class="col-sm-3">File input</label>
+                                                <div class="col-sm-9">
+                                                    <input type="file" name='Notice-CSV-Uploader' accept=".csv">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label id="Notice-CSV-Result" class="col-sm-9">
+                                                    <script>
+                                                    var noticeUploadResult = window.location.href.split('noticeUploadResult=')[1];
+                                                    if(noticeUploadResult){
+                                                        document.getElementById("Notice-CSV-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(noticeUploadResult) +'</p>';
+                                                    }
+                                                    </script>
+                                                </label>
+                                            </div>
+                                            <button class="btn btn-success pull-right" type="submit">Upload</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Send From DB</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal">
+                                            <button class="btn btn-success pull-right" type="submit">Send</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+
+                            <!--<p>
+                                <button type="button" class="btn btn-default">Default</button>
+                                <button type="button" class="btn btn-primary">Primary</button>
+                                <button type="button" class="btn btn-success">Success</button>
+                                <button type="button" class="btn btn-info">Info</button>
+                                <button type="button" class="btn btn-warning">Warning</button>
+                                <button type="button" class="btn btn-danger">Danger</button>
+                                <button type="button" class="btn btn-link">Link</button>
+                            </p>-->
+
+
+                            <!--<h2>Create HITs</h2>
+                            <h3>1. Load Data</h3>
+                            <h3>2. Verify HITs</h3>
+                            <h3>3. Publish</h3>
+
+                            <h2>Manage HITs</h2>
+                            <h3>1. Get </h3>
+                            <h3>2. Expire </h3>
+                            <h3>3. Search </h3>
+                        
+                            <h2>Manage Experiment</h2>
+                            <h3>1. Manage Assignments</h3>
+                            <h3>2. Contact User</h3>
+                            <h3>3. Collect Data</h3>
+                            -->
+ 
+
+                    </div>
+                </div>
+
+       </div>
+
+                <!-- jQuery -->
+                <script src="js/jquery.js"></script>
+
+                <!-- Bootstrap Core JavaScript -->
+                <script src="js/bootstrap.min.js"></script>
+
+                <!-- Morris Charts JavaScript -->
+                <script src="js/plugins/morris/raphael.min.js"></script>
+                <script src="js/plugins/morris/morris.min.js"></script>
+                <script src="js/plugins/morris/morris-data.js"></script>
+    </body>
+
+</html>
