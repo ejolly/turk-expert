@@ -1,13 +1,13 @@
 class Turker {
     WorkerId: string;
-    name: string;
     //conditional
+    name: string;
     age: number;
     gender: string;
     email: string;
     address: string;
 
-    constructor(id: string, name:string) {
+    constructor(id: string) {
         this.WorkerId = id;
         this.name = name;
     }
@@ -15,6 +15,6 @@ class Turker {
 
 
 //test
-let turker = new Turker('WorkerId-AD20WXZZP9XXK','A Turker');
+let turker = new Turker('WorkerId-AD20WXZZP9XXK');
 console.log('TEST Model - Turker: ', turker);
 

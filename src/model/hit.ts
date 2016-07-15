@@ -1,23 +1,23 @@
 class HIT {
-    HITId: string;
+    HITId: string; //generated
     HITTypeId: string; //1
-    CreationTime: Date;
-    HITStatus: string;
+    CreationTime: Date; //generated
+    HITStatus: string; //generated
     MaxAssignments: number;
     AutoApprovalDelayInSeconds: number;
-    LifetimeInSeconds: number; //1 //2
-    AssignmentDurationInSeconds: number; //2
+    LifetimeInSeconds: number; //1 //2  //default
+    AssignmentDurationInSeconds: number; //2 //default
     Reward: Price;
     Title: string;  //2
     Description: string; //2
     Keywords: string;
     Question: Question;
     QualificationRequirement: QualificationRequirement;
-    HITReviewStatus: HITReviewStatus;
+    HITReviewStatus: HITReviewStatus; //generated
     //conditional
-    NumberofAssignmentsPending: number;
-    NumberofAssignmentsAvailable: number;
-    NumberofAssignmentsCompleted: number;
+    NumberofAssignmentsPending: number; //generated
+    NumberofAssignmentsAvailable: number; //generated
+    NumberofAssignmentsCompleted: number; //generated
 
     //default is public
     //Overloading in TypeScript 
@@ -40,6 +40,8 @@ class HIT {
 
 
 }
+
+type HITStatus = 'Assignable' | 'Unassignable' | 'Reviewable' | 'Reviewing' | 'Disposed';
 
 
 interface Price {

@@ -11,6 +11,9 @@ class Assignment {
     Deadline: Date;
     Answer: QuestionFormAnswers; // user external app, may be empty.
     RequesterFeedback: string; // default none
+    //ADD when we save assignments !!!
+    code: string;
+
 
     constructor(assignmentId: string, workerId:string, hitId: string) {
         this.AssignmentId = assignmentId;
