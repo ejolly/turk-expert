@@ -7,7 +7,7 @@ class HIT {
     AutoApprovalDelayInSeconds: number;
     LifetimeInSeconds: number; //1 //2  //default
     AssignmentDurationInSeconds: number; //2 //default
-    Reward: Price;
+    Reward: Price; //2
     Title: string;  //2
     Description: string; //2
     Keywords: string;
@@ -21,9 +21,9 @@ class HIT {
 
     //default is public
     //Overloading in TypeScript 
-    constructor(title: string, description: string, assignmentDurationInSeconds: number, lifetimeInSeconds: number);
+    constructor(title: string, description: string, assignmentDurationInSeconds: number, lifetimeInSeconds: number, reward: Price);
     constructor(hitTypeId: string, lifetimeInSeconds: number);
-    constructor(titleOrId: string, descriptionOrSeconds: any, assignmentDurationInSeconds?: number, lifetimeInSeconds?: number) {
+    constructor(titleOrId: string, descriptionOrSeconds: any, assignmentDurationInSeconds?: number, lifetimeInSeconds?: number, reward?: Price) {
         //required field only
         if (typeof descriptionOrSeconds === 'number') {
             // 1.Calling CreateHIT with a HIT Type ID
@@ -35,6 +35,7 @@ class HIT {
             this.Description = descriptionOrSeconds;
             this.AssignmentDurationInSeconds = assignmentDurationInSeconds;
             this.LifetimeInSeconds = lifetimeInSeconds;
+            this.Reward = reward;
         }
     }
 
