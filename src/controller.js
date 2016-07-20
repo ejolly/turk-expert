@@ -1,6 +1,8 @@
 var mturk = require('mturk-api'),
 config = require('../config').mTurk,
 api = mturk.createClient(config),
+assert = require('assert'),
+async = require('async'),
 MongoDB = require('./db');
 
 //1. Amazon Mechanical Turk limits the velocity of requests. 
@@ -107,11 +109,30 @@ var TurkExpert = {
    * @param {Callbak} cb
    * @return {Array} result
    */
-  find: function(target, cb){
-    MongoDB.findOne(target, function(result){
-      //console.log(' result: j%', result);
-      cb(result); 
-    });
+  find: function(cb){
+    MongoDB.connect(function(db){
+         async.parallel({
+            hit: function(cb){
+                MongoDB.find(db,'hit', function(doc){
+                    cb(null, doc);
+                });
+            },
+            notice:  function(cb){
+                MongoDB.find(db, 'notice', function(doc){
+                    cb(null, doc);
+                });
+            },
+            worker: function(cb){
+                MongoDB.find(db, 'worker', function(doc){
+                    cb(null, doc);
+                });
+            }
+        }, function(err, result) {
+           assert.equal(null, err);
+           db.close();
+           cb(result);
+        });
+    })
   }
 }
 

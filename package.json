@@ -6,6 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "async": "^2.0.0",
     "basic-auth": "latest",
     "connect-busboy": "0.0.2",
     "ejs": "latest",

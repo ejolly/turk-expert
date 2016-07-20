@@ -34,26 +34,29 @@
 
                 <div class="row">
                     <div class="col-lg-6">
-                        <h2>HIT Database</h2>
+                        <h2>HIT </h2>
+                        <h4>Total <%= hit.length %> Documents</h4>
                         <div class="table-responsive">
-                            <table class="table table-bordered table-hover table-striped">
+                            <table id="hit" class="table table-bordered table-hover table-striped">
                                 <thead>
                                     <tr>
                                         <th>_id</th>
-                                        <th>Data</th>
-                                        <th>QueryName</th>
-                                        <th>Url</th>
-                                        <th>URLTitle</th>
+                                        <th>Treatment</th>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                        <th>Keywords</th>
+                                        <th>Reward</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                        <% for(var i=0; i<hit.length; i++) { %>
                                         <tr>
                                             <td><%= hit[i]._id %></td>
-                                            <td><%= hit[i].Data %></td>
-                                            <td><%= hit[i].QueryName %></td>
-                                            <td><%= hit[i].Url %></td>
-                                            <td><%= hit[i].URLTitle %></td>
+                                            <td><%= hit[i].Treatment %></td>
+                                            <td><%= hit[i].Title %></td>
+                                            <td><%= hit[i].Description %></td>
+                                            <td><%= hit[i].Keywords %></td>
+                                            <td><%= hit[i].Reward %></td>
                                         </tr>
                                         <% } %>                                 
                                 </tbody>
@@ -63,26 +66,69 @@
 
 
                     <div class="col-lg-6">
-                        <h2>NOTICE Database</h2>
+                        <h2>NOTICE </h2>
+                        <h4>Total <%= notice.length %> Documents</h4>
                         <div class="table-responsive">
-                            <table class="table table-bordered table-hover table-striped">
+                            <table  id="notice" class="table table-bordered table-hover table-striped">
                                 <thead>
                                     <tr>
                                         <th>_id</th>
-                                        <th>Data</th>
-                                        <th>QueryName</th>
-                                        <th>Url</th>
-                                        <th>URLTitle</th>
+                                        <th>Treatment</th>
+                                        <th>WorkerId</th>
+                                        <th>Subject</th>
+                                        <th>MessageText</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                        <% for(var i=0; i<notice.length; i++) { %>
                                         <tr>
                                             <td><%= notice[i]._id %></td>
-                                            <td><%= notice[i].Data %></td>
-                                            <td><%= notice[i].QueryName %></td>
-                                            <td><%= notice[i].Url %></td>
-                                            <td><%= notice[i].URLTitle %></td>
+                                            <td><%= notice[i].Treatment %></td>
+                                            <td><%= notice[i].WorkerId %></td>
+                                            <td><%= notice[i].Subject %></td>
+                                            <td><%= notice[i].MessageText %></td>
+                                        </tr>
+                                        <% } %>                                 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2>WORKER </h2>
+                        <h4>Total <%= worker.length %> Documents</h4>
+                        <div class="table-responsive">
+                            <table  id="worker" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>_id</th>
+                                        <th>Treatment</th>
+                                        <th>WorkerId</th>
+                                        <th>age</th>
+                                        <th>country</th>
+                                        <th>gender</th>
+                                        <th>forumVisits</th>
+                                        <th>forumPosts</th>
+                                        <th>numKnown</th>
+                                        <th>workerType</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                       <% for(var i=0; i<worker.length; i++) { %>
+                                        <tr>
+                                            <td><%= worker[i]._id %></td>
+                                            <td><%= worker[i].Treatment %></td>
+                                            <td><%= worker[i].WorkerId %></td>
+                                            <td><%= worker[i].age %></td>
+                                            <td><%= worker[i].country %></td>
+                                            <td><%= worker[i].gender %></td>
+                                            <td><%= worker[i].forumVisits %></td>
+                                            <td><%= worker[i].forumPosts %></td>
+                                            <td><%= worker[i].numKnown %></td>
+                                            <td><%= worker[i].workerType %></td>
                                         </tr>
                                         <% } %>                                 
                                 </tbody>
@@ -90,7 +136,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- /.row -->
 
             </div>
             <!-- /.container-fluid -->
@@ -106,6 +151,19 @@
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
+
+    
+    <script src="//code.jquery.com/jquery-1.12.3.js"></script> 
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script> 
+    <script src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js "></script>
+
+    <script>
+        jQuery(document).ready(function() {
+            jQuery('#hit').DataTable();
+            jQuery('#notice').DataTable();
+            jQuery('#worker').DataTable();
+        } );
+    </script>
 
 </body>
 

@@ -156,7 +156,7 @@
                                 <div class="panel panel-success">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Upload From CSV</legend>
+                                            <legend>Upload HITs From CSV</legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
@@ -185,11 +185,11 @@
                                 <div class="panel panel-success">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Publish From DB</legend>
+                                            <legend>Publish HITs From DB</legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
-                                        <form class="form-horizontal">
+                                        <form method='post' action='api/hits' class="form-horizontal">
                                             <button class="btn btn-success pull-right" type="submit">Publish</button>
                                         </form>
                                     </div>
@@ -387,7 +387,7 @@
                                             <div class="form-group">
                                                 <label class="col-sm-4">Message</label>
                                                 <div class="col-sm-8">
-                                                    <textarea required="" name="MessageText" class="form-control" placeholder="Enter text"></textarea>
+                                                    <textarea required="" name="MessageText" class="form-control" placeholder="Enter text" rows="12" style="height: 275px;"></textarea>
                                                 </div>
                                             </div>
                                             <button class="btn btn-info pull-right" type="submit">Send</button>
@@ -400,7 +400,7 @@
                                 <div class="panel panel-success">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Upload From CSV</legend>
+                                            <legend>Upload Notices From CSV</legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
@@ -429,11 +429,40 @@
                                 <div class="panel panel-success">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Send From DB</legend>
+                                            <legend>Upload Workers From CSV</legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
-                                        <form class="form-horizontal">
+                                        <form class="form-horizontal" method='post' action='uploadWorker' enctype="multipart/form-data">
+                                            <div class="form-group">
+                                                <label class="col-sm-3">File input</label>
+                                                <div class="col-sm-9">
+                                                    <input type="file" name='Worker-CSV-Uploader' accept=".csv">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label id="Worker-CSV-Result" class="col-sm-9">
+                                                    <script>
+                                                    var workerUploadResult = window.location.href.split('workerUploadResult=')[1];
+                                                    if(workerUploadResult){
+                                                        document.getElementById("Worker-CSV-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(workerUploadResult) +'</p>';
+                                                    }
+                                                    </script>
+                                                </label>
+                                            </div>
+                                            <button class="btn btn-success pull-right" type="submit">Upload</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Send Notices From DB</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form class="form-horizontal" method='post' action=''>
                                             <button class="btn btn-success pull-right" type="submit">Send</button>
                                         </form>
                                     </div>

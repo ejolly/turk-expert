@@ -57,13 +57,9 @@ router.get('/charts', function (req, res) {
 //Query all the db collections - TODO Modulize
 router.get('/tables', function (req, res) {
     //basicAuth(req,res,'pages/tables');
-    // ['hit','notice'] worker, assignment data inject in realtime
-    //TODO: Parallel
-    TurkExpert.find('hit', function(hitDoc){
-        TurkExpert.find('notice', function(noticeDoc){  
-            res.render('pages/tables', {'hit': hitDoc, 'notice': noticeDoc});
-        });    
-    });    
+    TurkExpert.find(function(result){
+       res.render('pages/tables', result);
+    });     
 });
 
 router.get('/manage', function (req, res) {
@@ -76,8 +72,8 @@ router.get('/support', function (req, res) {
     res.render('pages/support');
 });
 
-
-//upload - csv  - TODO Modulize
+/////////////////////// Upload Actions from csv  - TODO Modulize
+//uploadHit 
 router.post('/uploadHit', function (req, res, next) {
     var fstream;
     req.pipe(req.busboy);
@@ -113,7 +109,7 @@ router.post('/uploadHit', function (req, res, next) {
     });
 });
 
-
+//uploadNotice
 router.post('/uploadNotice', function (req, res, next) {
     var fstream;
     req.pipe(req.busboy);
@@ -149,6 +145,41 @@ router.post('/uploadNotice', function (req, res, next) {
     });
 });
 
+//uploadWorker
+router.post('/uploadWorker', function (req, res, next) {
+    var fstream;
+    req.pipe(req.busboy);
+    req.busboy.on('file', function (fieldname, file, filename) {
+        console.log("Uploading: " + filename + ' to path ->'+ __dirname + '/data/');
+
+        //step 1
+        //Path where image will be uploaded
+        fstream = fs.createWriteStream(__dirname + '/data/' + filename);
+        file.pipe(fstream);
+        fstream.on('close', function () {
+            console.log("Uploaded: " + filename);
+            
+            //step 2
+            // persist into mongo
+            // script.js
+            var exec = require('child_process').exec;
+            var command = 'mongoimport -h localhost -d turkexpert -c worker --type csv --headerline --file '+ __dirname + '/data/' + filename;
+            var output = null;
+            exec(command, function(error, stdout, stderr) {
+                console.log('stdout: ', stdout);
+                console.log('stderr: ', stderr);
+                console.log('---------------');
+                output = stdout + stderr;
+                if (error !== null) {
+                    console.log('exec error: ', error);
+                }
+                //step 3
+                res.redirect('manage?workerUploadResult=' + output);  //where to go next + output
+            });
+
+        });
+    });
+});
 
 
 //TBD
@@ -214,8 +245,16 @@ router.post('/api/hit', function (req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(e, null, 2));
     });
-    //TODO: Batch Call from DB - hit
+    
 });
+
+router.post('/api/hits', function (req, res) {
+    //TODO: Batch Call from DB - hit
+    console.log('Batch pubsh from DB!');
+    //TurkExpert
+    res.send(200);
+});
+
 
 router.post('/api/notice', function (req, res) {
     //HIT schema -> /src/model/hit.ts
