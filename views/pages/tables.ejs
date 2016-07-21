@@ -33,7 +33,7 @@
                 <!-- /.row -->
 
                 <div class="row">
-                    <div class="col-lg-6">
+                    <div class="col-lg-12">
                         <h2>HIT </h2>
                         <h4>Total <%= hit.length %> Documents</h4>
                         <div class="table-responsive">
@@ -42,6 +42,8 @@
                                     <tr>
                                         <th>_id</th>
                                         <th>Treatment</th>
+                                        <th>HITTypeId</th>
+                                        <th>HITId</th>
                                         <th>Title</th>
                                         <th>Description</th>
                                         <th>Keywords</th>
@@ -53,6 +55,8 @@
                                         <tr>
                                             <td><%= hit[i]._id %></td>
                                             <td><%= hit[i].Treatment %></td>
+                                            <td><%= hit[i].hitTypeId %></td>
+                                            <td><%= hit[i].hitId %></td>
                                             <td><%= hit[i].Title %></td>
                                             <td><%= hit[i].Description %></td>
                                             <td><%= hit[i].Keywords %></td>
@@ -64,7 +68,9 @@
                         </div>
                     </div>
 
-
+                </div>
+                <!-- /.row -->
+                <div class="row">
                     <div class="col-lg-6">
                         <h2>NOTICE </h2>
                         <h4>Total <%= notice.length %> Documents</h4>
@@ -93,10 +99,6 @@
                             </table>
                         </div>
                     </div>
-
-                </div>
-                <!-- /.row -->
-                <div class="row">
                     <div class="col-lg-6">
                         <h2>WORKER </h2>
                         <h4>Total <%= worker.length %> Documents</h4>

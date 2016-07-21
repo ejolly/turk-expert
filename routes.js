@@ -184,12 +184,9 @@ router.post('/uploadWorker', function (req, res, next) {
 //batchCreateHits
 router.post('/publishHits', function (req, res) {
     //Batch Call from DB - hits
-    var output = null;
-    TurkExpert.publishHits(function(e){
-        var output = e;
-        res.redirect('manage?hitPublishResult=' + output);  
-    })
-   
+    TurkExpert.publishTreatments(["control", "costly", "framing", "reciprocity", "reputation"], function(result){
+        res.redirect('manage?hitPublishResult='+ result);  
+    });   
 });
 
 

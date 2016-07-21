@@ -8,22 +8,38 @@ var MongoClient = require('mongodb').MongoClient,
   // Fixed: npm install mongodb --save
   assert = require('assert'),
   config = require('../config').db.mongo;
-  //TODO: Pooling
+
 
 
 var MongoDB = {
-  connect: function(cb){
+
+  connect: function(cb){   //TODO: Pooling 
      MongoClient.connect(config.url, function (err, db) {
       assert.equal(null, err);
       console.log("Connected to DB.");
       cb(db);
     });
   },
-  find: function (db, name, cb) {
-    var cursor = db.collection(name).find();
+  find: function (db, name, options, cb) {   //TODO: Add limit support 
+    var cursor = db.collection(name).find(options);
     var result = []; //{};
     //result[name] = []
-    console.log("collection: ", name);
+    console.log("Find collection: ", name);
+    cursor.each(function (err, doc) {
+      assert.equal(err, null);
+      if (doc != null) {
+        result.push(doc);
+      } else {
+        //end
+        cb(result);
+      }
+    });
+  },
+  aggregate: function (db, name, options, cb) {
+    var cursor = db.collection(name).aggregate(options);
+    var result = []; //{};
+    //result[name] = []
+    console.log("Aggregate collection: ", name);
     cursor.each(function (err, doc) {
       assert.equal(err, null);
       if (doc != null) {

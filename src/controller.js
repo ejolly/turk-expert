@@ -112,12 +112,55 @@ var TurkExpert = {
         });
     },
 
+    RegisterHITType: function (hit, cb) {
+        //Example operation, with params 
+        console.time('RegisterHITType');
+        api.req('RegisterHITType', hit).then(function (res) {
+            //Do something 
+            console.log('RegisterHITType -> ', res);
+            console.timeEnd('RegisterHITType');
+            cb(res);
+        }, function (error) {
+            //Handle error 
+            console.error(error);
+        });
+    },
+    
+
     //////////////////////////////////////////////////////////////////////////
     //Turk Expert API
     /////////////////////////////////////////////////////////////////////////
-    publishHits: function (cb) {
+    publishTreatments: function (treatments, cb) {
+        //parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
+        
+        console.time('publishTreatments');
+        MongoDB.connect(function (db) {
+            async.each(treatments, function(treatment, processPublish) {
+                // MongoDB.aggregate(db, 'hit', [{$match:{Treatment:treatment}}] , function (doc) {
+                //     callback(null, doc);
+                // });
+                // limit: 100
+                // MongoDB.find(db, 'hit', {Treatment:treatment} , function (doc) {
+                //     processPublish(null, doc);
+                // });   
+                publishTreatment(treatment, function(result){
+                    processPublish(result);
+                });            
+            }, function(result) {
+                cb(result + '<br/>All Treatments have been processed successfully.');
+                console.timeEnd('publishTreatments');
+                db.close();
+            }); 
+        });
+
+
+
+
+
+    //private
+    function publishTreatment(treatment, cb) {
         //async waterfall with named functions:
-        console.time('publishHits');
+        console.time('publishTreatment');
         async.waterfall([
             loadHitsFromDB,
             applyFilterLogic,
@@ -128,14 +171,15 @@ var TurkExpert = {
         function loadHitsFromDB(callback) {
             //1. Load all hits into hitList
             MongoDB.connect(function (db) {
-                MongoDB.find(db, 'hit', function (doc) {
+                MongoDB.find(db, 'hit', {Treatment:treatment}, function (doc) {
                     callback(null, doc);
+                    db.close();
                 });
             });
         }
         function applyFilterLogic(hitList, callback) {
             //2. TOOD: Apply publish logic filter into targetList -, treatment parallel, map to model
-            var limit = 5; // publish only 100 hits in same treatment / period
+            var limit = 2; // publish only 100 hits in same treatment / period
             async.map(hitList.slice(0, limit), function (entry, processModel) {
                 //map to HIT model, use Typescript compiled data schema -> /build/model
                 var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>'+config.externalUrl+'</ExternalURL><FrameHeight>'+config.frameHeight+'</FrameHeight></ExternalQuestion>';
@@ -143,7 +187,7 @@ var TurkExpert = {
                 //console.log('Generate HIT: ', hit);
                 processModel(null, hit);
             }, function (err, result) {
-                // results is now an array of stats for each file
+                // results is now an array for each file
                 callback(null, result);
             });
 
@@ -155,9 +199,14 @@ var TurkExpert = {
                 //console.log('Processing HIT: ', hit);
                 //These requests will be queued and executed at a rate of 3 per second
                 console.time('CreateHIT ',(targetList.indexOf(hit)+1));
+                //register First One in each group and createHit for the rest with the HITTypeId
                 api.req('CreateHIT', hit).then(function (res) {
                     console.timeEnd('CreateHIT ',(targetList.indexOf(hit)+1));
-                    //console.log('CreateHIT -> ', res);
+                    console.log('CreateHIT -> j%', res);
+                    
+                    //persistHitIntoDB asynchronously
+                    //persistHitIntoDB(res);
+
                     processPublish(null); //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
                 }, function (error) {
                     //Handle error 
@@ -169,14 +218,29 @@ var TurkExpert = {
                 if( err ) {
                 // One of the iterations produced an error.
                 // All processing will now stop.
+                  console.log('HIT failed to process.');
                   callback(null, 'HIT failed to process.');
                 } else {
+                  console.log('Total '+ targetList.length +' HITs have been processed successfully.');
                   callback(null, 'Total '+ targetList.length +' HITs have been processed successfully.');
                 }
-                console.timeEnd('publishHits');
+                console.timeEnd('publishTreatment');
             });     
         }
+        //asynchronously - excluded from waterfall
+        function persistHitIntoDB(res) {
+             MongoDB.connect(function (db) {
+                MongoDB.update(db, 'hit', {_id: res.hit._id}, function (doc) {
+                    callback(null, doc);
+                    db.close();
+                });
+            });
+        }
+    }
+
     },
+   
+    
 
 
 
@@ -194,17 +258,17 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (cb) {
-                    MongoDB.find(db, 'hit', function (doc) {
+                    MongoDB.aggregate(db, 'hit', {} , function (doc) {
                         cb(null, doc);
                     });
                 },
                 notice: function (cb) {
-                    MongoDB.find(db, 'notice', function (doc) {
+                    MongoDB.find(db, 'notice', {}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 worker: function (cb) {
-                    MongoDB.find(db, 'worker', function (doc) {
+                    MongoDB.find(db, 'worker', {}, function (doc) {
                         cb(null, doc);
                     });
                 }
