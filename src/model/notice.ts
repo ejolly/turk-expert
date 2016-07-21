@@ -1,4 +1,4 @@
-class Notice {
+class NOTICE {
     WorkerId: string; // The ID of the Worker to notify, as returned by the GetAssignmentsForHIT operation. 
     Subject: string;
     MessageText: string;
@@ -11,7 +11,11 @@ class Notice {
 }
 
 
-//test
-let notice = new Notice('WorkerId-AD20WXZZP9XXK','Hello', 'Thank you for your time!');
-console.log('TEST Model - Notice: ', notice);
+////////////////////////////////////////////////////////////////////////////
+// test
+////////////////////////////////////////////////////////////////////////////
+// let notice = new NOTICE('WorkerId-AD20WXZZP9XXK','Hello', 'Thank you for your time!');
+// console.log('TEST Model - Notice: ', notice);
 
+declare var module: any;
+module.exports = NOTICE;

@@ -23,7 +23,7 @@ var MongoDB = {
     var cursor = db.collection(name).find();
     var result = []; //{};
     //result[name] = []
-    console.log("Fine collection: ", name);
+    console.log("collection: ", name);
     cursor.each(function (err, doc) {
       assert.equal(err, null);
       if (doc != null) {

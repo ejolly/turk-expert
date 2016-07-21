@@ -2,14 +2,13 @@
     "mTurk": {
         "access": "<yourAccessKey>",
         "secret": "<yourSecretId>",
-        "sandbox": true
+        "sandbox": true,
+        "externalUrl": "<yourServerUrl>",
+        "frameHeight": 800
     },
     "admin": {
-        "username": "name",
-        "password": "pass"
-    },
-    "server": {
-        "url" : "<yourExternalUrl>"
+        "username": "<yourUsername>",
+        "password": "<yourPassword>"
     },
     "db":{
         "mongo":{

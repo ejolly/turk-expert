@@ -1,9 +1,10 @@
 'use strict';
 var express = require("express"), 
 app = express(),
-busboy = require('connect-busboy'); //middleware for form/file upload
+busboy = require('connect-busboy'); //middleware for form/file upload, before loading routes
 app.use(busboy());
 var router = require("./routes"),
+brand = require('./lib/utils/brand'),
 path = __dirname + '/views/', 
 port = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000, 
 host = process.env.OPENSHIFT_NODEJS_IP;
@@ -21,5 +22,6 @@ app.use('*', function (req, res) {
 
 app.listen(port, host, function () {
     host = host || 'localhost';
-    console.log('Server is running at ' + host + ':' + port);
+    brand.log();
+    console.log('Server is running at ' + host + ':' + port); 
 });

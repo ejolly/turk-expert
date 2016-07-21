@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": false,
+        "removeComments": false,
+        "preserveConstEnums": true,
+        //"outFile": "../../built/tsc.js",
+        "outDir": "build/model",
+        "sourceMap": true,
+        "target": "ES5",
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
+    },
+    "exclude": [
+      "node_modules",
+      "build"
+    ],
+    "files": [
+        "src/model/hit.ts",
+        "src/model/notice.ts",
+        "src/model/worker.ts",
+        "src/model/assignment.ts"
+    ]
+}

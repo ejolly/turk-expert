@@ -189,7 +189,15 @@
                                         </h3>
                                     </div>
                                     <div class="panel-body">
-                                        <form method='post' action='api/hits' class="form-horizontal">
+                                        <form method='post' action='publishHits' class="form-horizontal">
+                                                <label id ="HIT-Publish-Result" class="col-sm-9">
+                                                    <script>
+                                                    var hitPublishResult = window.location.href.split('hitPublishResult=')[1];
+                                                    if(hitPublishResult){
+                                                        document.getElementById("HIT-Publish-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(hitPublishResult) +'</p>';
+                                                    }
+                                                    </script>
+                                                </label>
                                             <button class="btn btn-success pull-right" type="submit">Publish</button>
                                         </form>
                                     </div>

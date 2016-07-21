@@ -1,4 +1,4 @@
-class Assignment {
+class ASSIGNMENT { //Rename: Due to duplicate identifier with ts
     AssignmentId: string;
     WorkerId: string;
     HITId: string;
@@ -34,6 +34,11 @@ interface QuestionFormAnswers{
 
 
 
-//test
-let assignment = new Assignment('AssignmentId-GYFTRHZ5J3DZREY48WNZE38ZR9RR1ZPMXGWE7WE0','WorkerId-AD20WXZZP9XXK', 'HITId-GYFTRHZ5J3DZREY48WNZ');
-console.log('TEST Model - Assignment: ', assignment);
+////////////////////////////////////////////////////////////////////////////
+// test
+////////////////////////////////////////////////////////////////////////////
+// let task = new ASSIGNMENT('AssignmentId-GYFTRHZ5J3DZREY48WNZE38ZR9RR1ZPMXGWE7WE0','WorkerId-AD20WXZZP9XXK', 'HITId-GYFTRHZ5J3DZREY48WNZ');
+// console.log('TEST Model - Assignment: ', task);
+
+declare var module: any;
+module.exports = ASSIGNMENT;

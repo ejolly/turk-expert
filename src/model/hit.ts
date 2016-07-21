@@ -11,7 +11,7 @@ class HIT {
     Title: string;  //2
     Description: string; //2
     Keywords: string;
-    Question: Question;
+    Question: string; //1 //2 - See Question interface below
     QualificationRequirement: QualificationRequirement;
     HITReviewStatus: HITReviewStatus; //generated
     //conditional
@@ -21,9 +21,9 @@ class HIT {
 
     //default is public
     //Overloading in TypeScript 
-    constructor(title: string, description: string, assignmentDurationInSeconds: number, lifetimeInSeconds: number, reward: Price);
+    constructor(title: string, description: string, keywords: string, question: string,  maxAssignments: number, assignmentDurationInSeconds: number, lifetimeInSeconds: number, autoApprovalDelayInSeconds: number, reward: Price);
     constructor(hitTypeId: string, lifetimeInSeconds: number);
-    constructor(titleOrId: string, descriptionOrSeconds: any, assignmentDurationInSeconds?: number, lifetimeInSeconds?: number, reward?: Price) {
+    constructor(titleOrId: string, descriptionOrSeconds: any, keywords?: string, question?: string,  maxAssignments?: number, assignmentDurationInSeconds?: number, lifetimeInSeconds?: number, autoApprovalDelayInSeconds?: number, reward?: Price) {
         //required field only
         if (typeof descriptionOrSeconds === 'number') {
             // 1.Calling CreateHIT with a HIT Type ID
@@ -33,8 +33,12 @@ class HIT {
             // 2.Calling CreateHIT without a HIT Type ID
             this.Title = titleOrId;
             this.Description = descriptionOrSeconds;
+            this.Keywords = keywords;
+            this.Question = question;
+            this.MaxAssignments = maxAssignments;
             this.AssignmentDurationInSeconds = assignmentDurationInSeconds;
             this.LifetimeInSeconds = lifetimeInSeconds;
+            this.AutoApprovalDelayInSeconds = autoApprovalDelayInSeconds;
             this.Reward = reward;
         }
     }
@@ -59,9 +63,15 @@ interface Question { //Type: either a QuestionForm (XML) or an ExternalQuestion 
     // turkSubmitTo, 
     // workerId. 
     // For more information about these appended parameters, see the sections following this table. 
+    //
+    //i.e. XML string
+    //'<ExternalQuestion xmlns="[the ExternalQuestion schema URL]">
+    //   <ExternalURL>https://tictactoe.amazon.com/gamesurvey.cgi?gameid=01523</ExternalURL>
+    //   <FrameHeight>400</FrameHeight>
+    // </ExternalQuestion>'
     //////////////////////////////////////////////////////////////////////////////////////////////////////
-    ExternalURL: string;     //URL - Default set in config.json
-    FrameHeight: number;
+    // ExternalURL: string;     //URL - Default set in config.json
+    //FrameHeight: number;
 }
 
 interface QualificationRequirement {
@@ -85,11 +95,13 @@ type Comparator = 'LessThan' | 'LessThanOrEqualTo' | 'GreaterThan' | 'GreaterTha
 type HITReviewStatus = 'NotReviewed' | 'MarkedForReview' | 'ReviewedAppropriate' | 'ReviewedInappropriate';
 
 
+////////////////////////////////////////////////////////////////////////////
 // test
-let hit1 = new HIT('title', 'description', 86400, 604800);
-let hit2 = new HIT('HITId-T100CN9P324W00EXAMPLE', 604800);
-console.log('TEST Model - HIT: ', hit1);
-console.log('TEST Model - HIT: ', hit2);
+////////////////////////////////////////////////////////////////////////////
+// let hit1 = new HIT('title', 'description', 'keywords', '<ExternalQuestion xmlns="[the ExternalQuestion schema URL]"><ExternalURL>https://tictactoe.amazon.com/gamesurvey.cgi?gameid=01523</ExternalURL><FrameHeight>400</FrameHeight></ExternalQuestion>', 1, 86400, 120, 10, {'Amount':0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10'});
+// let hit2 = new HIT('HITId-T100CN9P324W00EXAMPLE', 604800);
+// console.log('TEST Model - HIT: ', hit1);
+// console.log('TEST Model - HIT: ', hit2);
 
 ////////////////////////////////////////////////////////////////////////////
 // HIT XML schema:
@@ -123,3 +135,8 @@ console.log('TEST Model - HIT: ', hit2);
 //   </QualificationRequirement>
 //   <HITReviewStatus>NotReviewed</HITReviewStatus>
 // </HIT>
+
+
+//hacky way to use ts with js
+declare var module: any;
+module.exports = HIT;

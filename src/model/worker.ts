@@ -1,4 +1,4 @@
-class Turker {
+class WORKER {
     WorkerId: string;
     //conditional
     name: string;
@@ -14,7 +14,11 @@ class Turker {
 }
 
 
-//test
-let turker = new Turker('WorkerId-AD20WXZZP9XXK');
-console.log('TEST Model - Turker: ', turker);
+////////////////////////////////////////////////////////////////////////////
+// test
+////////////////////////////////////////////////////////////////////////////
+// let turker = new WORKER('WorkerId-AD20WXZZP9XXK');
+// console.log('TEST Model - Turker: ', turker);
 
+declare var module: any;
+module.exports = WORKER;
