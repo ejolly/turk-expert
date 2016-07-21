@@ -4,7 +4,6 @@
         "noImplicitAny": false,
         "removeComments": false,
         "preserveConstEnums": true,
-        //"outFile": "../../built/tsc.js",
         "outDir": "build/model",
         "sourceMap": true,
         "target": "ES5",
