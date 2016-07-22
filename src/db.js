@@ -20,8 +20,8 @@ var MongoDB = {
       cb(db);
     });
   },
-  find: function (db, name, options, cb) {   //TODO: Add limit support 
-    var cursor = db.collection(name).find(options);
+  find: function (db, name, query, fields, options, cb) {   //TODO: Add limit support 
+    var cursor = db.collection(name).find(query, fields, options);
     var result = []; //{};
     //result[name] = []
     console.log("Find collection: ", name);
@@ -35,8 +35,8 @@ var MongoDB = {
       }
     });
   },
-  aggregate: function (db, name, options, cb) {
-    var cursor = db.collection(name).aggregate(options);
+  aggregate: function (db, name, query, fields, options, cb) {
+    var cursor = db.collection(name).aggregate(query, fields, options);
     var result = []; //{};
     //result[name] = []
     console.log("Aggregate collection: ", name);
