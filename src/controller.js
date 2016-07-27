@@ -319,10 +319,10 @@ var TurkExpert = {
                     }
                 }, function (err, result) {
                     assert.equal(null, err);
-                    var notice = new NOTICE('test worker ID', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, hitList[0].hit)); //result.worker[0].WorkerId
+                    var notice = new NOTICE('test worker ID', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, hitList[0].hit)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
-                        console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
+                        //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
                         console.timeEnd('contactWorkers');
                         callback(null, hitList.length);
                     }, function (error) {
@@ -333,9 +333,8 @@ var TurkExpert = {
                     });                    
                 });
 
-                function formatMessageText(origin, hit){
-                    //TODO: UPdate tempalte
-                    var template = 'Dear Worker, \n Test <TITLE> test test <DATETIME> test test <REWARD> test test <CODE> test test this -> URL: https://workersandbox.mturk.com/mturk/preview?groupId=390EOHYPJ3A4XE7EL3NUM12T6IG3X6. \n N [this](https://workersandbox.mturk.com/mturk/preview?groupId=390EOHYPJ3A4XE7EL3NUM12T6IG3X6.) \n OR this -> URL: <a href="https://workersandbox.mturk.com/mturk/preview?groupId=390EOHYPJ3A4XE7EL3NUM12T6IG3X6">THIS</a>. \n Or This [https://workersandbox.mturk.com/mturk/preview?groupId=390EOHYPJ3A4XE7EL3NUM12T6IG3X6] One \n This TEST https://workersandbox.mturk.com/mturk/preview?groupId=390EOHYPJ3A4XE7EL3NUM12T6IG3X6) Reciprocity';
+                function formatMessageText(template, hit){
+                    //TODO: Update tempalte
                     return template.replace('<TITLE>', hit.Title)
                     .replace('<DATETIME>', hit.lastModified)
                     .replace('<REWARD>', hit.Reward.FormattedPrice)
