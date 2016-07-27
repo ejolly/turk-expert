@@ -1,0 +1,19 @@
+.centered {
+  text-align: center;
+  padding-top: 2em;
+  font-size: 14px;
+}
+
+.imagecontainer { 
+  display:block; 
+  border: 1em solid #FFFFFF; 
+  margin: auto; 
+  height: auto; 
+  width: 350px
+ } 
+ .authFeedback {
+  text-align: center;
+  color: #FF2D4E;
+  visibility: hidden;
+ }
+

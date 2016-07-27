@@ -156,12 +156,13 @@ var TurkExpert = {
         });
         function connectToDB(callback) {
             MongoDB.connect(function (db) {
-                callback(null, db);
+                var publishDate = makePublishTime(); 
+                callback(null, db, publishDate);
             });
         }
-        function publishTreatment(db, callback) {
+        function publishTreatment(db, publishDate, callback) {
             async.each(treatments, function (treatment, processTreatment) {
-                publish(db, treatment, function (result) {
+                publish(db, treatment, publishDate, function (result) {
                     processTreatment(result);
                 });
             }, function (count) {
@@ -172,9 +173,16 @@ var TurkExpert = {
             db.close();
             callback(null, result);
         }
+        //West-Coast Date Time for publishing  
+        function makePublishTime() {
+            var options = { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+            var today = new Date();
+            return today.toLocaleString('en-US', options);
+        }
+
 
         //private
-        function publish(db, treatment, cb) {
+        function publish(db, treatment, publishDate, cb) {
             //async waterfall with named functions:
             console.time('publishTreatment');
             async.waterfall([
@@ -199,7 +207,7 @@ var TurkExpert = {
                 async.map(hitList, function (entry, processModel) {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
-                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + new Date(), entry.Keywords, questionString, 1, 30, 120, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
+                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, 1, 30, 120, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
                     processModel(null, { id: id, hit: hit });
                 }, function (err, result) {
