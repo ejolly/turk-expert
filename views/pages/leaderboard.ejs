@@ -1,0 +1,43 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <script src="//code.jquery.com/jquery-1.12.3.js"></script> 
+    <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/public/css/client.css"/>
+    <title>
+        Welcome to the Experiment - Powered by Turk Expert v0.1.0
+    </title>
+</head>
+
+    <body>
+        <div class="container">
+        <h1 style="text-align: center">HIT Sharing</h1>
+        <p style="text-align: center">This table ranks HITs by the number of unique Workers that have completed them.</p>
+        <table class = "table leaderboard">
+            <thead>
+                <tr>
+                    <th>HIT Name</th>
+                    <th>Proportion of Shares</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for (var i=0; i < items.length; i++) { %>
+                <tr>
+                    <td>
+                        <%= items[i].name %>
+                    </td>
+                    <td>
+                        <%= items[i].numShares %>
+                    </td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+        </div>
+    </body>
+</html>

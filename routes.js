@@ -13,7 +13,10 @@ router.use(function (req, res, next) {
     //basic auth every endpoint except get /
     if (req.method === 'GET' && req.url === '/') {
         next();
-    } else {
+    } else if (req.method === 'GET' && req.url === '/leaderboard'){
+        next();
+    }
+     else {
         var user = auth(req);
         if (!user || user.name !== conf.admin.username || user.pass !== conf.admin.password) {
             res.statusCode = 401
@@ -38,6 +41,22 @@ router.get('/', function (req, res) {
     });
 
 });
+
+router.get('/leaderboard', function (req, res) {
+    //client app
+    //TODO: call api for auth, content
+    res.render('pages/leaderboard', {
+        //just for testing,  
+        "items": 
+        [
+            {"name": "abc", "numShares": "100"},
+            {"name": "xyz", "numShares": "75"},
+            {"name": "cdc", "numShares": "0"}
+        ]
+    });
+
+});
+
 
 // var basicAuth = function (req, res, target) {
 //     var user = auth(req);

@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css"/>
-<link rel="stylesheet" type="text/css" href="/public/css/custom.css"/>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+	<script src="//code.jquery.com/jquery-1.12.3.js"></script> 
+	<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/public/css/client.css"/>
     <title>
         Welcome to the Experiment - Powered by Turk Expert v0.1.0
     </title>
@@ -61,16 +68,13 @@
 </div>
 -->
 
-
 <script>
 	var authResult = window.location.href.split('validationSucess=')[1];
 	if(!authResult){
 		$('.authFeedback').css("visibility", "visible");
 	}
 </script>
-
-<script src="//code.jquery.com/jquery-1.12.3.js"></script> 
-  
+ 
 </body>
 
 </html>
