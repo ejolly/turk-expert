@@ -250,7 +250,7 @@ var TurkExpert = {
                         //Update hit Object
                         hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
                             hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                            hitObj.hit.Experiment = array[i],
+                            hitObj.hit.Content = array[i],
                             hitObj.hit.Code = code;
 
                         processPublish(null);
@@ -277,13 +277,13 @@ var TurkExpert = {
             //async each - added into waterfall
             function persistHitIntoDB(hitList, callback) {
                 async.each(hitList, function (hitObj, processPersist) {
-                    //console.log('Persist into DB -> {_id:'+ hitObj.id + ' HITTypeId:' + hitObj.hit.HITTypeId + ' HITId:' + hitObj.hit.HITId + ' Experiment:'+ hitObj.hit.Experiment + ' Code:' + hitObj.hit.Code +'}');
+                    //console.log('Persist into DB -> {_id:'+ hitObj.id + ' HITTypeId:' + hitObj.hit.HITTypeId + ' HITId:' + hitObj.hit.HITId + ' Content:'+ hitObj.hit.Content + ' Code:' + hitObj.hit.Code +'}');
                     MongoDB.update(db, 'hit', { _id: hitObj.id },
                         {
                             $set: {
                                 HITTypeId: hitObj.hit.HITTypeId,
                                 HITId: hitObj.hit.HITId,
-                                Experiment: hitObj.hit.Experiment,
+                                Content: hitObj.hit.Content,
                                 Code: hitObj.hit.Code
                             },
                             $currentDate: { "lastModified": true }
