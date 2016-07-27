@@ -5,7 +5,7 @@ class NOTICE {
 
     constructor(id: string, subject:string, messageText:string) {
         this.WorkerId = id;
-        this.Subject = name;
+        this.Subject = subject;
         this.MessageText = messageText;
     }
 }

@@ -44,10 +44,13 @@
                                         <th>Treatment</th>
                                         <th>HITTypeId</th>
                                         <th>HITId</th>
+                                        <th>Experiment</th>
+                                        <th>Code</th>
                                         <th>Title</th>
                                         <th>Description</th>
                                         <th>Keywords</th>
                                         <th>Reward</th>
+                                        <th>lastModified</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -55,12 +58,15 @@
                                         <tr>
                                             <td><%= hit[i]._id %></td>
                                             <td><%= hit[i].Treatment %></td>
-                                            <td><%= hit[i].hitTypeId %></td>
-                                            <td><%= hit[i].hitId %></td>
+                                            <td><%= hit[i].HITTypeId %></td>
+                                            <td><%= hit[i].HITId %></td>
+                                            <td><%= hit[i].Experiment %></td>
+                                            <td><%= hit[i].Code %></td>
                                             <td><%= hit[i].Title %></td>
                                             <td><%= hit[i].Description %></td>
                                             <td><%= hit[i].Keywords %></td>
                                             <td><%= hit[i].Reward %></td>
+                                            <td><%= hit[i].lastModified %></td>
                                         </tr>
                                         <% } %>                                 
                                 </tbody>

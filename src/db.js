@@ -57,6 +57,17 @@ var MongoDB = {
       result[item] = db.collection(item).find().toArray();
     });
     cb(result);
+  },
+  update: function(db, name, query, fields, options, cb){
+    db.collection(name).updateOne(query, fields, options).then(function(r) {
+        // assert.equal(1, r.result.n);
+        // assert.equal(1, r.result.nModified);
+        // assert.equal(1, r.matchedCount);
+        // assert.equal(1, r.modifiedCount);
+        // assert.equal(0, r.upsertedCount); 
+        console.log('PersistHIT -> ', query._id);    //+ r.result.n + ' docs'
+        cb(r);
+    });
   }
 }
 
