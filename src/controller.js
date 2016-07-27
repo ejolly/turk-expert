@@ -319,7 +319,7 @@ var TurkExpert = {
                     }
                 }, function (err, result) {
                     assert.equal(null, err);
-                    var notice = new NOTICE('A32D5DD50BKQ6Y', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, hitList[0].hit)); //result.worker[0].WorkerId
+                    var notice = new NOTICE('test worker ID', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, hitList[0].hit)); //result.worker[0].WorkerId
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
