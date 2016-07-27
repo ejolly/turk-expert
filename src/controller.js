@@ -338,7 +338,11 @@ var TurkExpert = {
                     return template.replace('<TITLE>', hit.Title)
                     .replace('<DATETIME>', hit.lastModified)
                     .replace('<REWARD>', hit.Reward.FormattedPrice)
-                    .replace('<CODE>', hit.Code);
+                    .replace('<CODE>', hit.Code)
+                    .replace('<LIFETIME>', parseInt(hit.LifetimeInSeconds/3600) + 'hrs')
+                    .replace('<HITURL>','replaceWithHITGroupURL') //TODO
+                    .replace('<POSTPONEURL>','replacewithPostponeEndpoint') //TODO
+                    .replace('<LEADERBOARDURL>', 'app.com/leaderboard') //TODO
                 }
                 
             }
