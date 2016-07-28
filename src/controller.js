@@ -171,7 +171,7 @@ var TurkExpert = {
             }, function (err, result) {
                 assert.equal(null, err);
                 db.close();
-                //Authenticate Logic: 1. master code match 2. hitId still valid - published 3. Hittype match
+                //Authenticate Logic: 1. invited code match 2. hitId still valid - published 3. Hittype match
                 if (result.hit.length === 0) { 
                     cb({ code: 404 }); //hit not found or expired
                 } else if (result.hit.length === 1) {
@@ -179,6 +179,7 @@ var TurkExpert = {
                         cb({
                             code: 422, 
                             content: result.hit[0].Content,
+                            type: 'shared',
                             obj: {
                                 hid: result.hit[0].HITTypeId,
                                 wid: workerId
@@ -188,30 +189,33 @@ var TurkExpert = {
                         if (result.authentication[0].Authenticated) {
                             cb({ 
                                 code: 200,
+                                type: result.authentication[0].Type,
                                 content: result.hit[0].Content
-                             }); //worker already authenticated
+                             }); //worker already authenticated - repated
                         } else {
                             cb({
                                 code: 422, 
                                 content: result.hit[0].Content,
+                                type: 'invited',
                                 obj: {
                                     hid: result.hit[0].HITTypeId,
                                     wid: workerId
                                 }
-                            });//master not authenticated
+                            });//invited not authenticated
                         }
                     }
                 }
             });
         })
     },
-    validateCode: function (content, obj, code, cb) {
+    validateCode: function (type, content, obj, code, cb) {
         MongoDB.connect(function (db) {
             MongoDB.find(db, 'authentication', { HITTypeId: obj.hid, Code: code }, {}, {}, function (doc) {
                 if (doc.length === 0) { // authentication failed
                     cb({
                         code: 403,
                         content: content,
+                        type: type,
                         obj: obj
                     });
                 } else {
@@ -239,9 +243,10 @@ var TurkExpert = {
                         {
                             upsert: true,
                             w: 1
-                        }, function (r) { // authentication success
+                        }, function (r) { // authentication success - The Very First Time !
                             cb({
                                 code: 200,
+                                firstTimeUser: type,
                                 content: content
                                 //obj: obj //no more authentication params
                             });
@@ -428,6 +433,17 @@ var TurkExpert = {
             function contactWorkers(hitList, callback) {
                 console.time('contactWorkers');
                 async.parallel({
+                    groupId: function (mturkcb) {
+                        api.req('GetHIT', { HITId: hitList[0].hit.HITId}).then(function (res) {
+                            //Do something 
+                            console.log('GetGroupId -> ', res.GetHITResponse.HIT[0].HITGroupId[0]);
+                            mturkcb(null, res.GetHITResponse.HIT[0].HITGroupId[0]);
+                        }, function (error) {
+                            //Handle error 
+                            console.error(error);
+                            mturkcb(error, null);
+                        });
+                    },
                     notice: function (mongocb) {
                         MongoDB.find(db, 'notice', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {
                             mongocb(null, doc);
@@ -442,7 +458,7 @@ var TurkExpert = {
                     assert.equal(null, err);
                     var currentHit = hitList[0].hit;
                     var currentWorker = result.worker[0];
-                    var notice = new NOTICE('TEST', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var notice = new NOTICE('TEST', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit, groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
@@ -456,15 +472,15 @@ var TurkExpert = {
                     });
                 });
 
-                function formatMessageText(template, hit) {
+                function formatMessageText(template, hit, groupId) {
                     //TODO: Update tempalte
                     return template.replace('<TITLE>', hit.Title)
                     .replace('<DATETIME>', hit.lastModified)
                     .replace('<REWARD>', hit.Reward.FormattedPrice)
                     .replace('<CODE>', hit.Code)
                     .replace('<LIFETIME>', parseInt(hit.LifetimeInSeconds/3600) + 'hrs')
-                    .replace('<HITURL>','replaceWithHITGroupURL') //TODO
-                    .replace('<POSTPONEURL>','replacewithPostponeEndpoint') //TODO
+                    .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId='+groupId)
+                    .replace('<POSTPONEURL>','app.com/PostponeEndpoint') //TODO
                     .replace('<LEADERBOARDURL>', 'app.com/leaderboard') //TODO
                 }
 

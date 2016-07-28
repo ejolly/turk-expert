@@ -23,6 +23,7 @@
 		<form method='post' action='validateCode' class='form-horizontal'>
 			<label>Please enter an access code to work on this HIT</label> 
 			<input class="form-control" name="accessCode" size="25" type="text" />
+			<input class="form-control" name="accessType" size="25" type="text" value="<%= e.type %>" style="display:none;"/>
 			<input class="form-control" name="accessContent" size="25" type="text" value="<%= e.content %>" style="display:none;"/>
 			<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;"/>
 			<input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;"/>
@@ -36,7 +37,35 @@
 		</form>
 	</div>
  <% } else{ %>  
+
+	<% if(e.firstTimeUser && e.firstTimeUser === 'invited'){ %>
+	<!-- This modal should pop up if a Worker successfully enters an access code, but we never sent it to them -->
+	<div class="popup" data-keyboard="false" data-backdrop="static" id="preHITSurvey">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">How did you learn about the access code for this HIT?</h4>
+				</div>
+				<div class="modal-body">
+					<div class="radio">
+					<label><input required="" type="radio" name="optradio" value="personal">Personal communication with another Turker</label>
+					</div>
+					<div class="radio">
+					<label><input required= "" type="radio" name="optradio" value="forum">I saw the access code posted online</label>
+					</div>
+					<div class="input-group" style="margin-left: 3em">Please enter the name of the forum, group or website where you saw the access code posted: <input name="whichForum" size="1" style="height: 1.5em; width: 5em" type="text" /></div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary">Proceed</button> 
+				</div>
+			</div>
+		</div>
+	</div>
+	<% } else { %>
+
 	<!-- Main HIT Content -->
+
+	<form id="HIT-Form" action="mturk/externalSubmit" method="POST">
 	<div class="col-xs-4 col-xs-offset-4">
 		<div>
 			<img alt="image_url" class="imagecontainer" src="images/<%= e.content %>.jpeg" />
@@ -47,35 +76,27 @@
 		<div class="centered">
 			<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">
 		</div>
-		
 	</div>
+	</form>
+
+
+	<script>
+	    var turkSubmitTo = window.location.href.split('turkSubmitTo=')[1];
+			if(turkSubmitTo){
+				//alert('turkSubmitTo='+ turkSubmitTo);
+				document.getElementById("HIT-Form").action = turkSubmitTo+"/mturk/externalSubmit";
+			}
+	</script>
+
+
+	<% } %>
+
+
 <% } %>
 
 
-<!-- This modal should pop up if a Worker successfully enters an access code, but we never sent it to them
-<div class="modal fade" data-keyboard="false" data-backdrop="static" id="preHITSurvey">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">How did you learn about the access code for this HIT?</h4>
-      </div>
-      <div class="modal-body">
-        <div class="radio">
-        <label><input required="" type="radio" name="optradio" value="personal">Personal communication with another Turker</label>
-        </div>
-        <div class="radio">
-        <label><input required= "" type="radio" name="optradio" value="forum">I saw the access code posted online</label>
-        </div>
-        <div class="input-group" style="margin-left: 3em">Please enter the name of the forum, group or website where you saw the access code posted: <input name="whichForum" size="1" style="height: 1.5em; width: 5em" type="text" /></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Proceed</button> 
-      </div>
-    </div>
-  </div>
-</div>
--->
- 
+
+
 </body>
 
 </html>
