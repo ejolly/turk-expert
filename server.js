@@ -8,7 +8,8 @@ brand = require('./lib/utils/brand'),
 path = __dirname + '/views/', 
 port = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000, 
 host = process.env.OPENSHIFT_NODEJS_IP,
-bodyParser = require('body-parser');
+bodyParser = require('body-parser'),
+job = require('./src/scheduler'); //scheduler
 
 app.use(bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({    // to support URL-encoded bodies
@@ -31,4 +32,5 @@ app.listen(port, host, function () {
     host = host || 'localhost';
     brand.log();
     console.log('Server is running at ' + host + ':' + port); 
+    job.start(1);
 });

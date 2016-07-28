@@ -38,7 +38,8 @@
 	</div>
  <% } else{ %>  
 
-	<% if(e.firstTimeUser && e.firstTimeUser === 'invited'){ %>
+	<% if(e.firstTimeUser && e.firstTimeUser != 'shared'){ %>
+	<!-- if e.firstTImeUser === 'Treament' .... all 5 tempaltes -->
 	<!-- This modal should pop up if a Worker successfully enters an access code, but we never sent it to them -->
 	<form id="First-User-Form" action="firstUser" method="POST">
 	<div class="popup" data-keyboard="false" data-backdrop="static" id="preHITSurvey">

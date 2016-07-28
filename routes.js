@@ -16,7 +16,7 @@ router.use(function (req, res, next) {
     } else if (req.method === 'GET' && req.url === '/leaderboard'){
         next();
     }
-     else {
+    else {
         var user = auth(req);
         if (!user || user.name !== conf.admin.username || user.pass !== conf.admin.password) {
             res.statusCode = 401
@@ -28,6 +28,7 @@ router.use(function (req, res, next) {
             next();
         }
     }
+
 });
 
 router.get('/', function (req, res) {

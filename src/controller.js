@@ -196,7 +196,7 @@ var TurkExpert = {
                             cb({
                                 code: 422, 
                                 content: result.hit[0].Content,
-                                type: 'invited',
+                                type: result.authentication[0].Type, // This gonna be the treatmet
                                 obj: {
                                     hid: result.hit[0].HITTypeId,
                                     wid: workerId
@@ -224,18 +224,18 @@ var TurkExpert = {
                     doc.forEach(function(entry){
                         authenticatedWorkers.push(entry.WorkerId); 
                     });
-                    var type = 'shared'; //default
-                    if(authenticatedWorkers.indexOf(obj.wid)=== -1){ //new user
-                        type = 'shared';
+                    var newType = 'shared'; //default
+                    if(authenticatedWorkers.indexOf(obj.wid)=== -1){ 
+                        newType = 'shared'; //new user - shared
                     }else{
-                        type = 'invited';  
+                        newType = type;   // invited
                     }
                     MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
                         {
                             $set: {
                                 WorkerId: obj.wid,
                                 Code: code,
-                                Type: type,
+                                Type: newType,
                                 Authenticated: true
                             },
                             $currentDate: { "lastModified": true }
@@ -243,10 +243,10 @@ var TurkExpert = {
                         {
                             upsert: true,  //should always write new
                             w: 1
-                        }, function (r) { // authentication success - The Very First Time !
+                        }, function (r) { // authentication success - The Very First Time !!!
                             cb({
                                 code: 200,
-                                firstTimeUser: type,
+                                firstTimeUser: newType,
                                 content: content,
                                 obj: obj    //no more authentication params, but keep for first User process
                             });
@@ -382,7 +382,8 @@ var TurkExpert = {
             });
             function loadHitsFromDB(callback) {
                 //1. Load all hits into hitList
-                //publish only n(default n=100) hits in each treatment / period
+                //publish only n(default n=100) hits in each treatment / period 
+                //TODO: only publish new not posponed
                 MongoDB.find(db, 'hit', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {
                     callback(null, doc);
                 });
@@ -394,7 +395,8 @@ var TurkExpert = {
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
                     var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, 1, 30, 120, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
-                    processModel(null, { id: id, hit: hit });
+                    var treatment = entry.Treatment;
+                    processModel(null, { id: id, treatment:treatment, hit: hit });
                 }, function (err, result) {
                     // results is now an array for each file
                     callback(null, result);
@@ -434,9 +436,9 @@ var TurkExpert = {
 
                         //Update hit Object
                         hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
-                            hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                            hitObj.hit.Content = array[i],
-                            hitObj.hit.Code = code;
+                        hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
+                        hitObj.hit.Content = array[i],
+                        hitObj.hit.Code = code;
 
                         processPublish(null);
                         //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
@@ -470,7 +472,8 @@ var TurkExpert = {
                                 HITId: hitObj.hit.HITId,
                                 Content: hitObj.hit.Content,
                                 Code: hitObj.hit.Code,
-                                status: 'published'
+                                status: 'published',
+                                publishDate: publishDate
                             },
                             $currentDate: { "lastModified": true }
                         },
@@ -516,15 +519,16 @@ var TurkExpert = {
                     }
                 }, function (err, result) {
                     assert.equal(null, err);
-                    var currentHit = hitList[0].hit;
                     var currentWorker = result.worker[0];
-                    var notice = new NOTICE('TEST', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit, currentWorker, groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var currentTreatment = hitList[0].treatment;
+                    var currentHit = hitList[0].hit;
+                    var notice = new NOTICE('A32D5DD50BKQ6Y', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
                         console.timeEnd('contactWorkers');
                         //write into db
-                        callback(null, hitList.length, currentWorker, currentHit);
+                        callback(null, hitList.length, currentWorker, currentTreatment, currentHit);
                     }, function (error) {
                         //Handle error 
                         console.error(error);
@@ -533,7 +537,6 @@ var TurkExpert = {
                 });
 
                 function formatMessageText(template, hit, worker, groupId) {
-                    //TODO: Update tempalte
                     return template.replace('<TITLE>', hit.Title)
                     .replace('<DATETIME>', hit.lastModified)
                     .replace('<REWARD>', hit.Reward.FormattedPrice)
@@ -545,7 +548,7 @@ var TurkExpert = {
                 }
 
             }
-            function updateStatus(count, currentWorker, currentHit, callback) {
+            function updateStatus(count, currentWorker, currentTreatment, currentHit, callback) {
                 //DB update worker status: sent
                 //'TEST' currentWorker.WorkerId                    
                 async.parallel({
@@ -570,7 +573,7 @@ var TurkExpert = {
                                 $set: {
                                     WorkerId: currentWorker.WorkerId,
                                     Code: currentHit.Code,
-                                    Type: 'invited',
+                                    Type: currentTreatment,
                                     Authenticated: false
                                 },
                                 $currentDate: { "lastModified": true }
