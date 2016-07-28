@@ -241,19 +241,79 @@ var TurkExpert = {
                             $currentDate: { "lastModified": true }
                         },
                         {
-                            upsert: true,
+                            upsert: true,  //should always write new
                             w: 1
                         }, function (r) { // authentication success - The Very First Time !
                             cb({
                                 code: 200,
                                 firstTimeUser: type,
-                                content: content
-                                //obj: obj //no more authentication params
+                                content: content,
+                                obj: obj    //no more authentication params, but keep for first User process
                             });
-                        });
+                    });
                 }
             });
         })
+    },
+    firstUser: function (sharedSource, content, obj, cb) { //persist into mongo
+            MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid},
+            {
+                $set: {
+                    SharedSource: sharedSource
+                },
+                $currentDate: { "lastModified": true }
+            },
+            {
+                upsert: false,
+                w: 1
+            }, function (r) { //final response for the First Time User
+                cb({
+                    code: 200,
+                    content: content
+                    //obj: obj //no more authentication params
+                });
+            });
+    },
+    Postpone: function (hidTypeId, workerId, cb) { //Update mongo, secret weapon
+           async.parallel({
+                hit: function (mongocb) {
+                    MongoDB.update(db, 'hit', { HITTypeId: hidTypeId},
+                    {
+                        $set: {
+                            status: 'postponed'
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        multi: true,
+                        w: 1
+                    }, function (r) {
+                        mongocb(null, r);
+                    });
+                },
+                worker: function (mongocb) {
+                    MongoDB.update(db, 'worker', { WorkerId: workerId},
+                    {
+                        $set: {
+                            status: 'postponed'
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) { 
+                        mongocb(null, r);
+                    });
+                }
+            }, function (err, result) {
+                if(err){
+                    console.error(err);
+                }
+                //processing
+                cb(200); // Or template for user after postponed               
+            });
     },
     publishTreatments: function (treatments, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
@@ -458,7 +518,7 @@ var TurkExpert = {
                     assert.equal(null, err);
                     var currentHit = hitList[0].hit;
                     var currentWorker = result.worker[0];
-                    var notice = new NOTICE('TEST', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit, groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var notice = new NOTICE('TEST', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit, currentWorker, groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
@@ -472,7 +532,7 @@ var TurkExpert = {
                     });
                 });
 
-                function formatMessageText(template, hit, groupId) {
+                function formatMessageText(template, hit, worker, groupId) {
                     //TODO: Update tempalte
                     return template.replace('<TITLE>', hit.Title)
                     .replace('<DATETIME>', hit.lastModified)
@@ -480,8 +540,8 @@ var TurkExpert = {
                     .replace('<CODE>', hit.Code)
                     .replace('<LIFETIME>', parseInt(hit.LifetimeInSeconds/3600) + 'hrs')
                     .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId='+groupId)
-                    .replace('<POSTPONEURL>','app.com/PostponeEndpoint') //TODO
-                    .replace('<LEADERBOARDURL>', 'app.com/leaderboard') //TODO
+                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId)
+                    .replace('<LEADERBOARDURL>', config.externalUrl + '/leaderboard')
                 }
 
             }

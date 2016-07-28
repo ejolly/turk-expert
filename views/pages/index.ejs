@@ -40,6 +40,7 @@
 
 	<% if(e.firstTimeUser && e.firstTimeUser === 'invited'){ %>
 	<!-- This modal should pop up if a Worker successfully enters an access code, but we never sent it to them -->
+	<form id="First-User-Form" action="firstUser" method="POST">
 	<div class="popup" data-keyboard="false" data-backdrop="static" id="preHITSurvey">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
@@ -48,19 +49,23 @@
 				</div>
 				<div class="modal-body">
 					<div class="radio">
-					<label><input required="" type="radio" name="optradio" value="personal">Personal communication with another Turker</label>
+					<label><input required="" type="radio" name="sharedSource[personal]" value="personal">Personal communication with another Turker</label>
 					</div>
 					<div class="radio">
-					<label><input required= "" type="radio" name="optradio" value="forum">I saw the access code posted online</label>
+					<label><input required= "" type="radio" name="sharedSource[forum]" value="forum">I saw the access code posted online</label>
 					</div>
-					<div class="input-group" style="margin-left: 3em">Please enter the name of the forum, group or website where you saw the access code posted: <input name="whichForum" size="1" style="height: 1.5em; width: 5em" type="text" /></div>
+					<div class="input-group" style="margin-left: 3em">Please enter the name of the forum, group or website where you saw the access code posted: 
+					<input name="sharedSource[whichForum]" size="1" style="height: 1.5em; width: 5em" type="text" /></div>
+					<input class="form-control" name="accessContent" size="25" type="text" value="<%= e.content %>" style="display:none;"/>
+					<input class="form-control" name="accessObj" size="25" type="text" value="<%= e.obj %>" style="display:none;"/>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary">Proceed</button> 
+					<button type="submit" class="btn btn-primary">Proceed</button> 
 				</div>
 			</div>
 		</div>
 	</div>
+	</form>
 	<% } else { %>
 
 	<!-- Main HIT Content -->

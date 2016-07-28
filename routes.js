@@ -154,6 +154,7 @@ router.post('/uploadHit', function (req, res, next) {
     });
 });
 
+
 //uploadNotice
 router.post('/uploadNotice', function (req, res, next) {
     var fstream;
@@ -242,7 +243,7 @@ router.post('/validateCode', function (req, res) {
     // console.log(req.body.accessCode);
     // console.log(req.body.accessContent);
     // console.log(req.body.accessType);
-    
+
     TurkExpert.validateCode(req.body.accessType, req.body.accessContent, req.body.accessObj, req.body.accessCode, function (e) {
         if(e.code === 200){
             res.render('pages/index', { // first time authenticated
@@ -257,6 +258,24 @@ router.post('/validateCode', function (req, res) {
         }        
     });
 });
+
+//firstUser
+router.post('/firstUser', function (req, res) {
+    TurkExpert.firstUser(req.body.sharedSource, req.body.accessContent, req.body.accessObj,function (e) {
+        res.render('pages/index', { // first time authenticated
+            auth: true,
+            e: e
+        });
+    });
+});
+
+//pontpone
+router.get('/workerId', function (req, res) {
+    TurkExpert.postpone(req.query.h, req.query.w,function (e) {
+        res.render(e);
+    });
+});
+
 
 //TBD
 router.get('/forms', function (req, res) {
