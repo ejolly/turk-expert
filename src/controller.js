@@ -27,7 +27,7 @@ var mturk = require('mturk-api'),
 
 var TurkExpert = {
     //////////////////////////////////////////////////////////////////////////
-    //M-Turk API
+    //M-Turk API Proxy
     //////////////////////////////////////////////////////////////////////////
     GetAccountBalance: function (cb) {
         //Example operation, no params 
@@ -40,6 +40,7 @@ var TurkExpert = {
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
         });
     },
 
@@ -54,6 +55,7 @@ var TurkExpert = {
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
         });
     },
 
@@ -68,6 +70,7 @@ var TurkExpert = {
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
         });
     },
 
@@ -76,12 +79,28 @@ var TurkExpert = {
         console.time('GetAssignment');
         api.req('GetAssignment', { AssignmentId: id }).then(function (res) {
             //Do something 
-            console.log('GetAssignmentId -> ', res);
+            console.log('GetAssignment -> ', res);
             console.timeEnd('GetAssignment');
             cb(res);
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
+        });
+    },
+
+    GetAssignmentsForHit: function (id, cb) {
+        //Example operation, with params 
+        console.time('GetAssignmentsForHIT');
+        api.req('GetAssignmentsForHIT', { HITId: id }).then(function (res) {
+            //Do something 
+            console.log('GetAssignmentsForHIT -> ', res);
+            console.timeEnd('GetAssignmentsForHIT');
+            cb(res);
+        }, function (error) {
+            //Handle error 
+            console.error(error);
+            cb(error);
         });
     },
 
@@ -96,6 +115,7 @@ var TurkExpert = {
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
         });
     },
 
@@ -110,6 +130,7 @@ var TurkExpert = {
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
         });
     },
 
@@ -124,13 +145,111 @@ var TurkExpert = {
         }, function (error) {
             //Handle error 
             console.error(error);
+            cb(error);
         });
     },
 
 
     //////////////////////////////////////////////////////////////////////////
-    //Turk Expert API
+    //Turk Expert API - Core
     /////////////////////////////////////////////////////////////////////////
+    init: function (assignmentId, hitId, workerId, turkSubmitTo, cb) {
+        //Waterfall
+        //Client App Init: authentication, content loading, assignemnt Data persist, status update etc.
+        MongoDB.connect(function (db) {
+            async.parallel({
+                hit: function (mongocb) {
+                    MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {}, function (doc) {
+                        mongocb(null, doc);
+                    });
+                },
+                authentication: function (mongocb) {
+                    MongoDB.find(db, 'authentication', { WorkerId: workerId }, {}, {}, function (doc) {
+                        mongocb(null, doc);
+                    });
+                }
+            }, function (err, result) {
+                assert.equal(null, err);
+                db.close();
+                //Authenticate Logic: 1. master code match 2. hitId still valid - published 3. Hittype match
+                if (result.hit.length === 0) { 
+                    cb({ code: 404 }); //hit not found or expired
+                } else if (result.hit.length === 1) {
+                    if (result.authentication.length === 0) {
+                        cb({
+                            code: 422, 
+                            content: result.hit[0].Content,
+                            obj: {
+                                hid: result.hit[0].HITTypeId,
+                                wid: workerId
+                            }
+                        }); //worker not found, new user
+                    } else if (result.authentication.length === 1) {
+                        if (result.authentication[0].Authenticated) {
+                            cb({ 
+                                code: 200,
+                                content: result.hit[0].Content
+                             }); //worker already authenticated
+                        } else {
+                            cb({
+                                code: 422, 
+                                content: result.hit[0].Content,
+                                obj: {
+                                    hid: result.hit[0].HITTypeId,
+                                    wid: workerId
+                                }
+                            });//master not authenticated
+                        }
+                    }
+                }
+                cb(result);
+            });
+        })
+    },
+    validateCode: function (content, obj, code, cb) {
+        MongoDB.connect(function (db) {
+            MongoDB.find(db, 'authentication', { HITTypeId: obj.hid, Code: code }, {}, {}, function (doc) {
+                if (doc.length === 0) {
+                    cb({
+                        code: 403,
+                        obj: obj
+                    });
+                } else {
+                    //save u as a new record or update invited to authenticated true
+                    var authenticatedWorkers = [];
+                    doc.forEach(function(entry){
+                        authenticatedWorkers.push(entry.WorkerId); 
+                    });
+                    var type = 'shared'; //default
+                    if(authenticatedWorkers.indexOf(obj.wid)=== -1){ //new user
+                        type = 'shared';
+                    }else{
+                        type = 'invited';  
+                    }
+                    MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
+                        {
+                            $set: {
+                                WorkerId: obj.wid,
+                                Code: code,
+                                Type: type,
+                                Authenticated: true
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: true,
+                            w: 1
+                        }, function (r) {
+                            cb({
+                                code: 200,
+                                content: content
+                            });
+                        });
+
+                }
+            });
+        })
+    },
     publishTreatments: function (treatments, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
         // MongoDB.connect(function (db) {
@@ -156,7 +275,7 @@ var TurkExpert = {
         });
         function connectToDB(callback) {
             MongoDB.connect(function (db) {
-                var publishDate = makePublishTime(); 
+                var publishDate = makePublishTime();
                 callback(null, db, publishDate);
             });
         }
@@ -190,7 +309,8 @@ var TurkExpert = {
                 applyFilterLogic,
                 batchPublish,
                 persistHitIntoDB,
-                contactWorkers
+                contactWorkers,
+                updateStatus
             ], function (err, result) {
                 console.timeEnd('publishTreatment');
                 cb(result);
@@ -284,7 +404,8 @@ var TurkExpert = {
                                 HITTypeId: hitObj.hit.HITTypeId,
                                 HITId: hitObj.hit.HITId,
                                 Content: hitObj.hit.Content,
-                                Code: hitObj.hit.Code
+                                Code: hitObj.hit.Code,
+                                status: 'published'
                             },
                             $currentDate: { "lastModified": true }
                         },
@@ -307,40 +428,88 @@ var TurkExpert = {
             function contactWorkers(hitList, callback) {
                 console.time('contactWorkers');
                 async.parallel({
-                    notice: function (cb) {
-                        MongoDB.find(db, 'notice', {Treatment: treatment}, {}, {limit:1}, function (doc) {
-                            cb(null, doc);
+                    notice: function (mongocb) {
+                        MongoDB.find(db, 'notice', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {
+                            mongocb(null, doc);
                         });
                     },
-                    worker: function (cb) {
-                        MongoDB.find(db, 'worker', {Treatment: treatment}, {}, {limit:1}, function (doc) {  //, status: 'new'
-                            cb(null, doc);
+                    worker: function (mongocb) {
+                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: /sent/ } }, {}, { limit: 1 }, function (doc) {  //, status: 'new'
+                            mongocb(null, doc);
                         });
                     }
                 }, function (err, result) {
                     assert.equal(null, err);
-                    var notice = new NOTICE('test worker ID', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, hitList[0].hit)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var currentHit = hitList[0].hit;
+                    var currentWorker = result.worker[0];
+                    var notice = new NOTICE('A32D5DD50BKQ6Y', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
                         console.timeEnd('contactWorkers');
-                        callback(null, hitList.length);
+                        //write into db
+                        callback(null, hitList.length, currentWorker, currentHit);
                     }, function (error) {
                         //Handle error 
                         console.error(error);
-                        //TODO: write into db update worker status: sent
                         callback(null, 0)
-                    });                    
+                    });
                 });
 
-                function formatMessageText(template, hit){
+                function formatMessageText(template, hit) {
                     //TODO: Update tempalte
                     return template.replace('<TITLE>', hit.Title)
-                    .replace('<DATETIME>', hit.lastModified)
-                    .replace('<REWARD>', hit.Reward.FormattedPrice)
-                    .replace('<CODE>', hit.Code);
+                        .replace('<DATETIME>', hit.lastModified)
+                        .replace('<REWARD>', hit.Reward.FormattedPrice)
+                        .replace('<CODE>', hit.Code);
                 }
-                
+
+            }
+            function updateStatus(count, currentWorker, currentHit, callback) {
+                //DB update worker status: sent
+                //'TEST' currentWorker.WorkerId                    
+                async.parallel({
+                    updateWorker: function (mongocb) {
+                        MongoDB.update(db, 'worker', { WorkerId: currentWorker.WorkerId },
+                            {
+                                $set: {
+                                    status: 'sent'
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: false,
+                                w: 1
+                            }, function (r) {
+                                mongocb(null, r)
+                            });
+                    },
+                    updateAuthentication: function (mongocb) {
+                        MongoDB.update(db, 'authentication', { HITTypeId: currentHit.HITTypeId },
+                            {
+                                $set: {
+                                    WorkerId: currentWorker.WorkerId,
+                                    Code: currentHit.Code,
+                                    Type: 'invited',
+                                    Authenticated: false
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: true,  //assert: should always write
+                                w: 1
+                            }, function (r) {
+                                mongocb(null, r)
+                            });
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        console.error(err);
+                        callback(null, 0);
+                    } else {
+                        callback(null, count);
+                    }
+                });
             }
 
             /**
@@ -393,7 +562,7 @@ var TurkExpert = {
 
 
     //////////////////////////////////////////////////////////////////////////
-    //Mongo API
+    //Mongo API Proxy
     //////////////////////////////////////////////////////////////////////////
     /**
      * Find all collections
@@ -417,6 +586,11 @@ var TurkExpert = {
                 },
                 worker: function (cb) {
                     MongoDB.find(db, 'worker', {}, {}, {}, function (doc) {
+                        cb(null, doc);
+                    });
+                },
+                authentication: function (cb) {
+                    MongoDB.find(db, 'authentication', {}, {}, {}, function (doc) {
                         cb(null, doc);
                     });
                 }

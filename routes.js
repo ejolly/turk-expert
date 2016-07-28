@@ -29,12 +29,31 @@ router.use(function (req, res, next) {
 
 router.get('/', function (req, res) {
     //client app
-    //TODO: call api for auth, content
-    res.render('pages/index', {
-        //just for testing,  
-        auth: true,
-        validationSucess: true, //should actually be in URL  
-        HITContent: 'http://vignette2.wikia.nocookie.net/pokemon/images/b/b1/025Pikachu_XY_anime_3.png'
+    //call api for client init: authentication, content loading, assignemnt Data persist, status update etc.
+    ////////////////////////////// From MTurk Doc /////////////////////////////////////////////
+    // 1. The URL you use for the ExternalURL must use the HTTPS protocol.
+    // 2. An iframe generated in MTurk experiment page to present our client app content.
+    // 3. The Frame's URL and Parameters - The URL used for the frame is the ExternalURL of the question with the following parameters appended: 
+    // assignmentId, 
+    // hitId, 
+    // turkSubmitTo, 
+    // workerId. 
+    // These parameters are appended CGI-style
+    //////////////////////////////////////////////////////////////////////////////////////////
+    TurkExpert.init(req.query.assignmentId, req.query.hitId, req.query.workerId, req.query.turkSubmitTo, function (e) {
+        if (e.code === 404) {
+            res.render('pages/notfound');
+        } else if (e.code === 422) {
+            res.render('pages/index', { // not yet authenticated
+                auth: false,
+                e: e
+            });
+        } else if (e.code === 200) {
+            res.render('pages/index', { // already authenticated
+                auth: true,
+                e: e
+            });
+        }
     });
 
 });
@@ -196,6 +215,28 @@ router.post('/publishHits', function (req, res) {
     });
 });
 
+//valideYourCode
+router.post('/validateCode', function (req, res) {
+    //Batch Call from DB - hits
+    // console.log(req.body.accessObj.wid);
+    // console.log(req.body.accessObj.hid);
+    // console.log(req.body.accessCode);
+    // console.log(req.body.accessContent);
+
+    TurkExpert.validateCode(req.body.accessContent, req.body.accessObj, req.body.accessCode, function (e) {
+        if(e.code === 200){
+            res.render('pages/index', { // first time authenticated
+                auth: true,
+                e: e
+            });
+        }else if(e.code === 403){
+            res.render('pages/index', { // authentication failed
+                auth: false,
+                e: e
+            });
+        }        
+    });
+});
 
 //TBD
 router.get('/forms', function (req, res) {
@@ -230,6 +271,7 @@ router.get('/api/balance', function (req, res) {
 });
 
 router.get('/api/hits', function (req, res) {
+    //CGI-style
     //optional: size -> PageSize
     //optional: page -> PageNumber
     TurkExpert.SearchHITs(req.query.size, req.query.page, function (e) {
@@ -253,6 +295,15 @@ router.get('/api/assignment/:id', function (req, res) {
         res.send(JSON.stringify(e, null, 2));
     });
 });
+
+router.get('/api/assignments/:id', function (req, res) {
+    //required: id -> HITId
+    TurkExpert.GetAssignmentsForHit(req.params.id, function (e) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(e, null, 2));
+    });
+});
+
 
 router.post('/api/hit', function (req, res) {
     //HIT schema -> /src/model/hit.ts

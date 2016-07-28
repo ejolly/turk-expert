@@ -14,18 +14,25 @@
 	<!--Auth form -->
 	<div class="form-group col-xs-4 col-xs-offset-4 centered">
 		<form method='post' action='validateCode' class='form-horizontal'>
-		<label>Please enter an access code to work on this HIT</label> 
-		<input class="form-control" name="accessCode" size="25" type="text" />
-		<p class="authFeedback">This access code is incorrect!</p>
-		<div class="centered">
-			<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">
-		</div>
+			<label>Please enter an access code to work on this HIT</label> 
+			<input class="form-control" name="accessCode" size="25" type="text" />
+			<input class="form-control" name="accessContent" size="25" type="text" value="<%= e.content %>" style="display:none;"/>
+			<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;"/>
+			<input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;"/>
+			<% if(e.code === 403){ %> 
+			<p class="authFeedback">This access code is incorrect!</p> 
+			<% } %>
+			<div class="centered">
+				<!--<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">-->
+				<button class="btn btn-lg btn-primary" type="submit">Submit</button>
+			</div>
+		</form>
 	</div>
  <% } else{ %>  
 	<!-- Main HIT Content -->
 	<div class="col-xs-4 col-xs-offset-4">
 		<div>
-			<img alt="image_url" class="imagecontainer" src=<%= HITContent %> />
+			<img alt="image_url" class="imagecontainer" src="img/<%= e.content %>.jpeg" />
 		</div>
 		<div class="form-group centered">
 			<label>Please provide a label for this image</label> <input class="form-control" name="imageLabel" size="25" type="text" />
@@ -36,16 +43,7 @@
 		
 	</div>
 <% } %>
-
-<script>
-	var authResult = window.location.href.split('validationSucess=')[1];
-	if(!authResult){
-		$('.authFeedback').css("visibility", "visible");
-	}
-</script>
-
-<script src="//code.jquery.com/jquery-1.12.3.js"></script> 
-  
+ 
 </body>
 
 </html>

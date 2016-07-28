@@ -65,7 +65,13 @@ var MongoDB = {
         // assert.equal(1, r.matchedCount);
         // assert.equal(1, r.modifiedCount);
         // assert.equal(0, r.upsertedCount); 
-        console.log('PersistHIT -> ', query._id);    //+ r.result.n + ' docs'
+        console.log('Update DB -> ', query);    //+ r.result.n + ' docs'
+        cb(r);
+    });
+  },
+  insert: function(db, name, doc, cb){
+    db.collection(name).insertOne(doc).then(function(r) {
+        console.log('Insert DB -> ', doc); 
         cb(r);
     });
   }
