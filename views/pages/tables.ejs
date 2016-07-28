@@ -50,6 +50,7 @@
                                         <th>Description</th>
                                         <th>Keywords</th>
                                         <th>Reward</th>
+                                        <th>status</th>
                                         <th>lastModified</th>
                                     </tr>
                                 </thead>
@@ -66,6 +67,7 @@
                                             <td><%= hit[i].Description %></td>
                                             <td><%= hit[i].Keywords %></td>
                                             <td><%= hit[i].Reward %></td>
+                                            <td><%= hit[i].status %></td>
                                             <td><%= hit[i].lastModified %></td>
                                         </tr>
                                         <% } %>                                 
@@ -75,6 +77,84 @@
                     </div>
 
                 </div>
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2>WORKER </h2>
+                        <h4>Total <%= worker.length %> Documents</h4>
+                        <div class="table-responsive">
+                            <table  id="worker" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>_id</th>
+                                        <th>Treatment</th>
+                                        <th>WorkerId</th>
+                                        <th>age</th>
+                                        <th>country</th>
+                                        <th>gender</th>
+                                        <th>forumVisits</th>
+                                        <th>forumPosts</th>
+                                        <th>numKnown</th>
+                                        <th>workerType</th>
+                                        <th>status</th>
+                                        <th>lastModified</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                       <% for(var i=0; i<worker.length; i++) { %>
+                                        <tr>
+                                            <td><%= worker[i]._id %></td>
+                                            <td><%= worker[i].Treatment %></td>
+                                            <td><%= worker[i].WorkerId %></td>
+                                            <td><%= worker[i].age %></td>
+                                            <td><%= worker[i].country %></td>
+                                            <td><%= worker[i].gender %></td>
+                                            <td><%= worker[i].forumVisits %></td>
+                                            <td><%= worker[i].forumPosts %></td>
+                                            <td><%= worker[i].numKnown %></td>
+                                            <td><%= worker[i].workerType %></td>
+                                            <td><%= worker[i].status %></td>
+                                            <td><%= worker[i].lastModified %></td>
+                                        </tr>
+                                        <% } %>                                 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h2>AUTHENTICATION </h2>
+                        <h4>Total <%= authentication.length %> Documents</h4>
+                        <div class="table-responsive">
+                            <table  id="authentication" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>_id</th>
+                                        <th>HITTypeId</th>
+                                        <th>WorkerId</th>
+                                        <th>Code</th>
+                                        <th>Type</th>
+                                        <th>Authenticated</th>
+                                        <th>lastModified</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                       <% for(var i=0; i<authentication.length; i++) { %>
+                                        <tr>
+                                            <td><%= authentication[i]._id %></td>
+                                            <td><%= authentication[i].HITTypeId %></td>
+                                            <td><%= authentication[i].WorkerId %></td>
+                                            <td><%= authentication[i].Code %></td>
+                                            <td><%= authentication[i].Type %></td>
+                                            <td><%= authentication[i].Authenticated %></td>
+                                            <td><%= authentication[i].lastModified %></td>
+                                        </tr>
+                                        <% } %>                                 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- /.row -->
                 <div class="row">
                     <div class="col-lg-6">
@@ -99,44 +179,6 @@
                                             <td><%= notice[i].WorkerId %></td>
                                             <td><%= notice[i].Subject %></td>
                                             <td><%= notice[i].MessageText %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <h2>WORKER </h2>
-                        <h4>Total <%= worker.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table  id="worker" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>Treatment</th>
-                                        <th>WorkerId</th>
-                                        <th>age</th>
-                                        <th>country</th>
-                                        <th>gender</th>
-                                        <th>forumVisits</th>
-                                        <th>forumPosts</th>
-                                        <th>numKnown</th>
-                                        <th>workerType</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<worker.length; i++) { %>
-                                        <tr>
-                                            <td><%= worker[i]._id %></td>
-                                            <td><%= worker[i].Treatment %></td>
-                                            <td><%= worker[i].WorkerId %></td>
-                                            <td><%= worker[i].age %></td>
-                                            <td><%= worker[i].country %></td>
-                                            <td><%= worker[i].gender %></td>
-                                            <td><%= worker[i].forumVisits %></td>
-                                            <td><%= worker[i].forumPosts %></td>
-                                            <td><%= worker[i].numKnown %></td>
-                                            <td><%= worker[i].workerType %></td>
                                         </tr>
                                         <% } %>                                 
                                 </tbody>

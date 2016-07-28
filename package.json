@@ -1,12 +1,12 @@
 {
   "name": "turk-expert",
   "description": "A Mechanical Turk Expert Utility App",
-  "version": "0.1.0", 
+  "version": "0.1.0",
   "author": {
     "name": "Kevin Gao",
     "url": "kgao.github.io"
   },
-  "scripts": {   
+  "scripts": {
     "tsc": "tsc",
     "tsc:w": "tsc -w --outDir build/model",
     "test": "concurrent \"npm run tsc:w\" \"node server.js\" \"lite-server\"",
@@ -16,14 +16,15 @@
   "dependencies": {
     "async": "^2.0.0",
     "basic-auth": "latest",
+    "body-parser": "^1.15.2",
+    "concurrently": "^1.0.0",
     "connect-busboy": "0.0.2",
     "ejs": "latest",
     "express": "latest",
     "fs-extra": "^0.30.0",
+    "lite-server": "^1.3.1",
     "mongodb": "^2.2.1",
     "mturk-api": "^2.2.2",
-    "typescript": "latest",
-    "concurrently": "^1.0.0",
-    "lite-server": "^1.3.1"
+    "typescript": "latest"
   }
 }
