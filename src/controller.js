@@ -202,16 +202,16 @@ var TurkExpert = {
                         }
                     }
                 }
-                cb(result);
             });
         })
     },
     validateCode: function (content, obj, code, cb) {
         MongoDB.connect(function (db) {
             MongoDB.find(db, 'authentication', { HITTypeId: obj.hid, Code: code }, {}, {}, function (doc) {
-                if (doc.length === 0) {
+                if (doc.length === 0) { // authentication failed
                     cb({
                         code: 403,
+                        content: content,
                         obj: obj
                     });
                 } else {
@@ -239,13 +239,13 @@ var TurkExpert = {
                         {
                             upsert: true,
                             w: 1
-                        }, function (r) {
+                        }, function (r) { // authentication success
                             cb({
                                 code: 200,
                                 content: content
+                                //obj: obj //no more authentication params
                             });
                         });
-
                 }
             });
         })
@@ -442,7 +442,7 @@ var TurkExpert = {
                     assert.equal(null, err);
                     var currentHit = hitList[0].hit;
                     var currentWorker = result.worker[0];
-                    var notice = new NOTICE('A32D5DD50BKQ6Y', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var notice = new NOTICE('TEST', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 

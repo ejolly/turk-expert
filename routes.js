@@ -241,7 +241,6 @@ router.post('/validateCode', function (req, res) {
     // console.log(req.body.accessObj.hid);
     // console.log(req.body.accessCode);
     // console.log(req.body.accessContent);
-
     TurkExpert.validateCode(req.body.accessContent, req.body.accessObj, req.body.accessCode, function (e) {
         if(e.code === 200){
             res.render('pages/index', { // first time authenticated
