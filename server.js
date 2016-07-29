@@ -31,6 +31,8 @@ app.use('*', function (req, res) {
 app.listen(port, host, function () {
     host = host || 'localhost';
     brand.log();
-    console.log('Server is running at ' + host + ':' + port); 
-    job.start(1);
+    console.log('Server is running at ' + host + ':' + port);    
 });
+
+job.start(1);
+job.start(2);
