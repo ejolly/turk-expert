@@ -23,7 +23,7 @@ app.set('view engine', 'ejs');
 app.use('/', express.static(__dirname + '/public'));
 
 app.use(express.static('./'));
-app.use("/", router);
+app.use('/', router);
 app.use('*', function (req, res) {
     res.render('pages/404');
 });

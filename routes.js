@@ -1,36 +1,16 @@
 var express = require('express'),
     router = express.Router(),
-    auth = require('basic-auth'),
+    basicAuth = require('basic-auth'),
     conf = require('./config'),
     path = require('path'),    //used for file path
     fs = require('fs-extra'),      //File System - for file manipulation
     TurkExpert = require('./src/controller');
 
 router.use(function (req, res, next) {
-
     console.log(req.method + req.url);
-
-    //basic auth every endpoint except get /
-    if (req.method === 'GET' && req.url === '/') {
-        next();
-    }
-    //  else if (req.method === 'GET' && req.url === '/leaderboard'){
-    //     next();
-    // }
-    else {
-        var user = auth(req);
-        if (!user || user.name !== conf.admin.username || user.pass !== conf.admin.password) {
-            res.statusCode = 401
-            res.setHeader('WWW-Authenticate', 'Basic realm="TurkExpertAuthentication"')
-            res.end('Access denied');
-        } else {
-            //res.render(target);
-            //res.end('Access granted');
-            next();
-        }
-    }
-
+    next();
 });
+
 
 router.get('/', function (req, res) {
     //client app
@@ -76,53 +56,57 @@ router.get('/', function (req, res) {
 //             {"name": "cdc", "numShares": "0"}
 //         ]
 //     });
-
 // });
+var auth = function (req, res, next) {
+  function unauthorized(res) {
+    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    return res.send(401);
+  };
+
+  var user = basicAuth(req);
+  if (!user || !user.name || !user.pass) {
+    return unauthorized(res);
+  };
+
+  if (user.name === conf.admin.username  && user.pass === conf.admin.password) {
+    return next();
+  } else {
+    return unauthorized(res);
+  };
+};
 
 
-// var basicAuth = function (req, res, target) {
-//     var user = auth(req);
-//     if (!user || user.name !== conf.admin.username || user.pass !== conf.admin.password) {
-//         res.statusCode = 401
-//         res.setHeader('WWW-Authenticate', 'Basic realm="TurkExpertAuthentication"')
-//         res.end('Access denied');
-//     } else {
-//         res.render(target);
-//         //res.end('Access granted');
-//     }
-// }
-
-router.get('/admin', function (req, res) {
+router.get('/admin', auth, function (req, res) {
     //basicAuth(req,res,'pages/admin');
     res.render('pages/admin');
 });
 
-router.get('/charts', function (req, res) {
+router.get('/charts', auth, function (req, res) {
     //basicAuth(req,res,'pages/charts'); 
     res.render('pages/charts');
 });
 
 //Query all the db collections - TODO Modulize
-router.get('/tables', function (req, res) {
+router.get('/tables', auth, function (req, res) {
     //basicAuth(req,res,'pages/tables');
     TurkExpert.find(function (result) {
         res.render('pages/tables', result);
     });
 });
 
-router.get('/manage', function (req, res) {
+router.get('/manage', auth, function (req, res) {
     //basicAuth(req,res,'pages/manage'); 
     res.render('pages/manage');
 });
 
-router.get('/support', function (req, res) {
+router.get('/support', auth, function (req, res) {
     //basicAuth(req,res,'pages/support'); 
     res.render('pages/support');
 });
 
 /////////////////////// Upload Actions from csv  - TODO Modulize
 //uploadHit 
-router.post('/uploadHit', function (req, res, next) {
+router.post('/uploadHit', auth, function (req, res, next) {
     var fstream;
     req.pipe(req.busboy);
     req.busboy.on('file', function (fieldname, file, filename) {
@@ -159,7 +143,7 @@ router.post('/uploadHit', function (req, res, next) {
 
 
 //uploadContent
-router.post('/uploadContent', function (req, res, next) {
+router.post('/uploadContent', auth, function (req, res, next) {
     var fstream;
     req.pipe(req.busboy);
     req.busboy.on('file', function (fieldname, file, filename) {
@@ -195,7 +179,7 @@ router.post('/uploadContent', function (req, res, next) {
 });
 
 //uploadWorker
-router.post('/uploadWorker', function (req, res, next) {
+router.post('/uploadWorker', auth, function (req, res, next) {
     var fstream;
     req.pipe(req.busboy);
     req.busboy.on('file', function (fieldname, file, filename) {
@@ -231,14 +215,14 @@ router.post('/uploadWorker', function (req, res, next) {
 });
 
 //batchCreateHits
-router.post('/publishHits', function (req, res) {
+router.post('/publishHits', auth, function (req, res) {
     //Batch Call from DB - hits
     TurkExpert.publishTreatments(["control", "costly", "framing", "reciprocity", "reputation"], function (result) {
         res.redirect('manage?hitPublishResult=' + result);
     });
 });
 
-//valideYourCode
+//Client: valideYourCode
 router.post('/validateCode', function (req, res) {
     //Batch Call from DB - hits
     // console.log(req.body.accessObj.wid);
@@ -262,7 +246,7 @@ router.post('/validateCode', function (req, res) {
     });
 });
 
-//firstUser
+//Client: firstUser
 router.post('/firstUser', function (req, res) {
     TurkExpert.firstUser(req.body.sharedSource, req.body.accessContent, req.body.accessObj,function (e) {
         res.render('pages/index', { // first time authenticated
@@ -273,7 +257,7 @@ router.post('/firstUser', function (req, res) {
 });
 
 //pontpone
-router.get('/workerId', function (req, res) {
+router.get('/workerId', auth, function (req, res) {
     TurkExpert.postpone(req.query.h, req.query.w,function (e) {
         res.render(e);
     });
@@ -281,38 +265,38 @@ router.get('/workerId', function (req, res) {
 
 
 //TBD
-router.get('/forms', function (req, res) {
+router.get('/forms', auth, function (req, res) {
     res.render('pages/forms');
 });
 
-router.get('/bootstrap-elements', function (req, res) {
+router.get('/bootstrap-elements', auth, function (req, res) {
     res.render('pages/bootstrap-elements');
 });
 
-router.get('/bootstrap-grid', function (req, res) {
+router.get('/bootstrap-grid', auth, function (req, res) {
     res.render('pages/bootstrap-grid');
 });
 
-router.get('/blank-page', function (req, res) {
+router.get('/blank-page', auth,  function (req, res) {
     res.render('pages/blank-page');
 });
 
-router.get('/roadmap', function (req, res) {
+router.get('/roadmap', auth, function (req, res) {
     res.render('pages/roadmap');
 });
-router.get('/about', function (req, res) {
+router.get('/about', auth, function (req, res) {
     res.render('pages/about', { company: 'Microsoft' });
 });
 
 //api
-router.get('/api/balance', function (req, res) {
+router.get('/api/balance', auth, function (req, res) {
     TurkExpert.GetAccountBalance(function (e) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(e, null, 2));
     });
 });
 
-router.get('/api/hits', function (req, res) {
+router.get('/api/hits', auth, function (req, res) {
     //CGI-style
     //optional: size -> PageSize
     //optional: page -> PageNumber
@@ -322,7 +306,7 @@ router.get('/api/hits', function (req, res) {
     });
 });
 
-router.get('/api/hit/:id', function (req, res) {
+router.get('/api/hit/:id', auth, function (req, res) {
     //required: id -> HITId
     TurkExpert.GetHIT(req.params.id, function (e) {
         res.setHeader('Content-Type', 'application/json');
@@ -330,7 +314,7 @@ router.get('/api/hit/:id', function (req, res) {
     });
 });
 
-router.get('/api/assignment/:id', function (req, res) {
+router.get('/api/assignment/:id', auth, function (req, res) {
     //required: id -> AssignmentId
     TurkExpert.GetAssignment(req.params.id, function (e) {
         res.setHeader('Content-Type', 'application/json');
@@ -338,7 +322,7 @@ router.get('/api/assignment/:id', function (req, res) {
     });
 });
 
-router.get('/api/assignments/:id', function (req, res) {
+router.get('/api/assignments/:id', auth, function (req, res) {
     //required: id -> HITId
     TurkExpert.GetAssignmentsForHit(req.params.id, function (e) {
         res.setHeader('Content-Type', 'application/json');
@@ -347,7 +331,7 @@ router.get('/api/assignments/:id', function (req, res) {
 });
 
 
-router.post('/api/hit', function (req, res) {
+router.post('/api/hit', auth, function (req, res) {
     //HIT schema -> /src/model/hit.ts
     TurkExpert.CreateHIT(req.body.hit, function (e) {
         res.setHeader('Content-Type', 'application/json');
@@ -356,7 +340,7 @@ router.post('/api/hit', function (req, res) {
 
 });
 
-router.post('/api/hits', function (req, res) {
+router.post('/api/hits', auth, function (req, res) {
     //Batch Call from DB - hit
     console.log('Batch pubsh from DB!');
     //TurkExpert
@@ -364,7 +348,7 @@ router.post('/api/hits', function (req, res) {
 });
 
 
-router.post('/api/notice', function (req, res) {
+router.post('/api/notice', auth, function (req, res) {
     //HIT schema -> /src/model/hit.ts
     TurkExpert.NotifyWorkers(req.body.notice, function (e) {
         res.setHeader('Content-Type', 'application/json');
