@@ -357,7 +357,38 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-lg-6">
+                            <div class="panel panel-success">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">
+                                        <legend>Upload Content From CSV</legend>
+                                    </h3>
+                                </div>
+                                <div class="panel-body">
+                                    <form class="form-horizontal" method='post' action='uploadContent' enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label class="col-sm-3">File input</label>
+                                            <div class="col-sm-9">
+                                                <input type="file" name='Content-CSV-Uploader' accept=".csv">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label id="Content-CSV-Result" class="col-sm-9">
+                                                <script>
+                                                var contentUploadResult = window.location.href.split('contentUploadResult=')[1];
+                                                if(contentUploadResult){
+                                                    document.getElementById("Content-CSV-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(contentUploadResult) +'</p>';
+                                                }
+                                                </script>
+                                            </label>
+                                        </div>
+                                        <button class="btn btn-success pull-right" type="submit">Upload</button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
+
+                        
 
 
                         <div class="page-header">
@@ -399,37 +430,8 @@
                                 </div>
                             </div>
 
-                            <div class="col-lg-6">
-                                <div class="panel panel-success">
-                                    <div class="panel-heading">
-                                        <h3 class="panel-title">
-                                            <legend>Upload Notices From CSV</legend>
-                                        </h3>
-                                    </div>
-                                    <div class="panel-body">
-                                        <form class="form-horizontal" method='post' action='uploadNotice' enctype="multipart/form-data">
-                                            <div class="form-group">
-                                                <label class="col-sm-3">File input</label>
-                                                <div class="col-sm-9">
-                                                    <input type="file" name='Notice-CSV-Uploader' accept=".csv">
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label id="Notice-CSV-Result" class="col-sm-9">
-                                                    <script>
-                                                    var noticeUploadResult = window.location.href.split('noticeUploadResult=')[1];
-                                                    if(noticeUploadResult){
-                                                        document.getElementById("Notice-CSV-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(noticeUploadResult) +'</p>';
-                                                    }
-                                                    </script>
-                                                </label>
-                                            </div>
-                                            <button class="btn btn-success pull-right" type="submit">Upload</button>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                <div class="panel panel-success">
+                          <div class="col-lg-6">
+                             <div class="panel panel-success">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
                                             <legend>Upload Workers From CSV</legend>
@@ -456,6 +458,7 @@
                                             <button class="btn btn-success pull-right" type="submit">Upload</button>
                                         </form>
                                     </div>
+                                </div>
                                 </div>
                                 <!-- TODO: 2.0
                                 <div class="panel panel-success">

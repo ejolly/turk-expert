@@ -331,6 +331,7 @@ var TurkExpert = {
         ///// To Reduce mongo connections
         async.waterfall([
             connectToDB,
+            getTreatmentContent,
             publishTreatment,
             closeDB
             //notifyWokers
@@ -340,13 +341,24 @@ var TurkExpert = {
         });
         function connectToDB(callback) {
             MongoDB.connect(function (db) {
-                var publishDate = makePublishTime();
-                callback(null, db, publishDate);
+                callback(null, db);
             });
         }
-        function publishTreatment(db, publishDate, callback) {
+        function getTreatmentContent(db, callback) {
+           MongoDB.find(db, 'content', {},  {'User':1, 'Tweet':1, 'Date':1, 'Time':1}, { sort : [['HITCount', 1]],limit:500}, function (doc) {
+                var publishDate = makePublishTime();
+                callback(null, db, doc, publishDate);
+           });
+        }
+        function publishTreatment(db, contentTotalList, publishDate, callback) {
+            shuffle(contentTotalList);
+            var contentObj = {};
+            for(var i=0;i<treatments.length; i++){
+                contentObj[treatments[i]] = contentTotalList.slice(i*100,(i+1)*100);
+            }            
             async.each(treatments, function (treatment, processTreatment) {
-                publish(db, treatment, publishDate, function (result) {
+                var contentList = contentObj[treatment];
+                publish(db, treatment, contentList, publishDate, function (result) {
                     processTreatment(result);
                 });
             }, function (count) {
@@ -366,7 +378,7 @@ var TurkExpert = {
 
 
         //private
-        function publish(db, treatment, publishDate, cb) {
+        function publish(db, treatment, contentList, publishDate, cb) {
             //async waterfall with named functions:
             console.time('publishTreatment');
             async.waterfall([
@@ -407,12 +419,12 @@ var TurkExpert = {
                 //3. async each publish the targetList in parallel  //maybe eachLimit if reach quota
 
                 var i = 0;
-                //Gennerate Image randomly here for each n(default n=100) hits:
+                //Gennerate content array randomly here for each n(default n=100) hits:
                 var array = [];
                 for (; i < targetList.length; i++) {
                     array.push(i + 1);
-                }
-                shuffle(array);
+                }            
+                
                 //console.log('ImageArray: ', array);
                 //Gennerate Code randomly here for each n(default n=100) hits:
                 var code = generaterCode(5);
@@ -437,7 +449,7 @@ var TurkExpert = {
                         //Update hit Object
                         hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
                         hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                        hitObj.hit.Content = array[i],
+                        hitObj.hit.Content = contentList[array[i]],
                         hitObj.hit.Code = code;
 
                         processPublish(null);
@@ -507,11 +519,6 @@ var TurkExpert = {
                             mturkcb(error, null);
                         });
                     },
-                    notice: function (mongocb) {
-                        MongoDB.find(db, 'notice', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {
-                            mongocb(null, doc);
-                        });
-                    },
                     worker: function (mongocb) {
                         MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: /sent/ } }, {}, { limit: 1 }, function (doc) {  //, status: 'new'
                             mongocb(null, doc);
@@ -522,7 +529,9 @@ var TurkExpert = {
                     var currentWorker = result.worker[0];
                     var currentTreatment = hitList[0].treatment;
                     var currentHit = hitList[0].hit;
-                    var notice = new NOTICE('A32D5DD50BKQ6Y', result.notice[0].Subject, formatMessageText(result.notice[0].MessageText, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var subject = "//Update ur subject here.  @eshin";
+                    var template = "//Update ur template here.  @eshin";
+                    var notice = new NOTICE('TEST', subject, formatMessageText(template, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
@@ -658,22 +667,22 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (cb) {
-                    MongoDB.find(db, 'hit', {}, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
                 },
-                notice: function (cb) {
-                    MongoDB.find(db, 'notice', {}, {}, {}, function (doc) {
+                content: function (cb) {
+                    MongoDB.find(db, 'content', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 worker: function (cb) {
-                    MongoDB.find(db, 'worker', {}, {}, {}, function (doc) {
+                    MongoDB.find(db, 'worker', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 authentication: function (cb) {
-                    MongoDB.find(db, 'authentication', {}, {}, {}, function (doc) {
+                    MongoDB.find(db, 'authentication', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
                 }

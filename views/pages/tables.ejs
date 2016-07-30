@@ -157,28 +157,44 @@
 
                 <!-- /.row -->
                 <div class="row">
-                    <div class="col-lg-6">
-                        <h2>NOTICE </h2>
-                        <h4>Total <%= notice.length %> Documents</h4>
+                    <div class="col-lg-12">
+                        <h2>CONTENT </h2>
+                        <h4>Total <%= content.length %> Documents</h4>
                         <div class="table-responsive">
-                            <table  id="notice" class="table table-bordered table-hover table-striped">
+                            <table  id="content" class="table table-bordered table-hover table-striped">
                                 <thead>
                                     <tr>
                                         <th>_id</th>
-                                        <th>Treatment</th>
-                                        <th>WorkerId</th>
-                                        <th>Subject</th>
-                                        <th>MessageText</th>
+                                        <th>User</th>
+                                        <th>Tweet</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>HITCount</th>
+                                        <th>Storm</th>
+                                        <!--<th>DateTime</th>-->
+                                        <th>UserId</th>
+                                        <th>TweetId</th>
+                                        <th>Location</th>
+                                        <th>Latitude</th>
+                                        <th>Longitude</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                       <% for(var i=0; i<notice.length; i++) { %>
+                                       <% for(var i=0; i<content.length; i++) { %>
                                         <tr>
-                                            <td><%= notice[i]._id %></td>
-                                            <td><%= notice[i].Treatment %></td>
-                                            <td><%= notice[i].WorkerId %></td>
-                                            <td><%= notice[i].Subject %></td>
-                                            <td><%= notice[i].MessageText %></td>
+                                            <td><%= content[i]._id %></td>
+                                            <td><%= content[i].User %></td>
+                                            <td><%= content[i].Tweet %></td>
+                                            <td><%= content[i].Date %></td>
+                                            <td><%= content[i].Time %></td>
+                                            <td><%= content[i].HITCount %></td>
+                                            <td><%= content[i].Storm %></td>
+                                            <!--<td><%= content[i].DateTime %></td>-->
+                                            <td><%= content[i].UserId %></td>
+                                            <td><%= content[i].TweetId %></td>
+                                            <td><%= content[i].Location %></td>
+                                            <td><%= content[i].Latitude %></td>
+                                            <td><%= content[i].Longitude %></td>
                                         </tr>
                                         <% } %>                                 
                                 </tbody>

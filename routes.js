@@ -13,9 +13,10 @@ router.use(function (req, res, next) {
     //basic auth every endpoint except get /
     if (req.method === 'GET' && req.url === '/') {
         next();
-    } else if (req.method === 'GET' && req.url === '/leaderboard'){
-        next();
     }
+    //  else if (req.method === 'GET' && req.url === '/leaderboard'){
+    //     next();
+    // }
     else {
         var user = auth(req);
         if (!user || user.name !== conf.admin.username || user.pass !== conf.admin.password) {
@@ -62,20 +63,21 @@ router.get('/', function (req, res) {
 
 });
 
-router.get('/leaderboard', function (req, res) {
-    //client app
-    //TODO: call api for auth, content
-    res.render('pages/leaderboard', {
-        //just for testing,  
-        "items": 
-        [
-            {"name": "abc", "numShares": "100"},
-            {"name": "xyz", "numShares": "75"},
-            {"name": "cdc", "numShares": "0"}
-        ]
-    });
+//TODO: v2.0 
+// router.get('/leaderboard', function (req, res) {
+//     //client app
+//     //call api for auth, content
+//     res.render('pages/leaderboard', {
+//         //just for testing,  
+//         "items": 
+//         [
+//             {"name": "abc", "numShares": "100"},
+//             {"name": "xyz", "numShares": "75"},
+//             {"name": "cdc", "numShares": "0"}
+//         ]
+//     });
 
-});
+// });
 
 
 // var basicAuth = function (req, res, target) {
@@ -156,8 +158,8 @@ router.post('/uploadHit', function (req, res, next) {
 });
 
 
-//uploadNotice
-router.post('/uploadNotice', function (req, res, next) {
+//uploadContent
+router.post('/uploadContent', function (req, res, next) {
     var fstream;
     req.pipe(req.busboy);
     req.busboy.on('file', function (fieldname, file, filename) {
@@ -174,7 +176,7 @@ router.post('/uploadNotice', function (req, res, next) {
             // persist into mongo
             // script.js
             var exec = require('child_process').exec;
-            var command = 'mongoimport -h localhost -d turkexpert -c notice --type csv --headerline --file ' + __dirname + '/data/' + filename;
+            var command = 'mongoimport -h localhost -d turkexpert -c content --type csv --headerline --file ' + __dirname + '/data/' + filename;
             var output = null;
             exec(command, function (error, stdout, stderr) {
                 console.log('stdout: ', stdout);
@@ -185,7 +187,7 @@ router.post('/uploadNotice', function (req, res, next) {
                     console.log('exec error: ', error);
                 }
                 //step 3
-                res.redirect('manage?noticeUploadResult=' + output);  //where to go next + output
+                res.redirect('manage?contentUploadResult=' + output);  //where to go next + output
             });
 
         });
@@ -355,7 +357,7 @@ router.post('/api/hit', function (req, res) {
 });
 
 router.post('/api/hits', function (req, res) {
-    //TODO: Batch Call from DB - hit
+    //Batch Call from DB - hit
     console.log('Batch pubsh from DB!');
     //TurkExpert
     res.send(200);
@@ -368,7 +370,7 @@ router.post('/api/notice', function (req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(e, null, 2));
     });
-    //TODO: Batch Call from DB - notice
+    //Batch Call from DB - notice
 });
 
 
