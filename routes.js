@@ -41,6 +41,26 @@ router.get('/', function (req, res) {
         }
     });
 
+    //TEST 
+    // res.render('pages/index',{
+    //     auth: true,
+    //     e: {
+    //         code: 200,
+    //         type: 'control',
+    //         firstTimeUser: false,
+    //         content: {
+    //             User: 'TheEdwardBelaro',
+    //             Tweet: 'How do you find a survivor like Maria? #YolandaPH http://t.co/nOpx3PsUwS',
+    //             Date: '07/29/16',
+    //             Time: '7:59'
+    //         },
+    //         obj: {
+    //             wid: 'abc',
+    //             hid: '123'
+    //         }
+    //     }
+    // });
+
 });
 
 //TODO: v2.0 
