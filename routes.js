@@ -25,39 +25,19 @@ router.get('/', function (req, res) {
     // workerId. 
     // These parameters are appended CGI-style
     //////////////////////////////////////////////////////////////////////////////////////////
-    // TurkExpert.init(req.query.assignmentId, req.query.hitId, req.query.workerId, req.query.turkSubmitTo, function (e) {
-    //     if (e.code === 404) {
-    //         res.render('pages/notfound');
-    //     } else if (e.code === 422) {
-    //         res.render('pages/index', { // not yet authenticated
-    //             auth: false,
-    //             e: e
-    //         });
-    //     } else if (e.code === 200) {
-    //         res.render('pages/index', { // already authenticated
-    //             auth: true,
-    //             e: e
-    //         });
-    //     }
-    // });
-
-    //TEST 
-    res.render('pages/index',{
-        auth: true,
-        e: {
-            code: 200,
-            type: 'control',
-            firstTimeUser: 'reputation',
-            content: {
-                User: 'TheEdwardBelaro',
-                Tweet: 'How do you find a survivor like Maria? #YolandaPH http://t.co/nOpx3PsUwS',
-                Date: '07/29/16',
-                Time: '7:59'
-            },
-            obj: {
-                wid: 'abc',
-                hid: '123'
-            }
+    TurkExpert.init(req.query.assignmentId, req.query.hitId, req.query.workerId, req.query.turkSubmitTo, function (e) {
+        if (e.code === 404) {
+            res.render('pages/notfound');
+        } else if (e.code === 422) {
+            res.render('pages/index', { // not yet authenticated
+                auth: false,
+                e: e
+            });
+        } else if (e.code === 200) {
+            res.render('pages/index', { // already authenticated
+                auth: true,
+                e: e
+            });
         }
     });
 
