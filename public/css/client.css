@@ -76,3 +76,7 @@ label {
   color: #e60000;
   visibility: hidden;
 }
+.col-centered{
+    margin: 0 auto;
+    float: none;
+}

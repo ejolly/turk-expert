@@ -39,9 +39,45 @@
  <% } else{ %>  
 
 	<% if(e.firstTimeUser && e.firstTimeUser != 'shared'){ %>
+	<div class="col-xs-6 col-xs-offset-3">
+		<h3 style= "text-align:center">HIT Instructions</h3>
+		<blockquote>
+		<p style="text-align:center">For each HIT in this group you will be presented with a single real tweet that was written during tropical storm Pablo (2012) or Yolanda (2013). We would like you to answer three questions about each tweet:
+		<ol>
+			<li>Was this tweet written in English?</li>
+			<li>Does this tweet contain a website URL, and if so to what kind of content does it link?</li>
+			<li>Does this tweet refer to a specific kind of hurricane-related damage (selecting from a list)?</li>
+		</ol>
+		</p>
+		<p style="text-align:center">
+		<%if (e.firstTimeUser != 'control') { %>
+			This is a limited group of 100 HITs. Once you complete a HIT in this group, it will <b>no longer be available</b> for other Workers to complete.
+			<% if ((e.firstTimeUser === 'framing') || (e.firstTimeUser === 'reciprocity') || (e.firstTimeUser === 'reputation')) { %>
+			Feel free to complete as many HITs in this group as you would like, or share this HIT information and access code with whomever you like.
+			<% if (e.firstTimeUser === 'reciprocity') { %>
+			We have sent similar invitations and access codes to other Turkers who may be willing to share their HIT information and access codes with you in return.
+			<% } else if (e.firstTimeUser === 'reputation') { %>
+			Once we have finished data collection, we will post a list of Turkers who have shared the largest number of HITs with others to various Mturk forums using nicknames to protect privacy. 
+			<p style="text-align:center">Please enter a nickname by which you would like to be identified when we post this information:</p>
+			<div class="input-group col-centered"><input required id="nickname" name="nickname" size="1" style="height: 1.5em; width: 15em" type="text" /></div>
+			<% } %>
+		<% } %>
+	<% } %>
+		</p>
+		<br><p style="text-align:center">Click below to get started</p>
+		</blockquote>
+		<div class="centered">
+		<form id="First-User-Form" action="firstUser" method="POST">
+				<input type="submit" id="beginButton" class="btn btn-lg btn-success" value= "Begin">
+		</form>
+		</div>
+
+	</div>
+
+
 	<!-- if e.firstTImeUser === 'Treament' .... all 5 tempaltes -->
 	<!-- This modal should pop up if a Worker successfully enters an access code, but we never sent it to them -->
-	<form id="First-User-Form" action="firstUser" method="POST">
+	<!-- form id="First-User-Form" action="firstUser" method="POST">
 	<div class="popup" data-keyboard="false" data-backdrop="static" id="preHITSurvey">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
@@ -66,7 +102,7 @@
 			</div>
 		</div>
 	</div>
-	</form>
+	</form> -->
 	<% } else { %>
 
 	<!-- Main HIT Content -->
@@ -79,14 +115,16 @@
 			</blockquote>
 	</div>
 	<div class="col-xs-6 col-xs-offset-3">
+		<h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
+		<p style="text-align:center"><label><input class="unreadable" name="unreadable" type="checkbox" value="unreadable"/> It's not possible to understand this tweet</label></p>
 		<form class="form" role="form" id="HIT-Form" action="mturk/externalSubmit" method="POST">
-			<fieldset>
+			<div id= "q1">
 				<h5><strong>1) Is this tweet in English?</strong></h5>
 				<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="0"/>No</label></div>
 				<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="1"/>Yes</label></div>
-			</fieldset>
+			</div>
 			
-			<fieldset>
+			<fieldset id="q2">
 				<h5><strong>2) Does this tweet contain a URL?</strong></h5>
 				<div class="radio"><label><input name="hasURL" required="" type="radio" value="0"/>No</label></div>
 				<div class="radio"><label><input name="hasURL" required="" type="radio" value="1"/>Yes</label></div>
@@ -102,7 +140,7 @@
 				</div>
 			</fieldset>
 			
-			<fieldset>
+			<fieldset id= "q3">
 				<h5><strong>3) Does the tweet refer to a specific kind of hurricane-related damage? </strong></h5>
 				<div class="radio"><label><input name="aboutDamage" required="" type="radio" value="0"/>No</label></div>
 				<div class="radio"><label><input name="aboutDamage" required="" type="radio" value="1"/>Yes</label></div>
@@ -133,32 +171,47 @@
 	</div>
 
 	<script type=text/javascript>
-	window.onload = function() {document.getElementById('submitButton').setAttribute('onclick', 'return validateForm()'); }
+	window.onload = function() {
+		document.getElementById('submitButton').setAttribute('onclick', 'return validateForm()');
+		$('input.unreadable').change(function (){
+			if(this.checked){
+				$('#q1').add($('#q2')).add('#q3').fadeTo(100,.25);
+				$('form').attr('novalidate','novalidate');
+			} else{
+				$('#q1').add($('#q2')).add('#q3').fadeTo(100,1);
+				$('form').removeAttr('novalidate');
+			}
+		})
+
+		//$('input.unreadable').click(function(){$('#q1').add($('#q2')).add('#q3').fadeToggle(100)}); 
+	}
 	function validateForm(){
 		var submitReady = true;
-		//Yes for question 2
-		if($('input:radio[name=hasURL]:checked').val() === "1"){
-			if(!$('input:radio[name=validURL]:checked').val()){
-				$('#validate2a').css('visibility','visible');
-				submitReady = false;
-			}
-			else if(($('input:radio[name=validURL]:checked').val()) && ($('input:radio[name=validURL]:checked').val() === "1") && ($('#URLcontent').val().length === 0)) {
-				$('#validate2b').css('visibility','visible');
-				submitReady = false;
+		if(!$('input.unreadable').prop('checked')){
+			//Yes for question 2
+			if($('input:radio[name=hasURL]:checked').val() === "1"){
+				if(!$('input:radio[name=validURL]:checked').val()){
+					$('#validate2a').css('visibility','visible');
+					submitReady = false;
+				}
+				else if(($('input:radio[name=validURL]:checked').val()) && ($('input:radio[name=validURL]:checked').val() === "1") && ($('#URLcontent').val().length === 0)) {
+					$('#validate2b').css('visibility','visible');
+					submitReady = false;
+				} else {
+					$('#validate2a').css('visibility','hidden');
+					$('#validate2b').css('visibility','hidden');
+				}
 			} else {
 				$('#validate2a').css('visibility','hidden');
 				$('#validate2b').css('visibility','hidden');
-			}
-		} else {
-			$('#validate2a').css('visibility','hidden');
-			$('#validate2b').css('visibility','hidden');
 
-		}
-		//Yes for question 3
-		if($('input:radio[name=aboutDamage]:checked').val() === "1"){
-			if($('div.checkbox :checkbox:checked').length == 0){
-				$('#validate3').css('visibility','visible');
-				submitReady = false;
+			}
+			//Yes for question 3
+			if($('input:radio[name=aboutDamage]:checked').val() === "1"){
+				if($('div.checkbox :checkbox:checked').length == 0){
+					$('#validate3').css('visibility','visible');
+					submitReady = false;
+				}
 			}
 		}
 		if(submitReady){			
