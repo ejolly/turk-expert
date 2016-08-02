@@ -34,5 +34,6 @@ app.listen(port, host, function () {
     console.log('Server is running at ' + host + ':' + port);    
 });
 
-job.start(1);
-job.start(2);
+// Scheduler 
+// job.start(1);
+// job.start(2);

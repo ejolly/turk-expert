@@ -255,11 +255,12 @@ var TurkExpert = {
             });
         })
     },
-    firstUser: function (sharedSource, content, obj, cb) { //persist into mongo
+    firstUser: function (nickname, content, obj, cb) { //persist into mongo
+        MongoDB.connect(function (db) {
             MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid},
             {
                 $set: {
-                    SharedSource: sharedSource
+                    Nickname: nickname
                 },
                 $currentDate: { "lastModified": true }
             },
@@ -273,6 +274,7 @@ var TurkExpert = {
                     //obj: obj //no more authentication params
                 });
             });
+        });
     },
     Postpone: function (hidTypeId, workerId, cb) { //Update mongo, secret weapon
            async.parallel({
@@ -345,9 +347,9 @@ var TurkExpert = {
             });
         }
         function getTreatmentContent(db, callback) {
-           MongoDB.find(db, 'content', {},  {'User':1, 'Tweet':1, 'Date':1, 'Time':1}, { sort : [['HITCount', 1]],limit:500}, function (doc) {
+           MongoDB.find(db, 'content', {},  {'User':1, 'Tweet':1, 'Date':1, 'Time':1}, { sort : [['HITCount', 1]],limit:500}, function (contentTotalList) {
                 var publishDate = makePublishTime();
-                callback(null, db, doc, publishDate);
+                callback(null, db, contentTotalList, publishDate);
            });
         }
         function publishTreatment(db, contentTotalList, publishDate, callback) {
@@ -359,10 +361,10 @@ var TurkExpert = {
             async.each(treatments, function (treatment, processTreatment) {
                 var contentList = contentObj[treatment];
                 publish(db, treatment, contentList, publishDate, function (result) {
-                    processTreatment(result);
+                    processTreatment(null);
                 });
-            }, function (count) {
-                callback(null, db, count + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
+            }, function (err) {
+                callback(null, db, contentTotalList.length + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
             });
         }
         function closeDB(db, result, callback) {
@@ -421,7 +423,7 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','expired'] }} }, {}, { limit: 1 }, function (doc) {
                     callback(null, doc);
                 });
             }
@@ -430,7 +432,7 @@ var TurkExpert = {
                 async.map(hitList, function (entry, processModel) {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
-                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, 1, 30, 120, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
+                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, 30, 300, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
                     var treatment = entry.Treatment;
                     processModel(null, { id: id, treatment:treatment, hit: hit });
@@ -536,7 +538,7 @@ var TurkExpert = {
                     groupId: function (mturkcb) {
                         api.req('GetHIT', { HITId: hitList[0].hit.HITId}).then(function (res) {
                             //Do something 
-                            console.log('GetGroupId -> ', res.GetHITResponse.HIT[0].HITGroupId[0]);
+                            console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
                             mturkcb(null, res.GetHITResponse.HIT[0].HITGroupId[0]);
                         }, function (error) {
                             //Handle error 
@@ -556,7 +558,7 @@ var TurkExpert = {
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
                     var template = "Dear Turker,\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\nYou can access these HITs at the following URL: <HITURL>\nIf you're not available, no problem, just let us know by clicking on the following link. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
-                    var notice = new NOTICE('TEST', subject, formatMessageText(template, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var notice = new NOTICE('A32D5DD50BKQ6Y', subject, formatMessageText(template, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
@@ -666,22 +668,23 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (cb) {
-                    MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
+                    MongoDB.find(db, 'hit', {status: {$in: ['published', 'postponed', 'expired']}}, {}, {}, function (doc) {
+                    //MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 content: function (cb) {
-                    MongoDB.find(db, 'content', {}, {}, {limit:100}, function (doc) {
+                    MongoDB.find(db, 'content', {}, {}, {limit:10}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 worker: function (cb) {
-                    MongoDB.find(db, 'worker', {}, {}, {limit:100}, function (doc) {
+                    MongoDB.find(db, 'worker', {}, {}, {ligmit:10}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 authentication: function (cb) {
-                    MongoDB.find(db, 'authentication', {}, {}, {limit:100}, function (doc) {
+                    MongoDB.find(db, 'authentication', {}, {}, {}, function (doc) {
                         cb(null, doc);
                     });
                 }
