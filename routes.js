@@ -248,11 +248,8 @@ router.post('/validateCode', function (req, res) {
 
 //Client: firstUser
 router.post('/firstUser', function (req, res) {
-    console.log('kev:  req.body.nickname ===', req.body.nickname);
-    console.log('kev:  req.body.accessContent === ', JSON.stringify(req.body.accessContent, null, 2));
     if(req.body.nickname){ // Treatment reputation - persist first user input data
         TurkExpert.firstUser(req.body.nickname, req.body.accessContent, req.body.accessObj,function (e) {
-
             res.render('pages/index', { 
                 auth: true,
                 e: e
