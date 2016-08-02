@@ -23,15 +23,14 @@
   font-size: 12px;
   font-weight: bold;
   line-height: 16px;
-  border-color: #eee #ddd #bbb;
+  border-color: lightblue;
   border-radius: 5px;
   border-style: solid;
-  border-width: 1px;
+  border-width: 11px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  padding: 16px 16px 16px 16px;
-  max-width: 600px;
-  margin: 10px auto 10px auto;
-
+  padding: 30px;
+  max-width: 1000px;
+  margin: 50px 0;
 }
  
 blockquote.twitter-tweet p {
@@ -62,8 +61,8 @@ label {
   font-weight: normal !important;
 }
 
-.subquestion {
-  margin-left: 3em;
+.subquestion, #HIT-Form-fake{
+  display: none;
 }
 
 .subheading{
