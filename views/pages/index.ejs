@@ -66,38 +66,34 @@
 		</div>
 		<% } else{ %>
 
-			<% if(e.firstTimeUser && e.firstTimeUser != 'shared'){ %>
-				<div class="centered">
+			<% if(e.firstTimeUser){ %>
+				<div class="instructions-container">
 					<form id="First-User-Form" action="firstUser" method="POST">
-						<div class="col-xs-6 col-xs-offset-3">
-							<h3 style="text-align:center">HIT Instructions</h3>
-							<blockquote>
-								<p style="text-align:center">For each HIT in this group you will be presented with a single real tweet that was written during tropical storm
-									Pablo (2012) or Yolanda (2013). We would like you to answer three questions about each tweet:
+						<div class="col-xs-8 col-xs-offset-2">
+							<h3 style="text-align:center"><u>HIT Instructions</u></h3>
+								<p class="instructions-body">For each HIT in this group you will be presented with a single real tweet that was written during tropical storm	Pablo or Yolanda. Both storms hit the Philippines in 2012 and 2013 respectively.<br><br> We would like you to answer three questions about each tweet:
+								</p>
 									<ol>
 										<li>Was this tweet written in English?</li>
 										<li>Does this tweet contain a website URL, and if so to what kind of content does it link?</li>
-										<li>Does this tweet refer to a specific kind of hurricane-related damage (selecting from a list)?</li>
+										<li>Does this tweet refer to a specific kind of storm-related damage (selecting from a list)?</li>
 									</ol>
-								</p>
-								<p style="text-align:center">
-									<%if (e.firstTimeUser != 'control') { %>
-										This is a limited group of 100 HITs. Once you complete a HIT in this group, it will <b>no longer be available</b>										for other Workers to complete.
+								<%if ((e.firstTimeUser != 'control') && (e.firstTimeUser != 'shared')) { %>
+									<div class="instructions-t">
+										This is a limited group of 100 HITs. Once you complete a HIT in this group, it will <b>no longer be available</b>										for other Workers to complete.<br><br>
 										<% if ((e.firstTimeUser === 'framing') || (e.firstTimeUser === 'reciprocity') || (e.firstTimeUser === 'reputation')) { %>
-											Feel free to complete as many HITs in this group as you would like, or share this HIT information and access code with whomever
-											you like.
+											If you like, you can share this HIT information and access code with other Turkers.<br><br>
 											<% if (e.firstTimeUser === 'reciprocity') { %>
-												We have sent similar invitations and access codes to other Turkers who may be willing to share their HIT information and
-												access codes with you in return.
+												A number of other Turkers have also received similar invitations with access codes; thus you may receive other opportunities to work on similar HITs if they decide to share with you.<br><br>
 												<% } else if (e.firstTimeUser === 'reputation') { %>
 													Once we have finished data collection, we will post a list of Turkers who have shared the largest number of HITs with others
-													to various Mturk forums using nicknames to protect privacy.
+													to various Mturk forums using nicknames to protect privacy.<br><br>
 													<p style="text-align:center">Please enter a nickname by which you would like to be identified when we post this information:</p>
 													<div class="input-group col-centered"><input name="nickname" size="1" style="height: 1.5em; width: 15em" type="text" required/></div>
 											<% } %>
 										<% } %>
 									<% } %>
-								</p>
+								</div>
 								<input class="form-control" name="accessContent[Tweet]" size="25" type="text" value="<%= e.content.Tweet %>" style="display:none;" />
 								<input class="form-control" name="accessContent[User]" size="25" type="text" value="<%= e.content.User %>" style="display:none;" />
 								<input class="form-control" name="accessContent[Date]" size="25" type="text" value="<%= e.content.Date %>" style="display:none;" />
@@ -105,12 +101,11 @@
 
 								<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
 				        <input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
-								<br>
+								
+							<div class="col-xs-8 col-xs-offset-2 button-container">
 								<p style="text-align:center">Click below to get started</p>
-							</blockquote>
-
-							<input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin">
-
+								<input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin">
+							</div>	
 					</form>
 					</div>
 				</div>
@@ -169,7 +164,7 @@
 								<h5><strong>3) Does the tweet refer to a specific kind of hurricane-related damage? </strong></h5>
 								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="1" onclick="showSubquestion('#damage-detail')"/>Yes</label></div>
 								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="0" onclick="hideSubquestion('#damage-detail')"/>No</label></div>
-	            </fieldset>
+	            			</fieldset>
 
               
 							<div id="damage-detail" class="subquestion">

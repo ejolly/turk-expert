@@ -5,6 +5,29 @@
   font-size: 14px;
 }
 
+.button-container {
+  text-align: center;
+  padding-top: 1em;
+}
+
+.instructions-container{
+  font-size: 16px;
+  padding-top: 2em;
+}
+
+.instructions-body {
+  padding-top: 1em;
+}
+
+.instructions-t {
+  background: #F2F2F2;
+  padding: 10px;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  padding-top: 1.5em;
+  border-radius: 15px;
+}
+
 .imagecontainer { 
   display:block; 
   border: 1em solid #FFFFFF; 
