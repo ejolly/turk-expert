@@ -183,33 +183,42 @@ var TurkExpert = {
                             obj: {
                                 hid: result.hit[0].HITTypeId,
                                 wid: workerId
-                            }
+                            },
+                            assignmentId: assignmentId,
+                            turkSubmitTo: turkSubmitTo
                         }); //worker not found, new user
                     } else {
-                        //result.authentication is an arry 
+                        //result.authentication is an array 
                         var authList = result.authentication;
                         var flg = false;
-                        for(var i=0; i < authList.length; i++){
+                        var index=0;
+                        var i=0;
+                        for(; i < authList.length; i++){
                           if(authList[i].HITTypeId === result.hit[0].HITTypeId){
                             flg = true;
+                            index = i;
                           }
                         }           
                         if (flg) {
-                          if(result.authentication[0].Authenticated){
+                          if(authList[index].Authenticated){
                             cb({ 
                                 code: 200,
-                                type: result.authentication[0].Type,
-                                content: result.hit[0].Content
-                             }); //worker already authenticated - repated
+                                type: result.hit[0].Treatment,
+                                content: result.hit[0].Content,
+                                assignmentId: assignmentId,
+                                turkSubmitTo: turkSubmitTo
+                             }); //worker already authenticated - repeated
                           }else{
                             cb({
                                 code: 422, 
                                 content: result.hit[0].Content,
-                                type: result.authentication[0].Type, // This gonna be the treatmet
+                                type: result.hit[0].Treatment, // This gonna be the treatmet
                                 obj: {
                                     hid: result.hit[0].HITTypeId,
                                     wid: workerId
-                                }
+                                },
+                                assignmentId: assignmentId,
+                                turkSubmitTo: turkSubmitTo
                             });//invited not authenticated
                           }
                             
@@ -222,7 +231,9 @@ var TurkExpert = {
                                 obj: {
                                     hid: result.hit[0].HITTypeId,
                                     wid: workerId
-                                }
+                                },
+                                assignmentId: assignmentId,
+                                turkSubmitTo: turkSubmitTo
                             });
  
                         }
@@ -231,7 +242,7 @@ var TurkExpert = {
             });
         })
     },
-    validateCode: function (type, content, obj, code, cb) {
+    validateCode: function (type, content, obj, code, assignmentId, turkSubmitTo, cb) {
         MongoDB.connect(function (db) {
             MongoDB.find(db, 'authentication', { HITTypeId: obj.hid, Code: code }, {}, {}, function (doc) {
                 if (doc.length === 0) { // authentication failed
@@ -239,26 +250,28 @@ var TurkExpert = {
                         code: 403,
                         content: content,
                         type: type,
-                        obj: obj
+                        obj: obj,
+                        assignmentId: assignmentId,
+                        turkSubmitTo: turkSubmitTo
                     });
                 } else {
                     //save u as a new record or update invited to authenticated true
-                    // var authenticatedWorkers = [];
-                    // doc.forEach(function(entry){
-                    //     authenticatedWorkers.push(entry.WorkerId); 
-                    // });
-                    // var newType = 'shared'; //default
-                    // if(authenticatedWorkers.indexOf(obj.wid)=== -1){ 
-                    //     newType = 'shared'; //new user - shared
-                    // }else{
-                    //     newType = type;   // invited
-                    // }
+                    var authenticatedWorkers = [];
+                    doc.forEach(function(entry){
+                        authenticatedWorkers.push(entry.WorkerId); 
+                    });
+                    var newType = 'shared'; //default
+                    if(authenticatedWorkers.indexOf(obj.wid)=== -1){ 
+                        newType = 'shared'; // new user - shared
+                    }else{
+                        newType = type;   // invited
+                    }
                     MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
                         {
                             $set: {
                                 WorkerId: obj.wid,
                                 Code: code,
-                                Type: type,
+                                Type: newType,
                                 Authenticated: true
                             },
                             $currentDate: { "lastModified": true }
@@ -269,16 +282,18 @@ var TurkExpert = {
                         }, function (r) { // authentication success - The Very First Time !!!
                             cb({
                                 code: 200,
-                                firstTimeUser: type,
+                                firstTimeUser: newType,
                                 content: content,
-                                obj: obj    //no more authentication params, but keep for first User process
+                                obj: obj,  //no more authentication params, but keep for first User process
+                                assignmentId: assignmentId,
+                                turkSubmitTo: turkSubmitTo
                             });
                     });
                 }
             });
         })
     },
-    firstUser: function (nickname, content, obj, cb) { //persist into mongo
+    firstUser: function (nickname, content, obj, assignmentId, turkSubmitTo, cb) { //persist into mongo
         MongoDB.connect(function (db) {
             MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid},
             {
@@ -293,8 +308,10 @@ var TurkExpert = {
             }, function (r) { //final response for the First Time User
                 cb({
                     code: 200,
-                    content: content
+                    content: content,
                     //obj: obj //no more authentication params
+                    assignmentId: assignmentId,
+                    turkSubmitTo: turkSubmitTo
                 });
             });
         });
@@ -456,11 +473,7 @@ var TurkExpert = {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
                     var lifetimeInSeconds = 900;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
-<<<<<<< HEAD
                     var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, 300, lifetimeInSeconds, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
-=======
-                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, 30, 300, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
->>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
                     var id = entry._id; //To keep the track of each hit in db.
                     var treatment = entry.Treatment;
                     
@@ -568,7 +581,7 @@ var TurkExpert = {
                 });
             }
             function contactWorkers(hitList, callback) {
-                console.time('contactWorkers');
+                // console.time('contactWorkers');
                 async.parallel({
                     groupId: function (mturkcb) {
                         api.req('GetHIT', { HITId: hitList[0].hit.HITId}).then(function (res) {
@@ -582,7 +595,7 @@ var TurkExpert = {
                         });
                     },
                     worker: function (mongocb) {
-                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: /sent/ } }, {}, { limit: 1 }, function (doc) {  //, status: 'new'
+                        MongoDB.find(db, 'worker', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {  //Sandbox Test:  status: { $not: /sent/ }
                             mongocb(null, doc);
                         });
                     }
@@ -591,22 +604,17 @@ var TurkExpert = {
                     //Sandbox TEST
                     var currentWorker = result.worker[0];
                     var currentTreatment = hitList[0].treatment;
-                    var curentLifetimeInSeconds = hitList[0].lifetimeInSeconds;
+                    var currentLifetimeInSeconds = hitList[0].lifetimeInSeconds;
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
-                    var template = "Dear Turker,\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\nYou can access these HITs at the following URL: <HITURL>\nIf you're not available, no problem, just let us know by clicking on the following link. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
-<<<<<<< HEAD
-                    var notice = new NOTICE('A32D5DD50BKQ6Y', subject, formatMessageText(template, currentHit, curentLifetimeInSeconds, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
-=======
-                    var notice = new NOTICE('TEST', subject, formatMessageText(template, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
->>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
+                    var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
+                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
-                        //Do something 
-                        //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
-                        console.timeEnd('contactWorkers');
+                        // Do something 
+                        // console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
+                        // console.timeEnd('contactWorkers');
                         //write into 
-                        console.log('success!!!!!!!')
-                        callback(null, hitList.length, currentWorker, curentLifetimeInSeconds, currentTreatment, currentHit);
+                        callback(null, hitList.length, currentWorker, currentTreatment, currentHit);
                     }, function (error) {
                         //Handle error 
                         console.error(error);
@@ -614,26 +622,15 @@ var TurkExpert = {
                     });
                 });
 
-                function formatMessageText(template, hit, curentLifetimeInSeconds, worker, groupId) {
-                  console.log('kev:msg ====', template.replace('<TITLE>', hit.Title)
-                    .replace('<DATETIME>', hit.lastModified)
+                function formatMessageText(template, hit, currentLifetimeInSeconds, worker, groupId) {                    
+                    var msg = template.replace('<TITLE>', hit.Title)
+                    .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds/3600) + 'hrs')
                     .replace('<REWARD>', hit.Reward.FormattedPrice)
                     .replace('<CODE>', hit.Code)
-                    .replace('<LIFETIME>', parseInt(curentLifetimeInSeconds/3600) + 'hrs')
                     .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId='+groupId)
-                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId));
-                    
-                    return template.replace('<TITLE>', hit.Title)
-                    .replace('<DATETIME>', hit.lastModified)
-                    .replace('<REWARD>', hit.Reward.FormattedPrice)
-                    .replace('<CODE>', hit.Code)
-                    .replace('<LIFETIME>', parseInt(curentLifetimeInSeconds/3600) + 'hrs')
-                    .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId='+groupId)
-<<<<<<< HEAD
                     .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId);
-=======
-                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId)
->>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
+                    
+                    return msg;
                 }
 
             }

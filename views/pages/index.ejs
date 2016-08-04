@@ -55,6 +55,8 @@
 				<input class="form-control" name="accessContent[Time]" size="25" type="text" value="<%= e.content.Time %>" style="display:none;" />
 				<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
 				<input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
+        <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
+        <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;" />
 				<% if(e.code === 403){ %>
 					<p class="authFeedback">This access code is incorrect!</p>
 					<% } %>
@@ -101,6 +103,8 @@
 
 								<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
 				        <input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
+                <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
+                <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;" />
 								
 							<div class="col-xs-8 col-xs-offset-2 button-container">
 								<p style="text-align:center">Click below to get started</p>
@@ -126,7 +130,7 @@
 					<div class="greybox col-xs-6 col-xs-offset-3">
 						<h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
 						<p style="text-align:center"><label><input id="unreadable" class="unreadable" name="unreadable" type="checkbox" value="unreadable"/> It's not possible to understand this tweet</label></p>
-						<form class="form" role="form" id="HIT-Form" action="mturk/externalSubmit" method="POST">
+						<form class="form" role="form" id="HIT-Form" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
 							<fieldset id="q1">
 								<h5><strong>1) Is this tweet in English?</strong></h5>
 								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="1"/>Yes</label></div>
@@ -191,15 +195,18 @@
 									<p class="validationMessage" id="validate3">Please check at least one box</p>
 							 </fieldset>
 							 </div>
-             
+               
+              <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
 
 							<div class="centered">
 								<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit">
 							</div>
 						</form>
-            
-							<form class="form" role="form" id="HIT-Form-fake" action="mturk/externalSubmit" method="POST">
-							<div class="centered">
+               
+               
+							<form class="form" role="form" id="HIT-Form-fake" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
+              <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
+              <div class="centered">
 								<input type="submit" id="submitButton-fake" class="btn btn-lg btn-primary" value="Submit">
 							</div>
 							</form>
@@ -241,11 +248,7 @@
 									}
 								}
 								if(submitReady){			
-										var turkSubmitTo = window.location.href.split('turkSubmitTo=')[1];
-									if(turkSubmitTo){
-										//alert('turkSubmitTo='+ turkSubmitTo);
-										document.getElementById("HIT-Form").action = turkSubmitTo+"/mturk/externalSubmit";
-									}
+									return true;
 								} else {
 									return false;
 								}

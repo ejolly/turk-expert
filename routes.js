@@ -25,11 +25,10 @@ router.get('/', function (req, res) {
     // workerId. 
     // These parameters are appended CGI-style
     //////////////////////////////////////////////////////////////////////////////////////////
-<<<<<<< HEAD
-    var assignmentId = false;
-    if(req.query.assignmentId !== 'ASSIGNMENT_ID_NOT_AVAILABLE'){
-      assignmentId = req.query.assignmentId;
-    }    
+    var assignmentId = req.query.assignmentId || false;
+    // if(req.query.assignmentId !== 'ASSIGNMENT_ID_NOT_AVAILABLE'){
+    //   assignmentId = req.query.assignmentId;
+    // }    
     var hitId = req.query.hitId || false;    
     var workerId = req.query.workerId || false;
     var turkSubmitTo = req.query.turkSubmitTo || false;
@@ -39,11 +38,11 @@ router.get('/', function (req, res) {
     // console.log('kev: workerId', workerId);
     // console.log('kev: turkSubmitTo', turkSubmitTo);
     
-    if( assignmentId === undefined && !hitId && !workerId && !turkSubmitTo){
+    if(!assignmentId || !hitId || !workerId || !turkSubmitTo){
        //raw crul
        //console.log('raw crul');
        res.render('pages/notfound');
-    }else if( !assignmentId && hitId && !workerId && !turkSubmitTo ) {
+    }else if( assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE'  ) {
        //preview
        //console.log('preview');
        res.render('pages/info');
@@ -52,7 +51,7 @@ router.get('/', function (req, res) {
           if (e.code === 404) {
               res.render('pages/notfound');
           } else if (e.code === 422) {
-              res.render('pages/index', { // not yet authenticated
+             res.render('pages/index', { // not yet authenticated
                   auth: false,
                   e: e
               });
@@ -64,24 +63,6 @@ router.get('/', function (req, res) {
           }
       });
     }
-=======
-    TurkExpert.init(req.query.assignmentId, req.query.hitId, req.query.workerId, req.query.turkSubmitTo, function (e) {
-        if (e.code === 404) {
-            res.render('pages/notfound');
-        } else if (e.code === 422) {
-            res.render('pages/index', { // not yet authenticated
-                auth: false,
-                e: e
-            });
-        } else if (e.code === 200) {
-            res.render('pages/index', { // already authenticated
-                auth: true,
-                e: e
-            });
-        }
-    });
-
->>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
 });
 
 //TODO: v2.0 
@@ -271,8 +252,10 @@ router.post('/validateCode', function (req, res) {
     // console.log(req.body.accessCode);
     // console.log(req.body.accessContent);
     // console.log(req.body.accessType);
+    //turkSubmitTo
+    //assignmentId
 
-    TurkExpert.validateCode(req.body.accessType, req.body.accessContent, req.body.accessObj, req.body.accessCode, function (e) {
+    TurkExpert.validateCode(req.body.accessType, req.body.accessContent, req.body.accessObj, req.body.accessCode, req.body.accessAssignmentId, req.body.accessSubmitTo, function (e) {
         if(e.code === 200){
             res.render('pages/index', { // first time authenticated
                 auth: true,
@@ -290,7 +273,7 @@ router.post('/validateCode', function (req, res) {
 //Client: firstUser
 router.post('/firstUser', function (req, res) {
     if(req.body.nickname){ // Treatment reputation - persist first user input data
-        TurkExpert.firstUser(req.body.nickname, req.body.accessContent, req.body.accessObj,function (e) {
+        TurkExpert.firstUser(req.body.nickname, req.body.accessContent, req.body.accessObj, req.body.accessAssignmentId, req.body.accessSubmitTo, function (e) {
             res.render('pages/index', { 
                 auth: true,
                 e: e
@@ -301,7 +284,9 @@ router.post('/firstUser', function (req, res) {
             auth: true,
             e: {
                 code: 200,
-                content: req.body.accessContent
+                content: req.body.accessContent,
+                assignmentId: req.body.accessAssignmentId, 
+                turkSubmitTo: req.body.accessSubmitTo
             }
         });
     }    
