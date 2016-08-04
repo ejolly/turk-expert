@@ -5,6 +5,29 @@
   font-size: 14px;
 }
 
+.button-container {
+  text-align: center;
+  padding-top: 1em;
+}
+
+.instructions-container{
+  font-size: 16px;
+  padding-top: 2em;
+}
+
+.instructions-body {
+  padding-top: 1em;
+}
+
+.instructions-t {
+  background: #F2F2F2;
+  padding: 10px;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  padding-top: 1.5em;
+  border-radius: 15px;
+}
+
 .imagecontainer { 
   display:block; 
   border: 1em solid #FFFFFF; 
@@ -17,8 +40,65 @@
   color: #FF2D4E;
  }
 
- /* Leaderboard styling */
- .leaderboard {
-    margin-left: auto;
-    margin-right: auto;
- }
+/* Twitter suggested minimal tweet styling */
+ blockquote.twitter-tweet {
+  font-family: "Helvetica Neue", Roboto, "Segoe UI", Calibri, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 16px;
+  border-color: lightblue;
+  border-radius: 5px;
+  border-style: solid;
+  border-width: 11px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  max-width: 1000px;
+  margin: 50px 0;
+}
+ 
+blockquote.twitter-tweet p {
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 30px;
+}
+ 
+blockquote.twitter-tweet a {
+  color: inherit;
+  font-weight: normal;
+  text-decoration: none;
+  outline: 0 none;
+}
+ 
+blockquote.twitter-tweet a:hover,
+blockquote.twitter-tweet a:focus {
+  text-decoration: underline;
+}
+
+fieldset {
+  background: #fbfbfb;
+  padding: 10px;
+  margin-bottom: 5px;
+}
+
+label {
+  font-weight: normal !important;
+}
+
+.subquestion, #HIT-Form-fake{
+  display: none;
+}
+
+.subheading{
+  color: #696969;
+  margin-top: -5px;
+  font-style: italic;
+}
+.validationMessage {
+  font-weight: bold;
+  color: #e60000;
+  visibility: hidden;
+}
+.col-centered{
+    margin: 0 auto;
+    float: none;
+}

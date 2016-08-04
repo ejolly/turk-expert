@@ -1,104 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
 
-	<script src="//code.jquery.com/jquery-1.12.3.js"></script> 
-	<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css"/>
-	<link rel="stylesheet" type="text/css" href="/public/css/client.css"/>
-    <title>
-        Welcome to the Experiment - Powered by Turk Expert v0.1.0
-    </title>
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"
+			  integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+			  crossorigin="anonymous"></script>
+	<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="/public/css/client.css" />
+	<title>
+		Welcome to the Experiment - Powered by Turk Expert v0.1.0
+	</title>
 </head>
 
 <body>
+  <script>
+		function showSubquestion(id){
+			$(id).show(100);
+		}
+		function hideSubquestion(id){
+			$(id).hide(100);
+		}
 
-<% if(!auth){ %>
-	<!--Auth form -->
-	<div class="form-group col-xs-4 col-xs-offset-4 centered">
-		<form method='post' action='validateCode' class='form-horizontal'>
-			<label>Please enter an access code to work on this HIT</label> 
-			<input class="form-control" name="accessCode" size="25" type="text" />
-			<input class="form-control" name="accessType" size="25" type="text" value="<%= e.type %>" style="display:none;"/>
-			<input class="form-control" name="accessContent" size="25" type="text" value="<%= e.content %>" style="display:none;"/>
-			<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;"/>
-			<input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;"/>
-			<% if(e.code === 403){ %> 
-			<p class="authFeedback">This access code is incorrect!</p> 
-			<% } %>
-			<div class="centered">
-				<!--<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">-->
-				<button class="btn btn-lg btn-primary" type="submit">Submit</button>
-			</div>
-		</form>
-	</div>
- <% } else{ %>  
+		$(document).ready(function() {
+			$('#unreadable').change(function() {
+        if($(this).is(":checked")) {
+            $('#HIT-Form').hide();
+						$('#HIT-Form-fake').show();
+        }else{
+					  $('#HIT-Form-fake').hide();
+						$('#HIT-Form').show();
+				}
+    	});
 
-	<% if(e.firstTimeUser && e.firstTimeUser != 'shared'){ %>
-	<!-- if e.firstTImeUser === 'Treament' .... all 5 tempaltes -->
-	<!-- This modal should pop up if a Worker successfully enters an access code, but we never sent it to them -->
-	<form id="First-User-Form" action="firstUser" method="POST">
-	<div class="popup" data-keyboard="false" data-backdrop="static" id="preHITSurvey">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h4 class="modal-title">How did you learn about the access code for this HIT?</h4>
-				</div>
-				<div class="modal-body">
-					<div class="radio">
-					<label><input required="" type="radio" name="sharedSource[personal]" value="personal">Personal communication with another Turker</label>
+		});
+
+		 
+	</script>
+	<% if(!auth){ %>
+		<!--Auth form -->
+		<div class="form-group col-xs-4 col-xs-offset-4 centered">
+			<form method='post' action='validateCode' class='form-horizontal'>
+				<label>Please enter an access code to work on this HIT</label>
+				<input class="form-control" name="accessCode" size="25" type="text" />
+				<input class="form-control" name="accessType" size="25" type="text" value="<%= e.type %>" style="display:none;" />
+				<input class="form-control" name="accessContent[Tweet]" size="25" type="text" value="<%= e.content.Tweet %>" style="display:none;" />
+				<input class="form-control" name="accessContent[User]" size="25" type="text" value="<%= e.content.User %>" style="display:none;" />
+				<input class="form-control" name="accessContent[Date]" size="25" type="text" value="<%= e.content.Date %>" style="display:none;" />
+				<input class="form-control" name="accessContent[Time]" size="25" type="text" value="<%= e.content.Time %>" style="display:none;" />
+				<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
+				<input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
+				<% if(e.code === 403){ %>
+					<p class="authFeedback">This access code is incorrect!</p>
+					<% } %>
+						<div class="centered">
+							<!--<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">-->
+							<button class="btn btn-lg btn-primary" type="submit">Submit</button>
+						</div>
+			</form>
+		</div>
+		<% } else{ %>
+
+			<% if(e.firstTimeUser){ %>
+				<div class="instructions-container">
+					<form id="First-User-Form" action="firstUser" method="POST">
+						<div class="col-xs-8 col-xs-offset-2">
+							<h3 style="text-align:center"><u>HIT Instructions</u></h3>
+								<p class="instructions-body">For each HIT in this group you will be presented with a single real tweet that was tweeted during tropical storm	Pablo or Yolanda. Both storms hit the Philippines in 2012 and 2013 respectively.<br><br> We would like you to answer three questions about each tweet:
+								</p>
+									<ol>
+										<li>Was this tweet written in English?</li>
+										<li>Does this tweet contain a website URL, and if so to what kind of content does it link?</li>
+										<li>Does this tweet refer to a specific kind of storm-related damage (selecting from a list)?</li>
+									</ol>
+								<%if ((e.firstTimeUser != 'control') && (e.firstTimeUser != 'shared')) { %>
+									<div class="instructions-t">
+										This is a limited group of 100 HITs. Once you complete a HIT in this group, it will <b>no longer be available</b>										for other Workers to complete.<br><br>
+										<% if ((e.firstTimeUser === 'framing') || (e.firstTimeUser === 'reciprocity') || (e.firstTimeUser === 'reputation')) { %>
+											If you like, you can share this HIT information and access code with other Turkers.<br><br>
+											<% if (e.firstTimeUser === 'reciprocity') { %>
+												A number of other Turkers have also received similar invitations with access codes; thus you may receive other opportunities to work on similar HITs if they decide to share with you.<br><br>
+												<% } else if (e.firstTimeUser === 'reputation') { %>
+													Once we have finished data collection, we will post a list of Turkers who have shared the largest number of HITs with others
+													to various Mturk forums using nicknames to protect privacy.<br><br>
+													<p style="text-align:center">Please enter a nickname by which you would like to be identified when we post this information:</p>
+													<div class="input-group col-centered"><input name="nickname" size="1" style="height: 1.5em; width: 15em" type="text" required/></div>
+											<% } %>
+										<% } %>
+									<% } %>
+								</div>
+								<input class="form-control" name="accessContent[Tweet]" size="25" type="text" value="<%= e.content.Tweet %>" style="display:none;" />
+								<input class="form-control" name="accessContent[User]" size="25" type="text" value="<%= e.content.User %>" style="display:none;" />
+								<input class="form-control" name="accessContent[Date]" size="25" type="text" value="<%= e.content.Date %>" style="display:none;" />
+								<input class="form-control" name="accessContent[Time]" size="25" type="text" value="<%= e.content.Time %>" style="display:none;" />
+
+								<input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
+				        <input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
+								
+							<div class="col-xs-8 col-xs-offset-2 button-container">
+								<p style="text-align:center">Click below to get started</p>
+								<input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin">
+							</div>	
+					</form>
 					</div>
-					<div class="radio">
-					<label><input required= "" type="radio" name="sharedSource[forum]" value="forum">I saw the access code posted online</label>
+				</div>
+
+				<% } else { %>
+
+					<!-- Main HIT Content -->
+					<div class="col-xs-6 col-xs-offset-3"> 
+						<blockquote class="twitter-tweet">
+							<p>
+								<%= e.content.Tweet %> <br> - @
+									<%= e.content.User %>
+										<%= e.content.Time %>,
+											<%= e.content.Date %>
+							</p>
+						</blockquote>
 					</div>
-					<div class="input-group" style="margin-left: 3em">Please enter the name of the forum, group or website where you saw the access code posted: 
-					<input name="sharedSource[whichForum]" size="1" style="height: 1.5em; width: 5em" type="text" /></div>
-					<input class="form-control" name="accessContent" size="25" type="text" value="<%= e.content %>" style="display:none;"/>
-					<input class="form-control" name="accessObj" size="25" type="text" value="<%= e.obj %>" style="display:none;"/>
-				</div>
-				<div class="modal-footer">
-					<button type="submit" class="btn btn-primary">Proceed</button> 
-				</div>
-			</div>
-		</div>
-	</div>
-	</form>
-	<% } else { %>
+					<div class="greybox col-xs-6 col-xs-offset-3">
+						<h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
+						<p style="text-align:center"><label><input id="unreadable" class="unreadable" name="unreadable" type="checkbox" value="unreadable"/> It's not possible to understand this tweet</label></p>
+						<form class="form" role="form" id="HIT-Form" action="mturk/externalSubmit" method="POST">
+							<fieldset id="q1">
+								<h5><strong>1) Is this tweet in English?</strong></h5>
+								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="1"/>Yes</label></div>
+								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="0"/>No</label></div>
+							</fieldset>
 
-	<!-- Main HIT Content -->
+							<fieldset id="q2">
+								<h5><strong>2) Does this tweet contain a URL?</strong></h5>
+								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="1" onclick="showSubquestion('#valid-url')"/>Yes</label></div>
+								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="0" onclick="hideSubquestion('#valid-url')"/>No</label></div>		
+							</fieldset>
+             
+						  <div id="valid-url" class="subquestion">
+								<fieldset id="q2-1">
+									<p>Is this a working URL?</p>
+									<div class="radio-inline"><label><input name="validURL" type="radio" value="1" onclick="showSubquestion('#valid-url-sub')"/>Yes</label></div>
+									<div class="radio-inline"><label><input name="validURL" type="radio" value="0" onclick="hideSubquestion('#valid-url-sub')"/>No</label></div>
+									<p class="validationMessage" id="validate2a">Please select a response</p>
+							</fieldset>
+						
+						 
 
-	<form id="HIT-Form" action="mturk/externalSubmit" method="POST">
-	<div class="col-xs-4 col-xs-offset-4">
-		<div>
-			<img alt="image_url" class="imagecontainer" src="images/<%= e.content %>.jpeg" />
-		</div>
-		<div class="form-group centered">
-			<label>Please provide a label for this image</label> <input class="form-control" name="imageLabel" size="25" type="text" />
-		</div>
-		<div class="centered">
-			<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">
-		</div>
-	</div>
-	</form>
+							<div id="valid-url-sub" class="subquestion">
+								<fieldset id="q2-2">
+										<p>What kind of page does it point to?</p>
+										<p class="subheading">E.g. News story, video, image, etc</p>
+										<div class="input-group"><input id="URLcontent" name="URLcontent" size="1" style="height: 2em; width: 15em" type="text" /></div>
+										<p class="validationMessage" id="validate2b">Please enter a response</p>
+								</fieldset>
+							</div>
+							
+						  </div>
+
+							<fieldset id="q3">
+								<h5><strong>3) Does the tweet refer to a specific kind of hurricane-related damage? </strong></h5>
+								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="1" onclick="showSubquestion('#damage-detail')"/>Yes</label></div>
+								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="0" onclick="hideSubquestion('#damage-detail')"/>No</label></div>
+	            			</fieldset>
+
+              
+							<div id="damage-detail" class="subquestion">
+								<fieldset id="q3-1">
+									<p>What kind of damage is referred to?</p>
+									<p class="subheading">Check all that apply</p>
+									<div class="checkbox-group checkbox" required="">
+										<label><input class="damage" name="damage" type="checkbox" value="bridges"/>Damaged bridges</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="crops"/>Damaged crops</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="healthFacilities"/>Damaged hospitals/health facilities</label><br
+										/>
+										<label><input class="damage" name="damage" type="checkbox" value="housing"/>Damaged housing</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="roads"/>Damaged roads</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="schools"/>Damaged schools</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="vehicles"/>Damaged vehicles</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="infrastructure"/>Damaged infrastructure</label><br
+										/>
+										<label><input class="damage" name="damage" type="checkbox" value="deaths"/>Deaths reported</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="displacedPopulation"/>Displaced population</label><br
+										/>
+										<label><input class="damage" name="damage" type="checkbox" value="evacCenter"/>Evacuation center</label><br />
+										<label><input class="damage" name="damage" type="checkbox" value="flooding"/>Flooding</label><br />
+									</div>
+									<p class="validationMessage" id="validate3">Please check at least one box</p>
+							 </fieldset>
+							 </div>
+             
+
+							<div class="centered">
+								<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit">
+							</div>
+						</form>
+            
+							<form class="form" role="form" id="HIT-Form-fake" action="mturk/externalSubmit" method="POST">
+							<div class="centered">
+								<input type="submit" id="submitButton-fake" class="btn btn-lg btn-primary" value="Submit">
+							</div>
+							</form>
 
 
-	<script>
-	    var turkSubmitTo = window.location.href.split('turkSubmitTo=')[1];
-			if(turkSubmitTo){
-				//alert('turkSubmitTo='+ turkSubmitTo);
-				document.getElementById("HIT-Form").action = turkSubmitTo+"/mturk/externalSubmit";
-			}
+						</div>
+
+						<script type=text/javascript>
+							window.onload = function() {
+								document.getElementById('submitButton').setAttribute('onclick', 'return validateForm()');
+							}
+							function validateForm(){
+								var submitReady = true;
+								if(!$('input.unreadable').prop('checked')){
+									//Yes for question 2
+									if($('input:radio[name=hasURL]:checked').val() === "1"){
+										if(!$('input:radio[name=validURL]:checked').val()){
+											$('#validate2a').css('visibility','visible');
+											submitReady = false;
+										}
+										else if(($('input:radio[name=validURL]:checked').val()) && ($('input:radio[name=validURL]:checked').val() === "1") && ($('#URLcontent').val().length === 0)) {
+											$('#validate2b').css('visibility','visible');
+											submitReady = false;
+										} else {
+											$('#validate2a').css('visibility','hidden');
+											$('#validate2b').css('visibility','hidden');
+										}
+									} else {
+										$('#validate2a').css('visibility','hidden');
+										$('#validate2b').css('visibility','hidden');
+
+									}
+									//Yes for question 3
+									if($('input:radio[name=aboutDamage]:checked').val() === "1"){
+										if($('div.checkbox :checkbox:checked').length == 0){
+											$('#validate3').css('visibility','visible');
+											submitReady = false;
+										}
+									}
+								}
+								if(submitReady){			
+										var turkSubmitTo = window.location.href.split('turkSubmitTo=')[1];
+									if(turkSubmitTo){
+										//alert('turkSubmitTo='+ turkSubmitTo);
+										document.getElementById("HIT-Form").action = turkSubmitTo+"/mturk/externalSubmit";
+									}
+								} else {
+									return false;
+								}
+							}
 	</script>
 
 
-	<% } %>
+						<% } %>
 
 
-<% } %>
+							<% } %>
 
 
 
@@ -106,4 +264,3 @@
 </body>
 
 </html>
-

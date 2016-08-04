@@ -25,6 +25,7 @@ router.get('/', function (req, res) {
     // workerId. 
     // These parameters are appended CGI-style
     //////////////////////////////////////////////////////////////////////////////////////////
+<<<<<<< HEAD
     var assignmentId = false;
     if(req.query.assignmentId !== 'ASSIGNMENT_ID_NOT_AVAILABLE'){
       assignmentId = req.query.assignmentId;
@@ -63,6 +64,24 @@ router.get('/', function (req, res) {
           }
       });
     }
+=======
+    TurkExpert.init(req.query.assignmentId, req.query.hitId, req.query.workerId, req.query.turkSubmitTo, function (e) {
+        if (e.code === 404) {
+            res.render('pages/notfound');
+        } else if (e.code === 422) {
+            res.render('pages/index', { // not yet authenticated
+                auth: false,
+                e: e
+            });
+        } else if (e.code === 200) {
+            res.render('pages/index', { // already authenticated
+                auth: true,
+                e: e
+            });
+        }
+    });
+
+>>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
 });
 
 //TODO: v2.0 

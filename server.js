@@ -23,7 +23,7 @@ app.set('view engine', 'ejs');
 app.use('/', express.static(__dirname + '/public'));
 
 app.use(express.static('./'));
-app.use("/", router);
+app.use('/', router);
 app.use('*', function (req, res) {
     res.render('pages/404');
 });
@@ -31,6 +31,9 @@ app.use('*', function (req, res) {
 app.listen(port, host, function () {
     host = host || 'localhost';
     brand.log();
-    console.log('Server is running at ' + host + ':' + port); 
-    job.start(1);
+    console.log('Server is running at ' + host + ':' + port);    
 });
+
+// Scheduler 
+// job.start(1);
+// job.start(2);

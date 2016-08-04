@@ -456,7 +456,11 @@ var TurkExpert = {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
                     var lifetimeInSeconds = 900;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
+<<<<<<< HEAD
                     var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, 300, lifetimeInSeconds, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
+=======
+                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, 30, 300, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
+>>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
                     var id = entry._id; //To keep the track of each hit in db.
                     var treatment = entry.Treatment;
                     
@@ -591,7 +595,11 @@ var TurkExpert = {
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
                     var template = "Dear Turker,\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\nYou can access these HITs at the following URL: <HITURL>\nIf you're not available, no problem, just let us know by clicking on the following link. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
+<<<<<<< HEAD
                     var notice = new NOTICE('A32D5DD50BKQ6Y', subject, formatMessageText(template, currentHit, curentLifetimeInSeconds, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+=======
+                    var notice = new NOTICE('TEST', subject, formatMessageText(template, currentHit, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+>>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
                     api.req('NotifyWorkers', notice).then(function (res) {
                         //Do something 
                         //console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
@@ -621,7 +629,11 @@ var TurkExpert = {
                     .replace('<CODE>', hit.Code)
                     .replace('<LIFETIME>', parseInt(curentLifetimeInSeconds/3600) + 'hrs')
                     .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId='+groupId)
+<<<<<<< HEAD
                     .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId);
+=======
+                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId)
+>>>>>>> abd7e880443e5203a8ffa2545b1db1ef5d831087
                 }
 
             }

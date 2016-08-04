@@ -10,21 +10,40 @@
 //└───────────────────────── second (0 - 59, OPTIONAL)
 ///////////////////////////////////////////////////////////////////////////
 
-var schedule = require('node-schedule');
+var CronJob = require('cron').CronJob;
 
 var job = {
    start: function(task){
-     if(task === 1){ // update assignments 
-        var min = 1;
-        var j1 = schedule.scheduleJob('* /1 * * *', function(){
-        console.log('The answer to life, the universe, and everything!');
-        });
-     }else if(task === 2){ // update hits expiration / timeout / done
-       var hr = 24;
-       var j2 = schedule.scheduleJob('* * /24 * *', function(){
-         console.log('The answer to life, the universe, and everything!');
-       });
+     if(task === 1 ){
+        var task = new CronJob('*/1 * * * *', function() {
+          console.log('task 1: update assignments - status ');
+          /*
+          * Runs every period
+          */
+          }, function () {
+            /* This function is executed when the job stops */
+          },
+          true, /* Start the job right now */
+          'America/Los_Angeles' /* Time zone of this job. */
+        );
+        task.start();
+     }else if(task === 2){ // update hits expiration, timeout / done
+       var task = new CronJob('*/5 * * * *', function() {
+          console.log('task 2: update hits - expiration, postpone, timeout / users - postpone, done ');
+          /*
+          * Runs every weekday (Monday through Friday)
+          * at certain AM. or period
+          */
+          }, function () {
+            /* This function is executed when the job stops */
+          },
+          true, /* Start the job right now */
+          'America/Los_Angeles' /* Time zone of this job. */
+        );
+        task.start();
      }
+
+     
    }
 }
 
