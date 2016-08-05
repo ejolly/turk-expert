@@ -34,7 +34,7 @@
        $('#'+id).hide(100);
     }
     function validateForm(){    
-      if($('div.checkbox :checkbox:checked').length == 0){
+     if($('div.checkbox :checkbox:checked').length == 0 && $('div.unreadable :checkbox:checked').length == 0){
         $('#validate-checkbox').css('display','block');
         submitReady = false;
       }else{
