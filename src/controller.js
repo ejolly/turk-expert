@@ -167,6 +167,21 @@ var TurkExpert = {
             cb(error);
         });
     },
+    
+    ForceExpireHIT: function (hitId, cb) {
+        //Example operation, with params 
+        console.time('ForceExpireHIT');
+        api.req('ForceExpireHIT', hitId).then(function (res) {
+            //Do something 
+            console.log('ForceExpireHIT -> ', res);
+            console.timeEnd('ForceExpireHIT');
+            cb(res);
+        }, function (error) {
+            //Handle error 
+            console.error(error);
+            cb(error);
+        });
+    },
 
 
     //////////////////////////////////////////////////////////////////////////

@@ -353,6 +353,14 @@ router.get('/api/hit/:id', auth, function (req, res) {
     });
 });
 
+router.get('/api/expire/:id', auth, function (req, res) {
+    //required: id -> HITId
+    TurkExpert.ForceExpireHIT(req.params.id, function (e) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(e, null, 2));
+    });
+});
+
 router.get('/api/assignment/:id', auth, function (req, res) {
     //required: id -> AssignmentId
     TurkExpert.GetAssignment(req.params.id, function (e) {
