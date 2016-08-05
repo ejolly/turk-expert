@@ -96,7 +96,7 @@ label {
 .validationMessage {
   font-weight: bold;
   color: #e60000;
-  visibility: hidden;
+  display: none;
 }
 .col-centered{
     margin: 0 auto;

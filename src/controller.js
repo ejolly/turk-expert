@@ -24,6 +24,25 @@ var mturk = require('mturk-api'),
 //   }).catch(console.error);
 // }).catch(console.error); 
 
+ /**
+  * Create Base64 Object - Gobal
+  * 
+ */
+var Base64 = { _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function(e) { var t = ""; var n, r, i, s, o, u, a; var f = 0; e = Base64._utf8_encode(e); while (f < e.length) { n = e.charCodeAt(f++); r = e.charCodeAt(f++); i = e.charCodeAt(f++); s = n >> 2; o = (n & 3) << 4 | r >> 4; u = (r & 15) << 2 | i >> 6; a = i & 63; if (isNaN(r)) { u = a = 64 } else if (isNaN(i)) { a = 64 } t = t + this._keyStr.charAt(s) + this._keyStr.charAt(o) + this._keyStr.charAt(u) + this._keyStr.charAt(a) } return t }, decode: function(e) { var t = ""; var n, r, i; var s, o, u, a; var f = 0; e = e.replace(/[^A-Za-z0-9+/=]/g, ""); while (f < e.length) { s = this._keyStr.indexOf(e.charAt(f++)); o = this._keyStr.indexOf(e.charAt(f++)); u = this._keyStr.indexOf(e.charAt(f++)); a = this._keyStr.indexOf(e.charAt(f++)); n = s << 2 | o >> 4; r = (o & 15) << 4 | u >> 2; i = (u & 3) << 6 | a; t = t + String.fromCharCode(n); if (u != 64) { t = t + String.fromCharCode(r) } if (a != 64) { t = t + String.fromCharCode(i) } } t = Base64._utf8_decode(t); return t }, _utf8_encode: function(e) { e = e.replace(/rn/g, "n"); var t = ""; for (var n = 0; n < e.length; n++) { var r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r) } else if (r > 127 && r < 2048) { t += String.fromCharCode(r >> 6 | 192); t += String.fromCharCode(r & 63 | 128) } else { t += String.fromCharCode(r >> 12 | 224); t += String.fromCharCode(r >> 6 & 63 | 128); t += String.fromCharCode(r & 63 | 128) } } return t }, _utf8_decode: function(e) { var t = ""; var n = 0; var r = c1 = c2 = 0; while (n < e.length) { r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r); n++ } else if (r > 191 && r < 224) { c2 = e.charCodeAt(n + 1); t += String.fromCharCode((r & 31) << 6 | c2 & 63); n += 2 } else { c2 = e.charCodeAt(n + 1); c3 = e.charCodeAt(n + 2); t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63); n += 3 } } return t } }
+
+/**
+ * Generate Code Randomly
+ * @param {n} a number for the length of the code.
+ * @returns {string} code
+ */
+var generateCode = function(n){
+    var code = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (var i = 0; i < n; i++) {
+        code += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return code;
+}
 
 var TurkExpert = {
     //////////////////////////////////////////////////////////////////////////
@@ -159,7 +178,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (mongocb) {
-                    MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', { HITId: hitId, status: {$not:{$in: ['expired'] }}}, {}, {}, function (doc) {
                         mongocb(null, doc);
                     });
                 },
@@ -175,6 +194,9 @@ var TurkExpert = {
                 if (result.hit.length === 0) { 
                     cb({ code: 404 }); //hit not found or expired
                 } else if (result.hit.length === 1) {
+                    // if(result.hit[0].status === 'postponed'){
+                    // MSG for postponed group
+                    // }
                     if (result.authentication.length === 0) {
                         cb({
                             code: 422, 
@@ -313,15 +335,26 @@ var TurkExpert = {
                     assignmentId: assignmentId,
                     turkSubmitTo: turkSubmitTo
                 });
+                db.close();
             });
         });
     },
-    Postpone: function (hidTypeId, workerId, cb) { //Update mongo, secret weapon
-           async.parallel({
+    postpone: function (s, cb) { //Update mongo, secret weapon
+           var decodedPostponeString = Base64.decode(s);
+           //console.log("decodedPostponeString",decodedPostponeString);
+           var hidTypeId = decodedPostponeString.split('_')[0];
+           var workerId = decodedPostponeString.split('_')[1];
+            
+           //invalidate old code
+           var newCode = generateCode(6); //6 is +1 than original
+            
+           MongoDB.connect(function (db) {
+            async.parallel({
                 hit: function (mongocb) {
-                    MongoDB.update(db, 'hit', { HITTypeId: hidTypeId},
+                    MongoDB.updateMany(db, 'hit', { HITTypeId: hidTypeId, status: 'published' },
                     {
                         $set: {
+                            Code: newCode,
                             status: 'postponed'
                         },
                         $currentDate: { "lastModified": true }
@@ -335,10 +368,26 @@ var TurkExpert = {
                     });
                 },
                 worker: function (mongocb) {
-                    MongoDB.update(db, 'worker', { WorkerId: workerId},
+                    MongoDB.update(db, 'worker', { WorkerId: workerId, status: 'sent'},
                     {
                         $set: {
                             status: 'postponed'
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) { 
+                        mongocb(null, r);
+                    });
+                },
+                authentication: function (mongocb) {
+                    MongoDB.update(db, 'authentication', { HITTypeId:hidTypeId, WorkerId: workerId},
+                    {
+                        $set: {
+                            Code: newCode,
+                            Type: 'postponed'
                         },
                         $currentDate: { "lastModified": true }
                     },
@@ -354,8 +403,10 @@ var TurkExpert = {
                     console.error(err);
                 }
                 //processing
-                cb(200); // Or template for user after postponed               
+                cb(200); // Or template for user after postponed    
+                db.close();           
             });
+          });
     },
     publishTreatments: function (treatments, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
@@ -387,7 +438,7 @@ var TurkExpert = {
             });
         }
         function getTreatmentContent(db, callback) {
-           MongoDB.find(db, 'content', {},  {'User':1, 'Tweet':1, 'Date':1, 'Time':1}, { sort : [['HITCount', 1]],limit:500}, function (contentTotalList) {
+           MongoDB.find(db, 'content', {},  {'_id': 1, 'User':1, 'Tweet':1, 'Date':1, 'Time':1}, { sort : [['HITCount', 1]],limit:500}, function (contentTotalList) {
                 var publishDate = makePublishTime();
                 callback(null, db, contentTotalList, publishDate);
            });
@@ -424,7 +475,6 @@ var TurkExpert = {
          */
         function shuffle(array) {
             var counter = array.length;
-
             // While there are elements in the array
             while (counter > 0) {
                 // Pick a random index
@@ -463,7 +513,7 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','expired'] }} }, {}, { limit: 1 }, function (doc) {
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','expired'] }} }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
@@ -472,8 +522,11 @@ var TurkExpert = {
                 async.map(hitList, function (entry, processModel) {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
                     var lifetimeInSeconds = 900;
+                    var assignmentDurationInSeconds = 900;
+                    var autoApprovalDelay = 10;
+                    var lifetimeInSeconds = 900;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
-                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, 300, lifetimeInSeconds, 10, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
+                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
                     var treatment = entry.Treatment;
                     
@@ -502,7 +555,7 @@ var TurkExpert = {
                 
                 //console.log('ImageArray: ', array);
                 //Gennerate Code randomly here for each n(default n=100) hits:
-                var code = generaterCode(5);
+                var code = generateCode(5);
                 //console.log('Code: ', code);
 
                 async.each(targetList, function (hitObj, processPublish) {
@@ -607,7 +660,7 @@ var TurkExpert = {
                     var currentLifetimeInSeconds = hitList[0].lifetimeInSeconds;
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
-                    var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
+                    var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link, which will expire the code above. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
                     var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
                     api.req('NotifyWorkers', notice).then(function (res) {
                         // Do something 
@@ -622,13 +675,20 @@ var TurkExpert = {
                     });
                 });
 
-                function formatMessageText(template, hit, currentLifetimeInSeconds, worker, groupId) {                    
+                function formatMessageText(template, hit, currentLifetimeInSeconds, worker, groupId) {   
+                 // Define the string
+                  var posponeString = hit.HITTypeId + '_' + worker.WorkerId;
+
+                  // Encode the String
+                  var encodedPostponeString = Base64.encode(posponeString);
+                  // console.log("encodedPostponeString:",encodedPostponeString);
+                 
                     var msg = template.replace('<TITLE>', hit.Title)
                     .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds/3600) + 'hrs')
                     .replace('<REWARD>', hit.Reward.FormattedPrice)
                     .replace('<CODE>', hit.Code)
-                    .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId='+groupId)
-                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?h=' + hit.HITTypeId + '&w=' + worker.WorkerId);
+                    .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId=' + groupId)
+                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?s=' + encodedPostponeString);
                     
                     return msg;
                 }
@@ -680,23 +740,6 @@ var TurkExpert = {
                     }
                 });
             }
-            /**
-             * Generate Code Randomly
-             * @param {n} a number for the length of the code.
-             * @returns {string} code
-             */
-            function generaterCode(n) {
-                var code = "";
-                var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-                for (var i = 0; i < n; i++) {
-                    code += possible.charAt(Math.floor(Math.random() * possible.length));
-                }
-
-                return code;
-            }
-
-
         }
 
     },

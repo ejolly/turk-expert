@@ -13,28 +13,43 @@
 			  crossorigin="anonymous"></script>
 	<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css" />
 	<link rel="stylesheet" type="text/css" href="/public/css/client.css" />
-	<title>
-		Welcome to the Experiment - Powered by Turk Expert v0.1.0
-	</title>
 </head>
 
 <body>
   <script>
+  //global
+  var submitReady = true;
 		function showSubquestion(id){
-			$(id).show(100);
+			$('#'+id).show(100);
+      $('#'+id+'-input').attr('required', true);
 		}
 		function hideSubquestion(id){
-			$(id).hide(100);
+			$('#'+id).hide(100);
+      $('#'+id+'-input').removeAttr('required');
 		}
-
+    function showCheckbox(id){
+      $('#'+id).show(100);
+    }
+    function hideCheckbox(id){
+       $('#'+id).hide(100);
+    }
+    function validateForm(){    
+      if($('div.checkbox :checkbox:checked').length == 0){
+        $('#validate-checkbox').css('display','block');
+        submitReady = false;
+      }else{
+        submitReady = true;
+      }   
+      return submitReady;
+    }
 		$(document).ready(function() {
 			$('#unreadable').change(function() {
         if($(this).is(":checked")) {
-            $('#HIT-Form').hide();
-						$('#HIT-Form-fake').show();
+            $('#HIT-Form').attr('novalidate','novalidate');
+            $('#requiredDiv').hide();
         }else{
-					  $('#HIT-Form-fake').hide();
-						$('#HIT-Form').show();
+						$('#requiredDiv').show();
+            $('#HIT-Form').removeAttr('novalidate');
 				}
     	});
 
@@ -131,7 +146,8 @@
 						<h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
 						<p style="text-align:center"><label><input id="unreadable" class="unreadable" name="unreadable" type="checkbox" value="unreadable"/> It's not possible to understand this tweet</label></p>
 						<form class="form" role="form" id="HIT-Form" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
-							<fieldset id="q1">
+							<div id="requiredDiv">
+              <fieldset id="q1">
 								<h5><strong>1) Is this tweet in English?</strong></h5>
 								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="1"/>Yes</label></div>
 								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="0"/>No</label></div>
@@ -139,16 +155,15 @@
 
 							<fieldset id="q2">
 								<h5><strong>2) Does this tweet contain a URL?</strong></h5>
-								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="1" onclick="showSubquestion('#valid-url')"/>Yes</label></div>
-								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="0" onclick="hideSubquestion('#valid-url')"/>No</label></div>		
+								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="1" onclick="showSubquestion('valid-url')"/>Yes</label></div>
+								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="0" onclick="hideSubquestion('valid-url')"/>No</label></div>		
 							</fieldset>
              
 						  <div id="valid-url" class="subquestion">
 								<fieldset id="q2-1">
 									<p>Is this a working URL?</p>
-									<div class="radio-inline"><label><input name="validURL" type="radio" value="1" onclick="showSubquestion('#valid-url-sub')"/>Yes</label></div>
-									<div class="radio-inline"><label><input name="validURL" type="radio" value="0" onclick="hideSubquestion('#valid-url-sub')"/>No</label></div>
-									<p class="validationMessage" id="validate2a">Please select a response</p>
+									<div class="radio-inline"><label><input id="valid-url-input" name="validURL" type="radio" value="1" onclick="showSubquestion('valid-url-sub')"/>Yes</label></div>
+									<div class="radio-inline"><label><input name="validURL" type="radio" value="0" onclick="hideSubquestion('valid-url-sub')"/>No</label></div>
 							</fieldset>
 						
 						 
@@ -157,8 +172,7 @@
 								<fieldset id="q2-2">
 										<p>What kind of page does it point to?</p>
 										<p class="subheading">E.g. News story, video, image, etc</p>
-										<div class="input-group"><input id="URLcontent" name="URLcontent" size="1" style="height: 2em; width: 15em" type="text" /></div>
-										<p class="validationMessage" id="validate2b">Please enter a response</p>
+										<div class="input-group"><input id="valid-url-sub-input" name="URLcontent" size="1" style="height: 2em; width: 15em" type="text" /></div>
 								</fieldset>
 							</div>
 							
@@ -166,8 +180,8 @@
 
 							<fieldset id="q3">
 								<h5><strong>3) Does the tweet refer to a specific kind of hurricane-related damage? </strong></h5>
-								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="1" onclick="showSubquestion('#damage-detail')"/>Yes</label></div>
-								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="0" onclick="hideSubquestion('#damage-detail')"/>No</label></div>
+								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="1" onclick="showCheckbox('damage-detail')"/>Yes</label></div>
+								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="0" onclick="hideCheckbox('damage-detail')"/>No</label></div>
 	            			</fieldset>
 
               
@@ -192,8 +206,10 @@
 										<label><input class="damage" name="damage" type="checkbox" value="evacCenter"/>Evacuation center</label><br />
 										<label><input class="damage" name="damage" type="checkbox" value="flooding"/>Flooding</label><br />
 									</div>
-									<p class="validationMessage" id="validate3">Please check at least one box</p>
+									<p class="validationMessage" id="validate-checkbox">Please check at least one box</p>
 							 </fieldset>
+               </div>
+               
 							 </div>
                
               <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
@@ -202,15 +218,6 @@
 								<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit">
 							</div>
 						</form>
-               
-               
-							<form class="form" role="form" id="HIT-Form-fake" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
-              <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
-              <div class="centered">
-								<input type="submit" id="submitButton-fake" class="btn btn-lg btn-primary" value="Submit">
-							</div>
-							</form>
-
 
 						</div>
 
@@ -218,42 +225,7 @@
 							window.onload = function() {
 								document.getElementById('submitButton').setAttribute('onclick', 'return validateForm()');
 							}
-							function validateForm(){
-								var submitReady = true;
-								if(!$('input.unreadable').prop('checked')){
-									//Yes for question 2
-									if($('input:radio[name=hasURL]:checked').val() === "1"){
-										if(!$('input:radio[name=validURL]:checked').val()){
-											$('#validate2a').css('visibility','visible');
-											submitReady = false;
-										}
-										else if(($('input:radio[name=validURL]:checked').val()) && ($('input:radio[name=validURL]:checked').val() === "1") && ($('#URLcontent').val().length === 0)) {
-											$('#validate2b').css('visibility','visible');
-											submitReady = false;
-										} else {
-											$('#validate2a').css('visibility','hidden');
-											$('#validate2b').css('visibility','hidden');
-										}
-									} else {
-										$('#validate2a').css('visibility','hidden');
-										$('#validate2b').css('visibility','hidden');
-
-									}
-									//Yes for question 3
-									if($('input:radio[name=aboutDamage]:checked').val() === "1"){
-										if($('div.checkbox :checkbox:checked').length == 0){
-											$('#validate3').css('visibility','visible');
-											submitReady = false;
-										}
-									}
-								}
-								if(submitReady){			
-									return true;
-								} else {
-									return false;
-								}
-							}
-	</script>
+        	</script>
 
 
 						<% } %>

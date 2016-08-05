@@ -69,6 +69,17 @@ var MongoDB = {
         cb(r);
     });
   },
+  updateMany: function(db, name, query, fields, options, cb){
+    db.collection(name).updateMany(query, fields, options).then(function(r) {
+        // assert.equal(1, r.result.n);
+        // assert.equal(1, r.result.nModified);
+        // assert.equal(1, r.matchedCount);
+        // assert.equal(1, r.modifiedCount);
+        // assert.equal(0, r.upsertedCount); 
+        console.log('Update DB -> ', query);    //+ r.result.n + ' docs'
+        cb(r);
+    });
+  },
   insert: function(db, name, doc, cb){
     db.collection(name).insertOne(doc).then(function(r) {
         console.log('Insert DB -> ', doc); 
