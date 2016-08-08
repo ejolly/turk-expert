@@ -34,7 +34,7 @@
        $('#'+id).hide(100);
     }
     function validateForm(){    
-     if($('div.checkbox :checkbox:checked').length == 0 && $('div.unreadable :checkbox:checked').length == 0){
+     if($('div.checkbox :checkbox:checked').length == 0 && $('div.unreadable :checkbox:checked').length == 0 && $('input[name=aboutDamage]:checked').val() == '1'){
         $('#validate-checkbox').css('display','block');
         submitReady = false;
       }else{
@@ -101,6 +101,7 @@
 											<% } %>
 										<% } %>
 									<% } %>
+									</div>
 									<h3 style="text-align:center"><u>HIT Instructions</u></h3>
 									<p class="instructions-body">For each HIT in this group you will be presented with a single real tweet that was tweeted during tropical storm Pablo or Yolanda, which hit the Philippines in 2012 and 2013 respectively.<br><br> We would like you to answer three questions about each tweet:
 									</p>
@@ -125,7 +126,7 @@
 								<input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin">
 							</div>	
 					</form>
-					</div>
+					
 				</div>
 
 				<% } else { %>
@@ -141,6 +142,7 @@
 							</p>
 						</blockquote>
 					</div>
+					<div class="row">
 					<div class="greybox col-xs-6 col-xs-offset-3">
 						<h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
 						<p style="text-align:center"><label><input id="unreadable" class="unreadable" name="unreadable" type="checkbox" value="unreadable"/> It's not possible to understand this tweet</label></p>
@@ -160,13 +162,15 @@
 
 								<fieldset id="q2-1">
 									<p>Is this a working URL?</p>
+									<p class="subheading">You can skip this question if you answered No above</p>
 									<div class="radio-inline"><label><input id="valid-url-input" name="validURL" type="radio" value="1"/>Yes</label></div>
 									<div class="radio-inline"><label><input name="validURL" type="radio" value="0" />No</label></div>
-								</fieldset>~
+								</fieldset>
 						
 								<fieldset id="q2-2">
 										<p>What kind of page does it point to?</p>
 										<p class="subheading">E.g. News story, video, image, etc</p>
+										<p class="subheading">You can skip this question if you answered No above</p>
 										<div class="input-group"><input id="valid-url-sub-input" name="URLcontent" size="1" style="height: 2em; width: 15em" type="text" /></div>
 								</fieldset>
 
@@ -179,6 +183,7 @@
 							<fieldset id="q3-1">
 								<p>What kind of damage is referred to?</p>
 								<p class="subheading">Check all that apply</p>
+								<p class="subheading">You can skip this question if you answered No above</p> 
 								<div class="checkbox-group checkbox" required="">
 									<label><input class="damage" name="damage" type="checkbox" value="bridges"/>Damaged bridges</label><br />
 									<label><input class="damage" name="damage" type="checkbox" value="crops"/>Damaged crops</label><br />
@@ -195,17 +200,19 @@
 									/>
 									<label><input class="damage" name="damage" type="checkbox" value="evacCenter"/>Evacuation center</label><br />
 									<label><input class="damage" name="damage" type="checkbox" value="flooding"/>Flooding</label><br />
-									<label><input class="damage" name="damage" type="checkbox" value="other"/>Other</label><input name="otherDamage" size="1" style="height: 2em; width: 15em" type="text" /><br />
+									<label><input class="damage" name="damage" type="checkbox" value="other"/>Other</label><input name="otherDamage" size="1" style="height: 2em; width: 10em" type="text" /><br />
 								<p class="validationMessage" id="validate-checkbox">Please check at least one box</p>
 						 	</fieldset>
 					  	</div>
 					 </div>
+					 </div>
                
               <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
-
+						<div class="row">
 							<div class="centered">
 								<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit">
 							</div>
+						</div>
 						</form>
 
 						</div>
