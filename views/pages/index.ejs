@@ -34,7 +34,7 @@
        $('#'+id).hide(100);
     }
     function validateForm(){    
-     if($('div.checkbox :checkbox:checked').length == 0 && $('div.unreadable :checkbox:checked').length == 0){
+     if($('div.checkbox :checkbox:checked').length == 0 && $('div.unreadable :checkbox:checked').length == 0 && $('input[name=aboutDamage]:checked').val() == '1'){
         $('#validate-checkbox').css('display','block');
         submitReady = false;
       }else{
@@ -87,29 +87,29 @@
 				<div class="instructions-container">
 					<form id="First-User-Form" action="firstUser" method="POST">
 						<div class="col-xs-8 col-xs-offset-2">
-							<h3 style="text-align:center"><u>HIT Instructions</u></h3>
-								<p class="instructions-body">For each HIT in this group you will be presented with a single real tweet that was tweeted during tropical storm	Pablo or Yolanda. Both storms hit the Philippines in 2012 and 2013 respectively.<br><br> We would like you to answer three questions about each tweet:
-								</p>
-									<ol>
-										<li>Was this tweet written in English?</li>
-										<li>Does this tweet contain a website URL, and if so to what kind of content does it link?</li>
-										<li>Does this tweet refer to a specific kind of storm-related damage (selecting from a list)?</li>
-									</ol>
 								<%if ((e.firstTimeUser != 'control') && (e.firstTimeUser != 'shared')) { %>
 									<div class="instructions-t">
-										This is a limited group of 100 HITs. Once you complete a HIT in this group, it will <b>no longer be available</b>										for other Workers to complete.<br><br>
+										This is a limited group of 100 HITs. Once a HIT in this group is completed, it will <b>no longer be available</b> for you or other Turkers to complete.<br><br>
 										<% if ((e.firstTimeUser === 'framing') || (e.firstTimeUser === 'reciprocity') || (e.firstTimeUser === 'reputation')) { %>
-											If you like, you can share this HIT information and access code with other Turkers.<br><br>
+											If you like, however, you can share this HIT information and access code with other Turkers.<br><br>
 											<% if (e.firstTimeUser === 'reciprocity') { %>
-												A number of other Turkers have also received similar invitations with access codes; thus you may receive other opportunities to work on similar HITs if they decide to share with you.<br><br>
+												A number of other Turkers have also received similar invitations with access codes; thus, you may receive other opportunities to work on similar HITs if they decide to share with you.<br><br>
 												<% } else if (e.firstTimeUser === 'reputation') { %>
-													Once we have finished data collection, we will post a list of Turkers who have shared the largest number of HITs with others
-													to various Mturk forums using nicknames to protect privacy.<br><br>
-													<p style="text-align:center">Please enter a nickname by which you would like to be identified when we post this information:</p>
+													Once we have finished data collection, we will publish a list of Turkers who have shared the largest number of HITs, using nicknames to protect privacy.<br><br>
+													<p style="text-align:center">Please enter a nickname that you will recognize and that you would be happy for us to publish:</p>
 													<div class="input-group col-centered"><input name="nickname" size="1" style="height: 1.5em; width: 15em" type="text" required/></div>
 											<% } %>
 										<% } %>
 									<% } %>
+									</div>
+									<h3 style="text-align:center"><u>HIT Instructions</u></h3>
+									<p class="instructions-body">For each HIT in this group you will be presented with a single real tweet that was tweeted during tropical storm Pablo or Yolanda, which hit the Philippines in 2012 and 2013 respectively.<br><br> We would like you to answer three questions about each tweet:
+									</p>
+									<ol>
+										<li>Is this tweet written in English?</li>
+										<li>Does this tweet contain a website URL, and if so to what kind of content does it link?</li>
+										<li>Does this tweet refer to a specific kind of storm-related damage (selecting from a list)?</li>
+									</ol>
 								</div>
 								<input class="form-control" name="accessContent[Tweet]" size="25" type="text" value="<%= e.content.Tweet %>" style="display:none;" />
 								<input class="form-control" name="accessContent[User]" size="25" type="text" value="<%= e.content.User %>" style="display:none;" />
@@ -126,7 +126,7 @@
 								<input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin">
 							</div>	
 					</form>
-					</div>
+					
 				</div>
 
 				<% } else { %>
@@ -142,12 +142,13 @@
 							</p>
 						</blockquote>
 					</div>
+					<div class="row">
 					<div class="greybox col-xs-6 col-xs-offset-3">
 						<h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
 						<p style="text-align:center"><label><input id="unreadable" class="unreadable" name="unreadable" type="checkbox" value="unreadable"/> It's not possible to understand this tweet</label></p>
 						<form class="form" role="form" id="HIT-Form" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
-							<div id="requiredDiv">
-              <fieldset id="q1">
+						<div id="requiredDiv">
+              				<fieldset id="q1">
 								<h5><strong>1) Is this tweet in English?</strong></h5>
 								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="1"/>Yes</label></div>
 								<div class="radio-inline"><label><input name="inEnglish" required="" type="radio" value="0"/>No</label></div>
@@ -155,28 +156,23 @@
 
 							<fieldset id="q2">
 								<h5><strong>2) Does this tweet contain a URL?</strong></h5>
-								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="1" onclick="showSubquestion('valid-url')"/>Yes</label></div>
-								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="0" onclick="hideSubquestion('valid-url')"/>No</label></div>		
+								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="1"/>Yes</label></div>
+								<div class="radio-inline"><label><input name="hasURL" required="" type="radio" value="0"/>No</label></div>		
 							</fieldset>
-             
-						  <div id="valid-url" class="subquestion">
+
 								<fieldset id="q2-1">
 									<p>Is this a working URL?</p>
-									<div class="radio-inline"><label><input id="valid-url-input" name="validURL" type="radio" value="1" onclick="showSubquestion('valid-url-sub')"/>Yes</label></div>
-									<div class="radio-inline"><label><input name="validURL" type="radio" value="0" onclick="hideSubquestion('valid-url-sub')"/>No</label></div>
-							</fieldset>
+									<p class="subheading">You can skip this question if you answered No above</p>
+									<div class="radio-inline"><label><input id="valid-url-input" name="validURL" type="radio" value="1"/>Yes</label></div>
+									<div class="radio-inline"><label><input name="validURL" type="radio" value="0" />No</label></div>
+								</fieldset>
 						
-						 
-
-							<div id="valid-url-sub" class="subquestion">
 								<fieldset id="q2-2">
 										<p>What kind of page does it point to?</p>
 										<p class="subheading">E.g. News story, video, image, etc</p>
+										<p class="subheading">You can skip this question if you answered No above</p>
 										<div class="input-group"><input id="valid-url-sub-input" name="URLcontent" size="1" style="height: 2em; width: 15em" type="text" /></div>
 								</fieldset>
-							</div>
-							
-						  </div>
 
 							<fieldset id="q3">
 								<h5><strong>3) Does the tweet refer to a specific kind of hurricane-related damage? </strong></h5>
@@ -184,39 +180,39 @@
 								<div class="radio-inline"><label><input name="aboutDamage" required="" type="radio" value="0" onclick="hideCheckbox('damage-detail')"/>No</label></div>
 	            			</fieldset>
 
-              
-							<div id="damage-detail" class="subquestion">
-								<fieldset id="q3-1">
-									<p>What kind of damage is referred to?</p>
-									<p class="subheading">Check all that apply</p>
-									<div class="checkbox-group checkbox" required="">
-										<label><input class="damage" name="damage" type="checkbox" value="bridges"/>Damaged bridges</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="crops"/>Damaged crops</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="healthFacilities"/>Damaged hospitals/health facilities</label><br
-										/>
-										<label><input class="damage" name="damage" type="checkbox" value="housing"/>Damaged housing</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="roads"/>Damaged roads</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="schools"/>Damaged schools</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="vehicles"/>Damaged vehicles</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="infrastructure"/>Damaged infrastructure</label><br
-										/>
-										<label><input class="damage" name="damage" type="checkbox" value="deaths"/>Deaths reported</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="displacedPopulation"/>Displaced population</label><br
-										/>
-										<label><input class="damage" name="damage" type="checkbox" value="evacCenter"/>Evacuation center</label><br />
-										<label><input class="damage" name="damage" type="checkbox" value="flooding"/>Flooding</label><br />
-									</div>
-									<p class="validationMessage" id="validate-checkbox">Please check at least one box</p>
-							 </fieldset>
-               </div>
-               
-							 </div>
+							<fieldset id="q3-1">
+								<p>What kind of damage is referred to?</p>
+								<p class="subheading">Check all that apply</p>
+								<p class="subheading">You can skip this question if you answered No above</p> 
+								<div class="checkbox-group checkbox" required="">
+									<label><input class="damage" name="damage" type="checkbox" value="bridges"/>Damaged bridges</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="crops"/>Damaged crops</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="healthFacilities"/>Damaged hospitals/health facilities</label><br
+									/>
+									<label><input class="damage" name="damage" type="checkbox" value="housing"/>Damaged housing</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="roads"/>Damaged roads</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="schools"/>Damaged schools</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="vehicles"/>Damaged vehicles</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="infrastructure"/>Damaged infrastructure</label><br
+									/>
+									<label><input class="damage" name="damage" type="checkbox" value="deaths"/>Deaths reported</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="displacedPopulation"/>Displaced population</label><br
+									/>
+									<label><input class="damage" name="damage" type="checkbox" value="evacCenter"/>Evacuation center</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="flooding"/>Flooding</label><br />
+									<label><input class="damage" name="damage" type="checkbox" value="other"/>Other</label><input name="otherDamage" size="1" style="height: 2em; width: 10em" type="text" /><br />
+								<p class="validationMessage" id="validate-checkbox">Please check at least one box</p>
+						 	</fieldset>
+					  	</div>
+					 </div>
+					 </div>
                
               <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
-
+						<div class="row">
 							<div class="centered">
 								<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit">
 							</div>
+						</div>
 						</form>
 
 						</div>
@@ -232,9 +228,6 @@
 
 
 							<% } %>
-
-
-
 
 </body>
 
