@@ -528,7 +528,7 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','expired'] }} }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','done','expired'] }} }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
@@ -676,7 +676,7 @@ var TurkExpert = {
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
                     var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link, which will expire the code above. You'll still be eligible to receive future HIT notifications\n<POSTPONEURL>\n\nThanks!\n\nSid";
-                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId));
                     api.req('NotifyWorkers', notice).then(function (res) {
                         // Do something 
                         // console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
