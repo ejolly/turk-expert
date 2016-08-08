@@ -35,5 +35,5 @@ app.listen(port, host, function () {
 });
 
 // Scheduler 
-job.start(1);
-job.start(2);
+//job.start(1);
+//job.start(2);

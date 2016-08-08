@@ -242,6 +242,20 @@ router.post('/publishHits', auth, function (req, res) {
         res.redirect('manage?hitPublishResult=' + result);
     });
 });
+//batchUpdateAssignments
+router.post('/updateAssignments', auth, function (req, res) {
+    //Batch Call from DB - hits
+    TurkExpert.updateAssignments(function (result) {
+        res.redirect('manage?assignmentUpdateResult=' + result);
+    });
+});
+//batchExpireHits
+router.post('/expireHits', auth, function (req, res) {
+    //Batch Call from DB - hits
+    TurkExpert.expireHits(function (result) {
+        res.redirect('manage?hitExpireResult=' + result);
+    });
+});
 
 //Client: valideYourCode
 router.post('/validateCode', function (req, res) {
