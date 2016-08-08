@@ -528,7 +528,7 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','expired'] }} }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','done','expired'] }} }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
@@ -676,7 +676,7 @@ var TurkExpert = {
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
                     var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link, which will expire the code above. You'll still be eligible to receive future HIT notifications.\n<POSTPONEURL>\n\nThanks!\n\nSid";
-                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId)); //result.worker[0].WorkerIdGFEDCBA32D5DD50BKQ6Y
+                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId));
                     api.req('NotifyWorkers', notice).then(function (res) {
                         // Do something 
                         // console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
@@ -758,6 +758,179 @@ var TurkExpert = {
         }
 
     },
+    
+    updateAssignments: function(cb){
+      
+      async.waterfall([
+                connectToDB,
+                loadHitsFromDB,
+                getAssignments,
+                persistAssignments
+            ], function (err, result) {
+                var msg ='Updated total: ' + result.length + ' docs';
+                cb(msg);
+            });
+          function connectToDB(callback) {
+            MongoDB.connect(function (db) {
+                callback(null, db);
+            });
+          }
+          //Find all current period hits with status:'published' 
+          function loadHitsFromDB(db, callback) {
+                //1. Load all hits into hitList
+                //publish only n(default n=100) hits in each treatment / period 
+                MongoDB.find(db, 'hit', { status: 'published'}, {}, {}, function (doc) {
+                      //all done before expire - notify us
+                      var notice = new NOTICE('A32D5DD50BKQ6Y', 'HITs Update', 'There are ' + doc.length + ' hits remaining.');
+                      api.req('NotifyWorkers', notice).then(function (res) {
+                          //Do something 
+                          console.log('Notify Us -> ', res);
+                          callback(null, db, doc);
+                      }, function (error) {
+                          //Handle error 
+                          console.error(error);
+                          callback(error, db, doc);
+                      });   
+                });
+           }
+          //Get /api/assignments/:hitId
+          function getAssignments(db, hitList, callback) {
+            async.each(hitList, function (hit, processAssignments) {
+               api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                    //Do something 
+                    console.log('GetAssignmentsForHIT -> ', JSON.stringify(res,null,2));
+                    //add assignment into hit
+                    if(res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0){
+                      hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;  
+                    }else{
+                      hit.Assignments = [];
+                    }
+                    processAssignments(null);
+                }, function (error) {
+                    //Handle error 
+                    console.error(error);
+                    processAssignments(error);
+                });
+            },function(err){
+              if (err) {
+                        // One of the iterations produced an error.
+                        // All processing will now stop.
+                        console.log('Assignments failed to process.');
+                        callback(null, db, []);
+                    } else {
+                        console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
+                        callback(null, db, hitList);
+                    }
+            });
+          }
+          //Save into db.
+          function persistAssignments(db, hitList, callback){
+             async.each(hitList, function (hit, processPersist) {
+                   MongoDB.update(db, 'hit', { _id: hit._id },
+                        {
+                            $set: {
+                                Assignments: hit.Assignments,
+                                status: hit.MaxAssignments === hit.Assignments.length ? 'done' : hit.status,
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: false,
+                            w: 1
+                        }, function (r) {
+                            processPersist(null);
+                        });
+                }, function (err) {
+                    if (err) {
+                        console.log('HIT failed to save.');
+                        callback(null, 0);
+                    } else {
+                        console.log(hitList.length + ' HITs have been saved successfully.');
+                        callback(null, hitList);
+                    }
+                });
+          }
+      
+    },
+    
+    
+    expireHits: function(cb){
+            async.waterfall([
+                loadHitsFromDB,
+                getAssignments,
+                persistAssignments
+            ], function (err, result) {
+                console.log('Updated total: ' + result.length + ' docs');
+            });
+          //Find all current period hits with status:'published' 
+          function loadHitsFromDB(callback) {
+                //1. Load all hits into hitList
+                //publish only n(default n=100) hits in each treatment / period 
+                MongoDB.find(db, 'hit', { status: 'published'}, {}, {}, function (doc) { 
+                    callback(null, doc);
+                });
+           }
+          //Get /api/assignments/:hitId
+          function getAssignments(hitList, callback) {
+            async.each(hitList, function (hit, processAssignments) {
+               api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                    //Do something 
+                    console.log('GetAssignmentsForHIT -> ', res);
+                    console.timeEnd('GetAssignmentsForHIT');
+                    //add assignment into hit
+                    if(res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0){
+                      hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;  
+                    }else{
+                      hit.Assignments = [];
+                    }
+                    processAssignments(null);
+                }, function (error) {
+                    //Handle error 
+                    console.error(error);
+                    processAssignments(error);
+                });
+            },function(err){
+              if (err) {
+                        // One of the iterations produced an error.
+                        // All processing will now stop.
+                        console.log('Assignments failed to process.');
+                        callback(null, []);
+                    } else {
+                        console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
+                        callback(null, hitList);
+                    }
+            });
+          }
+          //Save into db.
+          function persistAssignments(hitList, callback){
+             async.each(hitList, function (hit, processPersist) {
+                   MongoDB.update(db, 'hit', { _id: hit._id },
+                        {
+                            $set: {
+                                Assignments: hit.Assignments,
+                                status: hit.MaxAssignments === hit.Assignments.length ? 'done' : 'expired',
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: false,
+                            w: 1
+                        }, function (r) {
+                            processPersist(null);
+                        });
+                }, function (err) {
+                    if (err) {
+                        console.log('HIT failed to save.');
+                        callback(null, 0);
+                    } else {
+                        console.log(hitList.length + ' HITs have been saved successfully.');
+                        callback(null, hitList);
+                    }
+                });
+            
+          }
+    }
+    
 
 
 
