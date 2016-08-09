@@ -798,7 +798,7 @@ var TurkExpert = {
             async.each(hitList, function (hit, processAssignments) {
                 api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
                     //Do something 
-                    console.log('GetAssignmentsForHIT -> ', JSON.stringify(res, null, 2));
+                    //console.log('GetAssignmentsForHIT -> ', res);
                     //add assignment into hit
                     if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
                         hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
@@ -856,6 +856,7 @@ var TurkExpert = {
 
     expireHits: function (cb) {
         async.waterfall([
+            connectToDB,
             loadHitsFromDB,
             getAssignments,
             persistAssignments
@@ -863,21 +864,25 @@ var TurkExpert = {
             var msg = 'Updated total: ' + result.length + ' docs';
             cb(msg);
         });
+        function connectToDB(callback) {
+            MongoDB.connect(function (db) {
+                callback(null, db);
+            });
+        }
         //Find all current period hits with status:'published' 
-        function loadHitsFromDB(callback) {
+        function loadHitsFromDB(db, callback) {
             //1. Load all hits into hitList
             //publish only n(default n=100) hits in each treatment / period 
             MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
-                callback(null, doc);
+                callback(null, db, doc);
             });
         }
         //Get /api/assignments/:hitId
-        function getAssignments(hitList, callback) {
+        function getAssignments(db, hitList, callback) {
             async.each(hitList, function (hit, processAssignments) {
                 api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
                     //Do something 
-                    console.log('GetAssignmentsForHIT -> ', res);
-                    console.timeEnd('GetAssignmentsForHIT');
+                    //console.log('GetAssignmentsForHIT -> ', res);
                     //add assignment into hit
                     if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
                         hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
@@ -895,15 +900,15 @@ var TurkExpert = {
                     // One of the iterations produced an error.
                     // All processing will now stop.
                     console.log('Assignments failed to process.');
-                    callback(null, []);
+                    callback(null, db, []);
                 } else {
                     console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
-                    callback(null, hitList);
+                    callback(null, db, hitList);
                 }
             });
         }
         //Save into db.
-        function persistAssignments(hitList, callback) {
+        function persistAssignments(db, hitList, callback) {
             async.each(hitList, function (hit, processPersist) {
                 MongoDB.update(db, 'hit', { _id: hit._id },
                     {
