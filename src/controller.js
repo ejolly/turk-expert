@@ -860,7 +860,8 @@ var TurkExpert = {
                 getAssignments,
                 persistAssignments
             ], function (err, result) {
-                console.log('Updated total: ' + result.length + ' docs');
+                var msg ='Updated total: ' + result.length + ' docs';
+                cb(msg);
             });
           //Find all current period hits with status:'published' 
           function loadHitsFromDB(callback) {
@@ -929,7 +930,7 @@ var TurkExpert = {
                 });
             
           }
-    }
+    },
     
 
 
