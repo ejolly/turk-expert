@@ -24,18 +24,18 @@ var mturk = require('mturk-api'),
 //   }).catch(console.error);
 // }).catch(console.error); 
 
- /**
-  * Create Base64 Object - Gobal
-  * 
- */
-var Base64 = { _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function(e) { var t = ""; var n, r, i, s, o, u, a; var f = 0; e = Base64._utf8_encode(e); while (f < e.length) { n = e.charCodeAt(f++); r = e.charCodeAt(f++); i = e.charCodeAt(f++); s = n >> 2; o = (n & 3) << 4 | r >> 4; u = (r & 15) << 2 | i >> 6; a = i & 63; if (isNaN(r)) { u = a = 64 } else if (isNaN(i)) { a = 64 } t = t + this._keyStr.charAt(s) + this._keyStr.charAt(o) + this._keyStr.charAt(u) + this._keyStr.charAt(a) } return t }, decode: function(e) { var t = ""; var n, r, i; var s, o, u, a; var f = 0; e = e.replace(/[^A-Za-z0-9+/=]/g, ""); while (f < e.length) { s = this._keyStr.indexOf(e.charAt(f++)); o = this._keyStr.indexOf(e.charAt(f++)); u = this._keyStr.indexOf(e.charAt(f++)); a = this._keyStr.indexOf(e.charAt(f++)); n = s << 2 | o >> 4; r = (o & 15) << 4 | u >> 2; i = (u & 3) << 6 | a; t = t + String.fromCharCode(n); if (u != 64) { t = t + String.fromCharCode(r) } if (a != 64) { t = t + String.fromCharCode(i) } } t = Base64._utf8_decode(t); return t }, _utf8_encode: function(e) { e = e.replace(/rn/g, "n"); var t = ""; for (var n = 0; n < e.length; n++) { var r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r) } else if (r > 127 && r < 2048) { t += String.fromCharCode(r >> 6 | 192); t += String.fromCharCode(r & 63 | 128) } else { t += String.fromCharCode(r >> 12 | 224); t += String.fromCharCode(r >> 6 & 63 | 128); t += String.fromCharCode(r & 63 | 128) } } return t }, _utf8_decode: function(e) { var t = ""; var n = 0; var r = c1 = c2 = 0; while (n < e.length) { r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r); n++ } else if (r > 191 && r < 224) { c2 = e.charCodeAt(n + 1); t += String.fromCharCode((r & 31) << 6 | c2 & 63); n += 2 } else { c2 = e.charCodeAt(n + 1); c3 = e.charCodeAt(n + 2); t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63); n += 3 } } return t } }
+/**
+ * Create Base64 Object - Gobal
+ * 
+*/
+var Base64 = { _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function (e) { var t = ""; var n, r, i, s, o, u, a; var f = 0; e = Base64._utf8_encode(e); while (f < e.length) { n = e.charCodeAt(f++); r = e.charCodeAt(f++); i = e.charCodeAt(f++); s = n >> 2; o = (n & 3) << 4 | r >> 4; u = (r & 15) << 2 | i >> 6; a = i & 63; if (isNaN(r)) { u = a = 64 } else if (isNaN(i)) { a = 64 } t = t + this._keyStr.charAt(s) + this._keyStr.charAt(o) + this._keyStr.charAt(u) + this._keyStr.charAt(a) } return t }, decode: function (e) { var t = ""; var n, r, i; var s, o, u, a; var f = 0; e = e.replace(/[^A-Za-z0-9+/=]/g, ""); while (f < e.length) { s = this._keyStr.indexOf(e.charAt(f++)); o = this._keyStr.indexOf(e.charAt(f++)); u = this._keyStr.indexOf(e.charAt(f++)); a = this._keyStr.indexOf(e.charAt(f++)); n = s << 2 | o >> 4; r = (o & 15) << 4 | u >> 2; i = (u & 3) << 6 | a; t = t + String.fromCharCode(n); if (u != 64) { t = t + String.fromCharCode(r) } if (a != 64) { t = t + String.fromCharCode(i) } } t = Base64._utf8_decode(t); return t }, _utf8_encode: function (e) { e = e.replace(/rn/g, "n"); var t = ""; for (var n = 0; n < e.length; n++) { var r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r) } else if (r > 127 && r < 2048) { t += String.fromCharCode(r >> 6 | 192); t += String.fromCharCode(r & 63 | 128) } else { t += String.fromCharCode(r >> 12 | 224); t += String.fromCharCode(r >> 6 & 63 | 128); t += String.fromCharCode(r & 63 | 128) } } return t }, _utf8_decode: function (e) { var t = ""; var n = 0; var r = c1 = c2 = 0; while (n < e.length) { r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r); n++ } else if (r > 191 && r < 224) { c2 = e.charCodeAt(n + 1); t += String.fromCharCode((r & 31) << 6 | c2 & 63); n += 2 } else { c2 = e.charCodeAt(n + 1); c3 = e.charCodeAt(n + 2); t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63); n += 3 } } return t } }
 
 /**
  * Generate Code Randomly
  * @param {n} a number for the length of the code.
  * @returns {string} code
  */
-var generateCode = function(n){
+var generateCode = function (n) {
     var code = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for (var i = 0; i < n; i++) {
@@ -167,7 +167,7 @@ var TurkExpert = {
             cb(error);
         });
     },
-    
+
     ForceExpireHIT: function (hitId, cb) {
         //Example operation, with params 
         console.time('ForceExpireHIT');
@@ -193,7 +193,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (mongocb) {
-                    MongoDB.find(db, 'hit', { HITId: hitId, status: {$not:{$in: ['expired'] }}}, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired'] } } }, {}, {}, function (doc) {
                         mongocb(null, doc);
                     });
                 },
@@ -206,7 +206,7 @@ var TurkExpert = {
                 //assert.equal(null, err);
                 db.close();
                 //Authenticate Logic: 1. invited code match 2. hitId still valid - published 3. Hittype match
-                if (result.hit.length === 0) { 
+                if (result.hit.length === 0) {
                     cb({ code: 404 }); //hit not found or expired
                 } else if (result.hit.length === 1) {
                     // if(result.hit[0].status === 'postponed'){
@@ -214,7 +214,7 @@ var TurkExpert = {
                     // }
                     if (result.authentication.length === 0) {
                         cb({
-                            code: 422, 
+                            code: 422,
                             content: result.hit[0].Content,
                             type: 'shared',
                             obj: {
@@ -228,41 +228,41 @@ var TurkExpert = {
                         //result.authentication is an array 
                         var authList = result.authentication;
                         var flg = false;
-                        var index=0;
-                        var i=0;
-                        for(; i < authList.length; i++){
-                          if(authList[i].HITTypeId === result.hit[0].HITTypeId){
-                            flg = true;
-                            index = i;
-                          }
-                        }           
+                        var index = 0;
+                        var i = 0;
+                        for (; i < authList.length; i++) {
+                            if (authList[i].HITTypeId === result.hit[0].HITTypeId) {
+                                flg = true;
+                                index = i;
+                            }
+                        }
                         if (flg) {
-                          if(authList[index].Authenticated){
-                            cb({ 
-                                code: 200,
-                                type: result.hit[0].Treatment,
-                                content: result.hit[0].Content,
-                                assignmentId: assignmentId,
-                                turkSubmitTo: turkSubmitTo
-                             }); //worker already authenticated - repeated
-                          }else{
-                            cb({
-                                code: 422, 
-                                content: result.hit[0].Content,
-                                type: result.hit[0].Treatment, // This gonna be the treatmet
-                                obj: {
-                                    hid: result.hit[0].HITTypeId,
-                                    wid: workerId
-                                },
-                                assignmentId: assignmentId,
-                                turkSubmitTo: turkSubmitTo
-                            });//invited not authenticated
-                          }
-                            
+                            if (authList[index].Authenticated) {
+                                cb({
+                                    code: 200,
+                                    type: result.hit[0].Treatment,
+                                    content: result.hit[0].Content,
+                                    assignmentId: assignmentId,
+                                    turkSubmitTo: turkSubmitTo
+                                }); //worker already authenticated - repeated
+                            } else {
+                                cb({
+                                    code: 422,
+                                    content: result.hit[0].Content,
+                                    type: result.hit[0].Treatment, // This gonna be the treatmet
+                                    obj: {
+                                        hid: result.hit[0].HITTypeId,
+                                        wid: workerId
+                                    },
+                                    assignmentId: assignmentId,
+                                    turkSubmitTo: turkSubmitTo
+                                });//invited not authenticated
+                            }
+
                         } else {
-                           //not authenticated for this current hitType
-                           cb({
-                                code: 422, 
+                            //not authenticated for this current hitType
+                            cb({
+                                code: 422,
                                 content: result.hit[0].Content,
                                 type: 'shared', // This gonna be the shared
                                 obj: {
@@ -272,7 +272,7 @@ var TurkExpert = {
                                 assignmentId: assignmentId,
                                 turkSubmitTo: turkSubmitTo
                             });
- 
+
                         }
                     }
                 }
@@ -294,13 +294,13 @@ var TurkExpert = {
                 } else {
                     //save u as a new record or update invited to authenticated true
                     var authenticatedWorkers = [];
-                    doc.forEach(function(entry){
-                        authenticatedWorkers.push(entry.WorkerId); 
+                    doc.forEach(function (entry) {
+                        authenticatedWorkers.push(entry.WorkerId);
                     });
                     var newType = 'shared'; //default
-                    if(authenticatedWorkers.indexOf(obj.wid)=== -1){ 
+                    if (authenticatedWorkers.indexOf(obj.wid) === -1) {
                         newType = 'shared'; // new user - shared
-                    }else{
+                    } else {
                         newType = type;   // invited
                     }
                     MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
@@ -325,103 +325,103 @@ var TurkExpert = {
                                 assignmentId: assignmentId,
                                 turkSubmitTo: turkSubmitTo
                             });
-                    });
+                        });
                 }
             });
         })
     },
     firstUser: function (nickname, content, obj, assignmentId, turkSubmitTo, cb) { //persist into mongo
         MongoDB.connect(function (db) {
-            MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid},
-            {
-                $set: {
-                    Nickname: nickname
+            MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid },
+                {
+                    $set: {
+                        Nickname: nickname
+                    },
+                    $currentDate: { "lastModified": true }
                 },
-                $currentDate: { "lastModified": true }
-            },
-            {
-                upsert: false,
-                w: 1
-            }, function (r) { //final response for the First Time User
-                cb({
-                    code: 200,
-                    content: content,
-                    //obj: obj //no more authentication params
-                    assignmentId: assignmentId,
-                    turkSubmitTo: turkSubmitTo
+                {
+                    upsert: false,
+                    w: 1
+                }, function (r) { //final response for the First Time User
+                    cb({
+                        code: 200,
+                        content: content,
+                        //obj: obj //no more authentication params
+                        assignmentId: assignmentId,
+                        turkSubmitTo: turkSubmitTo
+                    });
+                    db.close();
                 });
-                db.close();
-            });
         });
     },
     postpone: function (s, cb) { //Update mongo, secret weapon
-           var decodedPostponeString = Base64.decode(s);
-           //console.log("decodedPostponeString",decodedPostponeString);
-           var hidTypeId = decodedPostponeString.split('_')[0];
-           var workerId = decodedPostponeString.split('_')[1];
-            
-           //invalidate old code
-           var newCode = generateCode(6); //6 is +1 than original
-            
-           MongoDB.connect(function (db) {
+        var decodedPostponeString = Base64.decode(s);
+        //console.log("decodedPostponeString",decodedPostponeString);
+        var hidTypeId = decodedPostponeString.split('_')[0];
+        var workerId = decodedPostponeString.split('_')[1];
+
+        //invalidate old code
+        var newCode = generateCode(6); //6 is +1 than original
+
+        MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (mongocb) {
                     MongoDB.updateMany(db, 'hit', { HITTypeId: hidTypeId, status: 'published' },
-                    {
-                        $set: {
-                            Code: newCode,
-                            status: 'postponed'
+                        {
+                            $set: {
+                                Code: newCode,
+                                status: 'postponed'
+                            },
+                            $currentDate: { "lastModified": true }
                         },
-                        $currentDate: { "lastModified": true }
-                    },
-                    {
-                        upsert: false,
-                        multi: true,
-                        w: 1
-                    }, function (r) {
-                        mongocb(null, r);
-                    });
+                        {
+                            upsert: false,
+                            multi: true,
+                            w: 1
+                        }, function (r) {
+                            mongocb(null, r);
+                        });
                 },
                 worker: function (mongocb) {
-                    MongoDB.update(db, 'worker', { WorkerId: workerId, status: 'sent'},
-                    {
-                        $set: {
-                            status: 'postponed'
+                    MongoDB.update(db, 'worker', { WorkerId: workerId, status: 'sent' },
+                        {
+                            $set: {
+                                status: 'postponed'
+                            },
+                            $currentDate: { "lastModified": true }
                         },
-                        $currentDate: { "lastModified": true }
-                    },
-                    {
-                        upsert: false,
-                        w: 1
-                    }, function (r) { 
-                        mongocb(null, r);
-                    });
+                        {
+                            upsert: false,
+                            w: 1
+                        }, function (r) {
+                            mongocb(null, r);
+                        });
                 },
                 authentication: function (mongocb) {
-                    MongoDB.update(db, 'authentication', { HITTypeId:hidTypeId, WorkerId: workerId},
-                    {
-                        $set: {
-                            Code: newCode,
-                            Type: 'postponed'
+                    MongoDB.update(db, 'authentication', { HITTypeId: hidTypeId, WorkerId: workerId },
+                        {
+                            $set: {
+                                Code: newCode,
+                                Type: 'postponed'
+                            },
+                            $currentDate: { "lastModified": true }
                         },
-                        $currentDate: { "lastModified": true }
-                    },
-                    {
-                        upsert: false,
-                        w: 1
-                    }, function (r) { 
-                        mongocb(null, r);
-                    });
+                        {
+                            upsert: false,
+                            w: 1
+                        }, function (r) {
+                            mongocb(null, r);
+                        });
                 }
             }, function (err, result) {
-                if(err){
+                if (err) {
                     console.error(err);
                 }
                 //processing
                 cb(200); // Or template for user after postponed    
-                db.close();           
+                db.close();
             });
-          });
+        });
     },
     publishTreatments: function (treatments, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
@@ -453,17 +453,17 @@ var TurkExpert = {
             });
         }
         function getTreatmentContent(db, callback) {
-           MongoDB.find(db, 'content', {},  {'_id': 1, 'User':1, 'Tweet':1, 'Date':1, 'Time':1}, { sort : [['HITCount', 1]],limit:500}, function (contentTotalList) {
+            MongoDB.find(db, 'content', {}, { '_id': 1, 'User': 1, 'Tweet': 1, 'Date': 1, 'Time': 1 }, { sort: [['HITCount', 1]], limit: 500 }, function (contentTotalList) {
                 var publishDate = makePublishTime();
                 callback(null, db, contentTotalList, publishDate);
-           });
+            });
         }
         function publishTreatment(db, contentTotalList, publishDate, callback) {
             shuffle(contentTotalList);
             var contentObj = {};
-            for(var i=0;i<treatments.length; i++){
-                contentObj[treatments[i]] = contentTotalList.slice(i*100,(i+1)*100);
-            }            
+            for (var i = 0; i < treatments.length; i++) {
+                contentObj[treatments[i]] = contentTotalList.slice(i * 100, (i + 1) * 100);
+            }
             async.each(treatments, function (treatment, processTreatment) {
                 var contentList = contentObj[treatment];
                 publish(db, treatment, contentList, publishDate, function (result) {
@@ -506,7 +506,7 @@ var TurkExpert = {
 
             return array;
         }
-    
+
 
 
         //private
@@ -528,7 +528,7 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: {$not:{$in: ['published','postponed','done','expired'] }} }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired'] } } }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
@@ -544,12 +544,12 @@ var TurkExpert = {
                     var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
                     var treatment = entry.Treatment;
-                    
+
                     var hitObj = {
-                      id: id, 
-                      treatment: treatment, 
-                      hit: hit,
-                      lifetimeInSeconds: lifetimeInSeconds
+                        id: id,
+                        treatment: treatment,
+                        hit: hit,
+                        lifetimeInSeconds: lifetimeInSeconds
                     }
                     processModel(null, hitObj);
                 }, function (err, result) {
@@ -566,8 +566,8 @@ var TurkExpert = {
                 var array = [];
                 for (; i < targetList.length; i++) {
                     array.push(i + 1);
-                }            
-                
+                }
+
                 //console.log('ImageArray: ', array);
                 //Gennerate Code randomly here for each n(default n=100) hits:
                 var code = generateCode(5);
@@ -591,9 +591,9 @@ var TurkExpert = {
 
                         //Update hit Object
                         hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
-                        hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                        hitObj.hit.Content = contentList[array[i]],
-                        hitObj.hit.Code = code;
+                            hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
+                            hitObj.hit.Content = contentList[array[i]],
+                            hitObj.hit.Code = code;
 
                         processPublish(null);
                         //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
@@ -652,7 +652,7 @@ var TurkExpert = {
                 // console.time('contactWorkers');
                 async.parallel({
                     groupId: function (mturkcb) {
-                        api.req('GetHIT', { HITId: hitList[0].hit.HITId}).then(function (res) {
+                        api.req('GetHIT', { HITId: hitList[0].hit.HITId }).then(function (res) {
                             //Do something 
                             console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
                             mturkcb(null, res.GetHITResponse.HIT[0].HITGroupId[0]);
@@ -690,21 +690,21 @@ var TurkExpert = {
                     });
                 });
 
-                function formatMessageText(template, hit, currentLifetimeInSeconds, worker, groupId) {   
-                 // Define the string
-                  var posponeString = hit.HITTypeId + '_' + worker.WorkerId;
+                function formatMessageText(template, hit, currentLifetimeInSeconds, worker, groupId) {
+                    // Define the string
+                    var posponeString = hit.HITTypeId + '_' + worker.WorkerId;
 
-                  // Encode the String
-                  var encodedPostponeString = Base64.encode(posponeString);
-                  // console.log("encodedPostponeString:",encodedPostponeString);
-                 
+                    // Encode the String
+                    var encodedPostponeString = Base64.encode(posponeString);
+                    // console.log("encodedPostponeString:",encodedPostponeString);
+
                     var msg = template.replace('<TITLE>', hit.Title)
-                    .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds/3600) + 'hrs')
-                    .replace('<REWARD>', hit.Reward.FormattedPrice)
-                    .replace('<CODE>', hit.Code)
-                    .replace('<HITURL>','https://workersandbox.mturk.com/mturk/preview?groupId=' + groupId)
-                    .replace('<POSTPONEURL>', config.externalUrl + '/postpone?s=' + encodedPostponeString);
-                    
+                        .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds / 3600) + 'hrs')
+                        .replace('<REWARD>', hit.Reward.FormattedPrice)
+                        .replace('<CODE>', hit.Code)
+                        .replace('<HITURL>', 'https://workersandbox.mturk.com/mturk/preview?groupId=' + groupId)
+                        .replace('<POSTPONEURL>', config.externalUrl + '/postpone?s=' + encodedPostponeString);
+
                     return msg;
                 }
 
@@ -758,52 +758,52 @@ var TurkExpert = {
         }
 
     },
-    
-    updateAssignments: function(cb){
-      
-      async.waterfall([
-                connectToDB,
-                loadHitsFromDB,
-                getAssignments,
-                persistAssignments
-            ], function (err, result) {
-                var msg ='Updated total: ' + result.length + ' docs';
-                cb(msg);
-            });
-          function connectToDB(callback) {
+
+    updateAssignments: function (cb) {
+
+        async.waterfall([
+            connectToDB,
+            loadHitsFromDB,
+            getAssignments,
+            persistAssignments
+        ], function (err, result) {
+            var msg = 'Updated total: ' + result.length + ' docs';
+            cb(msg);
+        });
+        function connectToDB(callback) {
             MongoDB.connect(function (db) {
                 callback(null, db);
             });
-          }
-          //Find all current period hits with status:'published' 
-          function loadHitsFromDB(db, callback) {
-                //1. Load all hits into hitList
-                //publish only n(default n=100) hits in each treatment / period 
-                MongoDB.find(db, 'hit', { status: 'published'}, {}, {}, function (doc) {
-                      //all done before expire - notify us
-                      var notice = new NOTICE('A32D5DD50BKQ6Y', 'HITs Update', 'There are ' + doc.length + ' hits remaining.');
-                      api.req('NotifyWorkers', notice).then(function (res) {
-                          //Do something 
-                          console.log('Notify Us -> ', res);
-                          callback(null, db, doc);
-                      }, function (error) {
-                          //Handle error 
-                          console.error(error);
-                          callback(error, db, doc);
-                      });   
-                });
-           }
-          //Get /api/assignments/:hitId
-          function getAssignments(db, hitList, callback) {
-            async.each(hitList, function (hit, processAssignments) {
-               api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+        }
+        //Find all current period hits with status:'published' 
+        function loadHitsFromDB(db, callback) {
+            //1. Load all hits into hitList
+            //publish only n(default n=100) hits in each treatment / period 
+            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
+                //all done before expire - notify us
+                var notice = new NOTICE('A32D5DD50BKQ6Y', 'HITs Update', 'There are ' + doc.length + ' hits remaining.');
+                api.req('NotifyWorkers', notice).then(function (res) {
                     //Do something 
-                    console.log('GetAssignmentsForHIT -> ', JSON.stringify(res,null,2));
+                    console.log('Notify Us -> ', res);
+                    callback(null, db, doc);
+                }, function (error) {
+                    //Handle error 
+                    console.error(error);
+                    callback(error, db, doc);
+                });
+            });
+        }
+        //Get /api/assignments/:hitId
+        function getAssignments(db, hitList, callback) {
+            async.each(hitList, function (hit, processAssignments) {
+                api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                    //Do something 
+                    console.log('GetAssignmentsForHIT -> ', JSON.stringify(res, null, 2));
                     //add assignment into hit
-                    if(res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0){
-                      hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;  
-                    }else{
-                      hit.Assignments = [];
+                    if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
+                        hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
+                    } else {
+                        hit.Assignments = [];
                     }
                     processAssignments(null);
                 }, function (error) {
@@ -811,78 +811,78 @@ var TurkExpert = {
                     console.error(error);
                     processAssignments(error);
                 });
-            },function(err){
-              if (err) {
-                        // One of the iterations produced an error.
-                        // All processing will now stop.
-                        console.log('Assignments failed to process.');
-                        callback(null, db, []);
-                    } else {
-                        console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
-                        callback(null, db, hitList);
-                    }
+            }, function (err) {
+                if (err) {
+                    // One of the iterations produced an error.
+                    // All processing will now stop.
+                    console.log('Assignments failed to process.');
+                    callback(null, db, []);
+                } else {
+                    console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
+                    callback(null, db, hitList);
+                }
             });
-          }
-          //Save into db.
-          function persistAssignments(db, hitList, callback){
-             async.each(hitList, function (hit, processPersist) {
-                   MongoDB.update(db, 'hit', { _id: hit._id },
-                        {
-                            $set: {
-                                Assignments: hit.Assignments,
-                                status: hit.MaxAssignments === hit.Assignments.length ? 'done' : hit.status,
-                            },
-                            $currentDate: { "lastModified": true }
+        }
+        //Save into db.
+        function persistAssignments(db, hitList, callback) {
+            async.each(hitList, function (hit, processPersist) {
+                MongoDB.update(db, 'hit', { _id: hit._id },
+                    {
+                        $set: {
+                            Assignments: hit.Assignments,
+                            status: hit.MaxAssignments === hit.Assignments.length ? 'done' : hit.status,
                         },
-                        {
-                            upsert: false,
-                            w: 1
-                        }, function (r) {
-                            processPersist(null);
-                        });
-                }, function (err) {
-                    if (err) {
-                        console.log('HIT failed to save.');
-                        callback(null, 0);
-                    } else {
-                        console.log(hitList.length + ' HITs have been saved successfully.');
-                        callback(null, hitList);
-                    }
-                });
-          }
-      
-    },
-    
-    
-    expireHits: function(cb){
-            async.waterfall([
-                loadHitsFromDB,
-                getAssignments,
-                persistAssignments
-            ], function (err, result) {
-                var msg ='Updated total: ' + result.length + ' docs';
-                cb(msg);
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        processPersist(null);
+                    });
+            }, function (err) {
+                if (err) {
+                    console.log('HIT failed to save.');
+                    callback(null, 0);
+                } else {
+                    console.log(hitList.length + ' HITs have been saved successfully.');
+                    callback(null, hitList);
+                }
             });
-          //Find all current period hits with status:'published' 
-          function loadHitsFromDB(callback) {
-                //1. Load all hits into hitList
-                //publish only n(default n=100) hits in each treatment / period 
-                MongoDB.find(db, 'hit', { status: 'published'}, {}, {}, function (doc) { 
-                    callback(null, doc);
-                });
-           }
-          //Get /api/assignments/:hitId
-          function getAssignments(hitList, callback) {
+        }
+
+    },
+
+
+    expireHits: function (cb) {
+        async.waterfall([
+            loadHitsFromDB,
+            getAssignments,
+            persistAssignments
+        ], function (err, result) {
+            var msg = 'Updated total: ' + result.length + ' docs';
+            cb(msg);
+        });
+        //Find all current period hits with status:'published' 
+        function loadHitsFromDB(callback) {
+            //1. Load all hits into hitList
+            //publish only n(default n=100) hits in each treatment / period 
+            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
+                callback(null, doc);
+            });
+        }
+        //Get /api/assignments/:hitId
+        function getAssignments(hitList, callback) {
             async.each(hitList, function (hit, processAssignments) {
-               api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
                     //Do something 
                     console.log('GetAssignmentsForHIT -> ', res);
                     console.timeEnd('GetAssignmentsForHIT');
                     //add assignment into hit
-                    if(res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0){
-                      hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;  
-                    }else{
-                      hit.Assignments = [];
+                    if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
+                        hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
+                    } else {
+                        hit.Assignments = [];
                     }
                     processAssignments(null);
                 }, function (error) {
@@ -890,48 +890,48 @@ var TurkExpert = {
                     console.error(error);
                     processAssignments(error);
                 });
-            },function(err){
-              if (err) {
-                        // One of the iterations produced an error.
-                        // All processing will now stop.
-                        console.log('Assignments failed to process.');
-                        callback(null, []);
-                    } else {
-                        console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
-                        callback(null, hitList);
-                    }
+            }, function (err) {
+                if (err) {
+                    // One of the iterations produced an error.
+                    // All processing will now stop.
+                    console.log('Assignments failed to process.');
+                    callback(null, []);
+                } else {
+                    console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
+                    callback(null, hitList);
+                }
             });
-          }
-          //Save into db.
-          function persistAssignments(hitList, callback){
-             async.each(hitList, function (hit, processPersist) {
-                   MongoDB.update(db, 'hit', { _id: hit._id },
-                        {
-                            $set: {
-                                Assignments: hit.Assignments,
-                                status: hit.MaxAssignments === hit.Assignments.length ? 'done' : 'expired',
-                            },
-                            $currentDate: { "lastModified": true }
+        }
+        //Save into db.
+        function persistAssignments(hitList, callback) {
+            async.each(hitList, function (hit, processPersist) {
+                MongoDB.update(db, 'hit', { _id: hit._id },
+                    {
+                        $set: {
+                            Assignments: hit.Assignments,
+                            status: hit.MaxAssignments === hit.Assignments.length ? 'done' : 'expired',
                         },
-                        {
-                            upsert: false,
-                            w: 1
-                        }, function (r) {
-                            processPersist(null);
-                        });
-                }, function (err) {
-                    if (err) {
-                        console.log('HIT failed to save.');
-                        callback(null, 0);
-                    } else {
-                        console.log(hitList.length + ' HITs have been saved successfully.');
-                        callback(null, hitList);
-                    }
-                });
-            
-          }
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        processPersist(null);
+                    });
+            }, function (err) {
+                if (err) {
+                    console.log('HIT failed to save.');
+                    callback(null, 0);
+                } else {
+                    console.log(hitList.length + ' HITs have been saved successfully.');
+                    callback(null, hitList);
+                }
+            });
+
+        }
     },
-    
+
 
 
 
@@ -951,18 +951,18 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (cb) {
-                    MongoDB.find(db, 'hit', {status: {$in: ['published', 'postponed', 'expired']}}, {}, {}, function (doc) {
-                    //MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
+                    MongoDB.find(db, 'hit', { status: { $in: ['published', 'postponed', 'expired'] } }, {}, {}, function (doc) {
+                        //MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 content: function (cb) {
-                    MongoDB.find(db, 'content', {}, {}, {limit:10}, function (doc) {
+                    MongoDB.find(db, 'content', {}, {}, { limit: 10 }, function (doc) {
                         cb(null, doc);
                     });
                 },
                 worker: function (cb) {
-                    MongoDB.find(db, 'worker', {}, {}, {ligmit:10}, function (doc) {
+                    MongoDB.find(db, 'worker', {}, {}, { ligmit: 10 }, function (doc) {
                         cb(null, doc);
                     });
                 },
