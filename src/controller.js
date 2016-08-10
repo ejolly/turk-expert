@@ -464,11 +464,18 @@ var TurkExpert = {
             for (var i = 0; i < treatments.length; i++) {
                 contentObj[treatments[i]] = contentTotalList.slice(i * 100, (i + 1) * 100);
             }
-            async.each(treatments, function (treatment, processTreatment) {
+            async.eachLimit(treatments, 1, function (treatment, processTreatment) {
                 var contentList = contentObj[treatment];
-                publish(db, treatment, contentList, publishDate, function (result) {
-                    processTreatment(null);
-                });
+                //wait a bit
+                console.log('Publish ' + treatment + ' In 10s');
+                //setTimeout(function(){ //protection 1
+                    //do what you need here
+                    console.log('Publish ' + treatment + ' Now');
+                    publish(db, treatment, contentList, publishDate, function (result) {
+                        processTreatment(null);
+                    });
+                //}, 5000);
+                
             }, function (err) {
                 callback(null, db, contentTotalList.length + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
             });
@@ -528,18 +535,17 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired'] } } }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
             function applyFilterLogic(hitList, callback) {
                 //2. Apply publish logic filter into targetList 
-                async.map(hitList, function (entry, processModel) {
+                async.mapSeries(hitList, function (entry, processModel) {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
                     var lifetimeInSeconds = 900;
-                    var assignmentDurationInSeconds = 900;
-                    var autoApprovalDelay = 10;
-                    var lifetimeInSeconds = 900;
+                    var assignmentDurationInSeconds = 300;
+                    var autoApprovalDelay = 1;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
                     var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
@@ -559,49 +565,101 @@ var TurkExpert = {
 
             }
             function batchPublish(targetList, callback) {
-                //3. async each publish the targetList in parallel  //maybe eachLimit if reach quota
-
+                //3. async each publish the targetList in parallel  //maybe eachLimit if reach quot
                 var i = 0;
                 //Gennerate content array randomly here for each n(default n=100) hits:
                 var array = [];
                 for (; i < targetList.length; i++) {
                     array.push(i + 1);
                 }
-
-                //console.log('ImageArray: ', array);
-                //Gennerate Code randomly here for each n(default n=100) hits:
                 var code = generateCode(5);
                 //console.log('Code: ', code);
-
-                async.each(targetList, function (hitObj, processPublish) {
+                //  for(var i=0; i < targetList.length; i++){
+                //    var hitObj = targetList[i];
+                //    api.req('CreateHIT', hitObj.hit).then(function (res) {
+                //         hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
+                //         hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
+                //         hitObj.hit.Content = contentList[array[i]],
+                //         hitObj.hit.Code = code;
+                //         console.log('kev: wait the callback !', hitObj);
+                //    }, function (error) {
+                //         //Handle error 
+                //         console.error(error);
+                //    });
+                //  }
+                //  callback(null, targetList);
+                async.eachLimit(targetList, 1, function (hitObj, processPublish) {
                     // Perform operation on each HIT here.
                     //console.log('Processing HIT: ', hit);
                     //These requests will be queued and executed at a rate of 3 per second
 
                     //Solution1: Register First One in each group and createHit for the rest with the HITTypeId
                     //Solution2: Async parallel publish automatically batch those into each group!!!
-                    api.req('CreateHIT', hitObj.hit).then(function (res) {
-                        //console.log('CreateHIT -> ', res.CreateHITResponse.HIT[0].HITId[0]); //res 
+                    
+                    // try calling apiMethod 10 times with exponential backoff
+                    // (i.e. intervals of 100, 200, 400, 800, 1600, ... milliseconds)
+                    var apiCreate = function(apicb, previousResult){
+                      console.log('calling create hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('CreateHIT', hitObj.hit).then(function (res) {
+                                    console.log('CreateHIT -> ', res.CreateHITResponse.HIT[0].HITId[0]); //res
+                                    apicb(null, res);
+                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    apicb(error, null);
+                                    //console.log('error waiting for republish'); 
+                                });
+                      }, 1000);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiCreate, function(err, res) {
+                        // do something with the result
+                          i--;
+                          //console.log("ImageArray["+ i +"] = ", array[i]);
 
-                        i--;
-                        //console.log("ImageArray["+ i +"] = ", array[i]);
+                          // persistHitIntoDB asynchronously
+                          // persistHitIntoDB(hitObj.id, res.CreateHITResponse.HIT[0], array[i], code);
 
-                        // persistHitIntoDB asynchronously
-                        // persistHitIntoDB(hitObj.id, res.CreateHITResponse.HIT[0], array[i], code);
+                          //Update hit Object
+                          hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
+                          hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
+                          hitObj.hit.Content = contentList[array[i]],
+                          hitObj.hit.Code = code;
+                          processPublish(null);
+                    });                 
+                    //setTimeout(function(){
+                     // console.log('Publish one for ' + hitObj.treatment);
+                      // api.req('CreateHIT', hitObj.hit).then(function (res) {
+                      //     //console.log('CreateHIT -> ', res.CreateHITResponse.HIT[0].HITId[0]); //res 
 
-                        //Update hit Object
-                        hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
-                            hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                            hitObj.hit.Content = contentList[array[i]],
-                            hitObj.hit.Code = code;
+                      //     i--;
+                      //     //console.log("ImageArray["+ i +"] = ", array[i]);
 
-                        processPublish(null);
-                        //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
-                    }, function (error) {
-                        //Handle error 
-                        console.error(error);
-                        processPublish(error);
-                    });
+                      //     // persistHitIntoDB asynchronously
+                      //     // persistHitIntoDB(hitObj.id, res.CreateHITResponse.HIT[0], array[i], code);
+
+                      //     //Update hit Object
+                      //     hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
+                      //     hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
+                      //     hitObj.hit.Content = contentList[array[i]],
+                      //     hitObj.hit.Code = code;
+
+                      //     processPublish(null);
+                      //     //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                      // }, function (error) {
+                      //     //Handle error 
+                      //     console.error(error);
+                      //     console.log('error waiting for republish'); 
+                      //     processPublish(error);
+                      // });
+                   // }, 1000);
+                    
                 }, function (err) {
                     // if any of the file processing produced an error, err would equal that error
                     if (err) {
@@ -611,14 +669,15 @@ var TurkExpert = {
                         callback(null, []);
                     } else {
                         console.log(targetList.length + ' HITs have been created successfully.');
-                        //console.log('targetList ->', JSON.stringify(targetList, null, 2));
                         callback(null, targetList);
                     }
                 });
             }
+            
+            
             //async each - added into waterfall
             function persistHitIntoDB(hitList, callback) {
-                async.each(hitList, function (hitObj, processPersist) {
+                async.eachLimit(hitList, 1, function (hitObj, processPersist) {
                     //console.log('Persist into DB -> {_id:'+ hitObj.id + ' HITTypeId:' + hitObj.hit.HITTypeId + ' HITId:' + hitObj.hit.HITId + ' Content:'+ hitObj.hit.Content + ' Code:' + hitObj.hit.Code +'}');
                     MongoDB.update(db, 'hit', { _id: hitObj.id },
                         {
@@ -760,12 +819,12 @@ var TurkExpert = {
     },
 
     updateAssignments: function (cb) {
-
         async.waterfall([
             connectToDB,
             loadHitsFromDB,
             getAssignments,
-            persistAssignments
+            persistAssignments,
+            loadUpdatedHitsFromDB
         ], function (err, result) {
             var msg = 'Updated total: ' + result.length + ' docs';
             cb(msg);
@@ -780,37 +839,41 @@ var TurkExpert = {
             //1. Load all hits into hitList
             //publish only n(default n=100) hits in each treatment / period 
             MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
-                //all done before expire - notify us
-                var notice = new NOTICE('A32D5DD50BKQ6Y', 'HITs Update', 'There are ' + doc.length + ' hits remaining.');
-                api.req('NotifyWorkers', notice).then(function (res) {
-                    //Do something 
-                    console.log('Notify Us -> ', res);
-                    callback(null, db, doc);
-                }, function (error) {
-                    //Handle error 
-                    console.error(error);
-                    callback(error, db, doc);
-                });
+                //all done before expire
+                callback(null, db, doc);
             });
         }
         //Get /api/assignments/:hitId
         function getAssignments(db, hitList, callback) {
-            async.each(hitList, function (hit, processAssignments) {
-                api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
-                    //Do something 
-                    //console.log('GetAssignmentsForHIT -> ', res);
-                    //add assignment into hit
-                    if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
-                        hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
-                    } else {
-                        hit.Assignments = [];
+            async.eachLimit(hitList, 1, function (hit, processAssignments) {
+                 var apiAssignments = function(apicb, previousResult){
+                      console.log('calling get assignments for hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                                    console.log('GetAssignmentsForHIT -> ', hit.HITId); //res
+                                    apicb(null, res);
+                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    apicb(error, null);
+                                    //console.log('error waiting for republish'); 
+                                });
+                      }, 1000);
                     }
-                    processAssignments(null);
-                }, function (error) {
-                    //Handle error 
-                    console.error(error);
-                    processAssignments(error);
-                });
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiAssignments, function(err, res) {
+                          if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
+                              hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
+                          } else {
+                              hit.Assignments = [];
+                          }
+                          processAssignments(null);
+                    });                 
             }, function (err) {
                 if (err) {
                     // One of the iterations produced an error.
@@ -843,12 +906,27 @@ var TurkExpert = {
             }, function (err) {
                 if (err) {
                     console.log('HIT failed to save.');
-                    callback(null, 0);
+                    callback(null, db);
                 } else {
-                    console.log(hitList.length + ' HITs have been saved successfully.');
-                    callback(null, hitList);
+                    console.log(hitList.length + ' HITs have been updated successfully.');
+                    callback(null, db);
                 }
             });
+        }
+        function loadUpdatedHitsFromDB(db, callback) {
+          MongoDB.find(db, 'hit', { status: 'done' }, {}, {}, function(doc) {
+            //all done before expire - notify us
+            var notice = new NOTICE('A2Z7XGBZSO11D0', 'HITs Update', doc.length + ' HITs have been done.');
+            api.req('NotifyWorkers', notice).then(function(res) {
+              //Do something 
+              console.log('Notify Us -> ', res);
+              callback(null, doc);
+            }, function(error) {
+              //Handle error 
+              console.error(error);
+              callback(error, doc);
+            });
+          });
         }
 
     },
@@ -879,22 +957,35 @@ var TurkExpert = {
         }
         //Get /api/assignments/:hitId
         function getAssignments(db, hitList, callback) {
-            async.each(hitList, function (hit, processAssignments) {
-                api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
-                    //Do something 
-                    //console.log('GetAssignmentsForHIT -> ', res);
-                    //add assignment into hit
-                    if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
-                        hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
-                    } else {
-                        hit.Assignments = [];
+            async.eachLimit(hitList, 1, function (hit, processAssignments) {
+                  var apiAssignments = function(apicb, previousResult){
+                      console.log('calling get assignments for hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                                    console.log('GetAssignmentsForHIT -> ', hit.HITId); //res
+                                    apicb(null, res);
+                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    apicb(error, null);
+                                    //console.log('error waiting for republish'); 
+                                });
+                      }, 1000);
                     }
-                    processAssignments(null);
-                }, function (error) {
-                    //Handle error 
-                    console.error(error);
-                    processAssignments(error);
-                });
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiAssignments, function(err, res) {
+                          if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
+                              hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
+                          } else {
+                              hit.Assignments = [];
+                          }
+                          processAssignments(null);
+                    });  
             }, function (err) {
                 if (err) {
                     // One of the iterations produced an error.
@@ -929,7 +1020,7 @@ var TurkExpert = {
                     console.log('HIT failed to save.');
                     callback(null, 0);
                 } else {
-                    console.log(hitList.length + ' HITs have been saved successfully.');
+                    console.log(hitList.length + ' HITs have been updated successfully.');
                     callback(null, hitList);
                 }
             });

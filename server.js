@@ -16,6 +16,15 @@ app.use(bodyParser.urlencoded({    // to support URL-encoded bodies
   extended: true
 })); 
 
+//TODO: settimeout
+// var connectTimeout = require('connect-timeout');
+
+// //var timeout = connectTimeout({ time: 10000 });
+// var longTimeout = connectTimeout({ time: 45000 });
+
+// app.use(timeout); // you can set a global timeout value
+// app.get('/', longTimeout, yourHandler); // or router
+
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
