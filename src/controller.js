@@ -468,13 +468,13 @@ var TurkExpert = {
                 var contentList = contentObj[treatment];
                 //wait a bit
                 console.log('Publish ' + treatment + ' In 10s');
-                //setTimeout(function(){ //protection 1
+                setTimeout(function(){ //protection 1
                     //do what you need here
                     console.log('Publish ' + treatment + ' Now');
                     publish(db, treatment, contentList, publishDate, function (result) {
                         processTreatment(null);
                     });
-                //}, 5000);
+                }, 5000);
                 
             }, function (err) {
                 callback(null, db, contentTotalList.length + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
