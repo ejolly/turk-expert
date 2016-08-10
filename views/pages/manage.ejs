@@ -274,23 +274,23 @@
                                     </div>
                                 </div>
                                 
-                                 <div class="panel panel-info">
+                                  <div class="panel panel-danger">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Update Assignments - Persist into DB </legend>
+                                            <legend>Expire HITs</legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
-                                        <form method='post' action='updateAssignments' class="form-horizontal">
-                                                <label id ="Assignment-Update-Result" class="col-sm-9">
+                                        <form method='post' action='expireHits' class="form-horizontal">
+                                                <label id ="HIT-Expire-Result" class="col-sm-9">
                                                     <script>
-                                                    var assignmentUpdateResult = window.location.href.split('assignmentUpdateResult=')[1];
-                                                    if(assignmentUpdateResult){
-                                                        document.getElementById("Assignment-Update-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(assignmentUpdateResult) +'</p>';
+                                                    var hitExpireResult = window.location.href.split('hitExpireResult=')[1];
+                                                    if(hitExpireResult){
+                                                        document.getElementById("HIT-Expire-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(hitExpireResult) +'</p>';
                                                     }
                                                     </script>
                                                 </label>
-                                            <button class="btn btn-info pull-right" type="submit">Update</button>
+                                            <button class="btn btn-danger pull-right" type="submit">Expire</button>
                                         </form>
                                     </div>
                                 </div>
@@ -379,24 +379,25 @@
                                         </form>
                                     </div>
                                 </div>
-
-                                <div class="panel panel-danger">
+                                
+                                
+                                <div class="panel panel-info">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Expire HITs</legend>
+                                            <legend>Update Assignments - Persist into DB </legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
-                                        <form method='post' action='expireHits' class="form-horizontal">
-                                                <label id ="HIT-Expire-Result" class="col-sm-9">
+                                        <form method='post' action='updateAssignments' class="form-horizontal">
+                                                <label id ="Assignment-Update-Result" class="col-sm-9">
                                                     <script>
-                                                    var hitExpireResult = window.location.href.split('hitExpireResult=')[1];
-                                                    if(hitExpireResult){
-                                                        document.getElementById("HIT-Expire-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(hitExpireResult) +'</p>';
+                                                    var assignmentUpdateResult = window.location.href.split('assignmentUpdateResult=')[1];
+                                                    if(assignmentUpdateResult){
+                                                        document.getElementById("Assignment-Update-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(assignmentUpdateResult) +'</p>';
                                                     }
                                                     </script>
                                                 </label>
-                                            <button class="btn btn-danger pull-right" type="submit">Expire</button>
+                                            <button class="btn btn-info pull-right" type="submit">Update</button>
                                         </form>
                                     </div>
                                 </div>

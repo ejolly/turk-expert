@@ -474,7 +474,7 @@ var TurkExpert = {
                     publish(db, treatment, contentList, publishDate, function (result) {
                         processTreatment(null);
                     });
-                }, 5000);
+                }, 10000);
                 
             }, function (err) {
                 callback(null, db, contentTotalList.length + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
@@ -543,7 +543,7 @@ var TurkExpert = {
                 //2. Apply publish logic filter into targetList 
                 async.mapSeries(hitList, function (entry, processModel) {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
-                    var lifetimeInSeconds = 900;
+                    var lifetimeInSeconds = 86400;
                     var assignmentDurationInSeconds = 300;
                     var autoApprovalDelay = 1;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
@@ -570,7 +570,7 @@ var TurkExpert = {
                 //Gennerate content array randomly here for each n(default n=100) hits:
                 var array = [];
                 for (; i < targetList.length; i++) {
-                    array.push(i + 1);
+                    array.push(i);
                 }
                 var code = generateCode(5);
                 //console.log('Code: ', code);
@@ -722,13 +722,12 @@ var TurkExpert = {
                         });
                     },
                     worker: function (mongocb) {
-                        MongoDB.find(db, 'worker', { Treatment: treatment }, {}, { limit: 1 }, function (doc) {  //Sandbox Test:  status: { $not: /sent/ }
+                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: /sent/ } }, {}, { limit: 1 }, function (doc) {  //Sandbox Test:  status: { $not: /sent/ }
                             mongocb(null, doc);
                         });
                     }
                 }, function (err, result) {
                     assert.equal(null, err);
-                    //Sandbox TEST
                     var currentWorker = result.worker[0];
                     var currentTreatment = hitList[0].treatment;
                     var currentLifetimeInSeconds = hitList[0].lifetimeInSeconds;
@@ -761,7 +760,7 @@ var TurkExpert = {
                         .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds / 3600) + 'hrs')
                         .replace('<REWARD>', hit.Reward.FormattedPrice)
                         .replace('<CODE>', hit.Code)
-                        .replace('<HITURL>', 'https://workersandbox.mturk.com/mturk/preview?groupId=' + groupId)
+                        .replace('<HITURL>', 'https://www.mturk.com/mturk/preview?groupId=' + groupId)
                         .replace('<POSTPONEURL>', config.externalUrl + '/postpone?s=' + encodedPostponeString);
 
                     return msg;
@@ -1047,7 +1046,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (cb) {
-                    MongoDB.find(db, 'hit', { status: { $in: ['published', 'postponed', 'expired'] } }, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', { status: { $in: ['published'] } }, {}, {}, function (doc) {
                         //MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });

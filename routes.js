@@ -240,21 +240,26 @@ router.post('/publishHits', auth, function (req, res) {
     //Batch Call from DB - hits // "control" , "costly", "framing", "reciprocity", "reputation"
     res.redirect('manage');
     TurkExpert.publishTreatments(["control", "costly", "framing", "reciprocity", "reputation"], function (result) {
-        res.redirect('manage?hitPublishResult=' + result);
+        //res.redirect('manage?hitPublishResult=' + result);
+        console.log('manage?hitPublishResult=' + result)
     });
 });
 //batchUpdateAssignments
 router.post('/updateAssignments', auth, function (req, res) {
     //Batch Call from DB - hits
+    res.redirect('manage');
     TurkExpert.updateAssignments(function (result) {
-        res.redirect('manage?assignmentUpdateResult=' + result);
+        //res.redirect('manage?assignmentUpdateResult=' + result);
+        console.log('manage?assignmentUpdateResult=' + result);
     });
 });
 //batchExpireHits
 router.post('/expireHits', auth, function (req, res) {
     //Batch Call from DB - hits
+    res.redirect('manage');
     TurkExpert.expireHits(function (result) {
-        res.redirect('manage?hitExpireResult=' + result);
+        //res.redirect('manage?hitExpireResult=' + result);
+        console.log('manage?hitExpireResult=' + result);
     });
 });
 
