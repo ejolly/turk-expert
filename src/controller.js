@@ -521,7 +521,6 @@ var TurkExpert = {
         async.waterfall([
             connectToDB,
             getTreatmentContent,
-            updateContentCount,
             publishTreatment,
             closeDB
             //notifyWokers
@@ -535,29 +534,10 @@ var TurkExpert = {
             });
         }
         function getTreatmentContent(db, callback) {
-            MongoDB.find(db, 'content', {}, { '_id': 1, 'User': 1, 'Tweet': 1, 'Date': 1, 'Time': 1 }, { sort: [['HITCount', 1]], limit: 500 }, function (contentTotalList) {
+            MongoDB.find(db, 'content', {}, { '_id': 1, 'User': 1, 'Tweet': 1, 'Date': 1, 'Time': 1, 'HITCount': 1}, { sort: [['HITCount', 1]], limit: 500 }, function (contentTotalList) {
                 var publishDate = makePublishTime();
                 callback(null, db, contentTotalList, publishDate);
             });
-        }
-        function updateContentCount(db, contentTotalList, publishDate) {
-          async.eachLimit(contentTotalList, 1, function (content, processContent){
-              MongoDB.update(db, 'content', { _id: content._id },
-                            {
-                                $set: {
-                                    HITCount: content.HITCount + 1
-                                },
-                                $currentDate: { "lastModified": true }
-                            },
-                            {
-                                upsert: false,
-                                w: 1
-                            }, function (r) {
-                                processContent(null)
-               });
-          }, function (err) {
-                callback(null, db, contentTotalList, publishDate);
-          });
         }
         function publishTreatment(db, contentTotalList, publishDate, callback) {
             shuffle(contentTotalList);
@@ -1037,6 +1017,7 @@ var TurkExpert = {
             connectToDB,
             loadHitsFromDB,
             getAssignments,
+            updateContentCount,
             persistAssignments
         ], function (err, result) {
             var msg = 'Updated total: ' + result.length + ' docs';
@@ -1097,6 +1078,26 @@ var TurkExpert = {
                     callback(null, db, hitList);
                 }
             });
+        }
+        //update content count.
+        function updateContentCount(db, hitList, callback) {
+          async.eachLimit(hitList, 1, function (hit, processContent){
+              MongoDB.update(db, 'content', { _id: hit.Content._id },
+                            {
+                                $set: {
+                                    HITCount: hit.Content.HITCount + 1
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: false,
+                                w: 1
+                            }, function (r) {
+                                processContent(null)
+               });
+          }, function (err) {
+                callback(null, db, hitList);
+          });
         }
         //Save into db.
         function persistAssignments(db, hitList, callback) {
