@@ -193,7 +193,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (mongocb) {
-                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired'] } } }, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse'] } } }, {}, {}, function (doc) {
                         mongocb(null, doc);
                     });
                 },
@@ -283,14 +283,30 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             MongoDB.find(db, 'authentication', { HITTypeId: obj.hid, Code: code }, {}, {}, function (doc) {
                 if (doc.length === 0) { // authentication failed
-                    cb({
-                        code: 403,
-                        content: content,
-                        type: type,
-                        obj: obj,
-                        assignmentId: assignmentId,
-                        turkSubmitTo: turkSubmitTo
-                    });
+                    // save the code attempts?
+                    MongoDB.update(db, 'attempt', { HITTypeID: obj.hid, WorkerId: obj.wid, Code: code },
+                        {
+                            $set: {
+                                HITTypeId: obj.hid,
+                                WorkerId: obj.wid,
+                                Code: code
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: true,
+                            w: 1
+                        }, function (r) {
+                            console.log('Auth code is attempting!');
+                            cb({
+                              code: 403,
+                              content: content,
+                              type: type,
+                              obj: obj,
+                              assignmentId: assignmentId,
+                              turkSubmitTo: turkSubmitTo
+                          });
+                        }); 
                 } else {
                     //save u as a new record or update invited to authenticated true
                     var authenticatedWorkers = [];
@@ -357,7 +373,7 @@ var TurkExpert = {
     postpone: function (s, cb) { //Update mongo, secret weapon
         var decodedPostponeString = Base64.decode(s);
         //console.log("decodedPostponeString",decodedPostponeString);
-        var hidTypeId = decodedPostponeString.split('_')[0];
+        var hitTypeId = decodedPostponeString.split('_')[0];
         var workerId = decodedPostponeString.split('_')[1];
 
         //invalidate old code
@@ -366,7 +382,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (mongocb) {
-                    MongoDB.updateMany(db, 'hit', { HITTypeId: hidTypeId, status: 'published' },
+                    MongoDB.updateMany(db, 'hit', { HITTypeId: hitTypeId, status: 'published' },
                         {
                             $set: {
                                 Code: newCode,
@@ -398,7 +414,7 @@ var TurkExpert = {
                         });
                 },
                 authentication: function (mongocb) {
-                    MongoDB.update(db, 'authentication', { HITTypeId: hidTypeId, WorkerId: workerId },
+                    MongoDB.update(db, 'authentication', { HITTypeId: hitTypeId, WorkerId: workerId },
                         {
                             $set: {
                                 Code: newCode,
@@ -423,6 +439,71 @@ var TurkExpert = {
             });
         });
     },
+    noresponse: function (hitTypeId, workerId, cb) { //Update mongo, secret weapon
+        //invalidate old code
+        var newCode = generateCode(6); //6 is +1 than original
+
+        MongoDB.connect(function (db) {
+            async.parallel({
+                hit: function (mongocb) {
+                    MongoDB.updateMany(db, 'hit', { HITTypeId: hitTypeId, status: 'published' },
+                        {
+                            $set: {
+                                Code: newCode,
+                                status: 'noresponse'
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: false,
+                            multi: true,
+                            w: 1
+                        }, function (r) {
+                            mongocb(null, r);
+                        });
+                },
+                worker: function (mongocb) {
+                    MongoDB.update(db, 'worker', { WorkerId: workerId, status: 'sent' },
+                        {
+                            $set: {
+                                status: 'noresponse'
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: false,
+                            w: 1
+                        }, function (r) {
+                            mongocb(null, r);
+                        });
+                },
+                authentication: function (mongocb) {
+                    MongoDB.update(db, 'authentication', { HITTypeId: hitTypeId, WorkerId: workerId },
+                        {
+                            $set: {
+                                Code: newCode,
+                                Type: 'noresponse'
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: false,
+                            w: 1
+                        }, function (r) {
+                            mongocb(null, r);
+                        });
+                }
+            }, function (err, result) {
+                if (err) {
+                    console.error(err);
+                }
+                //processing
+                cb(200);   
+                db.close();
+            });
+        });
+    },
+    
     publishTreatments: function (treatments, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
         // MongoDB.connect(function (db) {
@@ -440,6 +521,7 @@ var TurkExpert = {
         async.waterfall([
             connectToDB,
             getTreatmentContent,
+            updateContentCount,
             publishTreatment,
             closeDB
             //notifyWokers
@@ -457,6 +539,25 @@ var TurkExpert = {
                 var publishDate = makePublishTime();
                 callback(null, db, contentTotalList, publishDate);
             });
+        }
+        function updateContentCount(db, contentTotalList, publishDate) {
+          async.eachLimit(contentTotalList, 1, function (content, processContent){
+              MongoDB.update(db, 'content', { _id: content._id },
+                            {
+                                $set: {
+                                    HITCount: content.HITCount + 1
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: false,
+                                w: 1
+                            }, function (r) {
+                                processContent(null)
+               });
+          }, function (err) {
+                callback(null, db, contentTotalList, publishDate);
+          });
         }
         function publishTreatment(db, contentTotalList, publishDate, callback) {
             shuffle(contentTotalList);
@@ -535,7 +636,7 @@ var TurkExpert = {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
                 //TODO: only publish new not posponed
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
@@ -722,7 +823,7 @@ var TurkExpert = {
                         });
                     },
                     worker: function (mongocb) {
-                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: /sent/ } }, {}, { limit: 1 }, function (doc) {  //Sandbox Test:  status: { $not: /sent/ }
+                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: { $in: ['postponed', 'noresponse'] } } }, {}, { limit: 1 }, function (doc) {  //Sandbox Test:  status: { $not: /sent/ }
                             mongocb(null, doc);
                         });
                     }

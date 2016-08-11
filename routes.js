@@ -323,6 +323,17 @@ router.get('/postpone', function (req, res) {
 });
 
 
+//noresponse
+router.get('/noresponse', function (req, res) {
+  if(!req.query.hitTypeId || !req.query.workerId ){
+       res.render('pages/notfound');
+  }else{
+    TurkExpert.noresponse(req.query.hitTypeId, req.query.workerId, function (e) {
+        res.render('pages/postpone');
+    });
+  }
+});
+
 //TBD
 router.get('/forms', auth, function (req, res) {
     res.render('pages/forms');
