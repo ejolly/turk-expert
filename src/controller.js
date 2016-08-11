@@ -1166,6 +1166,11 @@ var TurkExpert = {
                     MongoDB.find(db, 'authentication', {}, {}, {}, function (doc) {
                         cb(null, doc);
                     });
+                },
+                attempt: function (cb) {
+                    MongoDB.find(db, 'attempt', {}, {}, {}, function (doc) {
+                        cb(null, doc);
+                    });
                 }
             }, function (err, result) {
                 assert.equal(null, err);
