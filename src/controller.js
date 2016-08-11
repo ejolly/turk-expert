@@ -193,7 +193,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (mongocb) {
-                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse'] } } }, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse', 'done'] } } }, {}, {}, function (doc) {
                         mongocb(null, doc);
                     });
                 },
@@ -803,7 +803,7 @@ var TurkExpert = {
                         });
                     },
                     worker: function (mongocb) {
-                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: { $in: ['postponed', 'noresponse'] } } }, {}, { limit: 1 }, function (doc) {  //Sandbox Test:  status: { $not: /sent/ }
+                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: { $in: ['postponed', 'noresponse', 'sent'] } } }, {}, { limit: 1 }, function (doc) {  //Sandbox Test
                             mongocb(null, doc);
                         });
                     }
