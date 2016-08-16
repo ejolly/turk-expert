@@ -12,7 +12,7 @@
     },
     "db":{
         "mongo":{
-            "url": "<yourMongoUrl>"
+            "url": "<yourMongoUrl>" 
         }
     }
 }
