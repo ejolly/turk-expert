@@ -187,95 +187,144 @@ var TurkExpert = {
     //////////////////////////////////////////////////////////////////////////
     //Turk Expert API - Core
     /////////////////////////////////////////////////////////////////////////
+    preview: function(hitId, cb){
+         MongoDB.connect(function (db) {
+             MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {limit:1}, function (hit) {
+                  MongoDB.find(db, 'authentication', { HITTypeId: hit.HITTypeId }, {}, {}, function (auth) {
+                       if(auth.length === 0){ // not authenticated preview
+                           cb(404);
+                       } else { // authenticated preview
+                          cb(200)
+                       }
+                  });
+             });
+         }, function (err, result) {
+              db.close();
+         });
+    },
     init: function (assignmentId, hitId, workerId, turkSubmitTo, cb) {
         //Waterfall
         //Client App Init: authentication, content loading, assignemnt Data persist, status update etc.
         MongoDB.connect(function (db) {
             async.parallel({
-                hit: function (mongocb) {
+                authenticationHit: function (mongocb) {
                     MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse', 'done'] } } }, {}, {}, function (doc) {
-                        mongocb(null, doc);
+                        if(doc.length === 0){
+                             cb({ code: 404 }); //hit not found or expired
+                        }else{
+                            MongoDB.find(db, 'authentication', { HITTypeId: doc[0].HITTypeId }, {}, {}, function (auth) {
+                                mongocb(null, {hit: hit, auth: auth});
+                            });
+                        }                        
                     });
                 },
-                authentication: function (mongocb) {
+                authenticationWorker: function (mongocb) {
                     MongoDB.find(db, 'authentication', { WorkerId: workerId }, {}, {}, function (doc) {
                         mongocb(null, doc);
                     });
                 }
             }, function (err, result) {
                 //assert.equal(null, err);
-                db.close();
                 //Authenticate Logic: 1. invited code match 2. hitId still valid - published 3. Hittype match
-                if (result.hit.length === 0) {
+                if (result.authenticationHit.hit.length === 0) {
                     cb({ code: 404 }); //hit not found or expired
-                } else if (result.hit.length === 1) {
-                    // if(result.hit[0].status === 'postponed'){
-                    // MSG for postponed group
-                    // }
-                    if (result.authentication.length === 0) {
-                        cb({
-                            code: 422,
-                            content: result.hit[0].Content,
-                            type: 'shared',
-                            obj: {
-                                hid: result.hit[0].HITTypeId,
-                                wid: workerId
+                } else if (result.authenticationHit.hit.length === 1) {
+                    //hit available
+                   if(result.authenticationHit.auth.length === 0 && result.authenticationWorker.length === 0){ // first user win the code !!!
+                        //write u into db;
+                        MongoDB.update(db, 'authentication', { HITTypeId: result.authenticationHit.hit[0].HITTypeId, WorkerId: workerId, Code: result.authenticationHit.hit[0].Code },
+                            {
+                                $set: {
+                                    HITTypeId: authenticationHit.hit[0].HITTypeId,
+                                    WorkerId: workerId,
+                                    Code: authenticationHit.hit[0].Code,
+                                    Type: authenticationHit.hit[0].Treatment,
+                                    Authenticated: true
+                                },
+                                $currentDate: { "lastModified": true }
                             },
-                            assignmentId: assignmentId,
-                            turkSubmitTo: turkSubmitTo
-                        }); //worker not found, new user
-                    } else {
-                        //result.authentication is an array 
-                        var authList = result.authentication;
-                        var flg = false;
-                        var index = 0;
-                        var i = 0;
-                        for (; i < authList.length; i++) {
-                            if (authList[i].HITTypeId === result.hit[0].HITTypeId) {
-                                flg = true;
-                                index = i;
-                            }
-                        }
-                        if (flg) {
-                            if (authList[index].Authenticated) {
+                            {
+                                upsert: true,  //should always write new
+                                w: 1
+                            }, function (r) { // authentication success - The Very First Time !!!
                                 cb({
                                     code: 200,
-                                    type: result.hit[0].Treatment,
-                                    content: result.hit[0].Content,
+                                    firstTimeUser: result.authenticationHit.hit[0].Treatment,
+                                    content: result.authenticationHit.hit[0].Content,
+                                    hitCode: result.authenticationHit.hit[0].Code,
+                                    obj: obj,  //no more authentication params, but keep for first User process
                                     assignmentId: assignmentId,
                                     turkSubmitTo: turkSubmitTo
-                                }); //worker already authenticated - repeated
-                            } else {
-                                cb({
-                                    code: 422,
-                                    content: result.hit[0].Content,
-                                    type: result.hit[0].Treatment, // This gonna be the treatmet
-                                    obj: {
-                                        hid: result.hit[0].HITTypeId,
-                                        wid: workerId
-                                    },
-                                    assignmentId: assignmentId,
-                                    turkSubmitTo: turkSubmitTo
-                                });//invited not authenticated
-                            }
-
-                        } else {
-                            //not authenticated for this current hitType
+                                });
+                            });
+                    }else{
+                        if (result.authenticationWorker.length === 0) {
                             cb({
                                 code: 422,
-                                content: result.hit[0].Content,
-                                type: 'shared', // This gonna be the shared
+                                content: result.authenticationHit.hit[0].Content,
+                                type: 'shared',
                                 obj: {
-                                    hid: result.hit[0].HITTypeId,
+                                    hid: result.authenticationHit.hit[0].HITTypeId,
                                     wid: workerId
                                 },
                                 assignmentId: assignmentId,
                                 turkSubmitTo: turkSubmitTo
-                            });
+                            }); //worker not found, new user
+                        } else {
+                            //result.authentication is an array 
+                            var authList = result.authenticationWorker;
+                            var flg = false;
+                            var index = 0;
+                            var i = 0;
+                            for (; i < authList.length; i++) {
+                                if (authList[i].HITTypeId === result.authenticationHit.hit[0].HITTypeId) {
+                                    flg = true;
+                                    index = i;
+                                }
+                            }
+                            if (flg) {
+                                if (authList[index].Authenticated) {
+                                    cb({
+                                        code: 200,
+                                        type: result.authenticationHit.hit[0].Treatment,
+                                        content: result.authenticationHit.hit[0].Content,
+                                        assignmentId: assignmentId,
+                                        turkSubmitTo: turkSubmitTo
+                                    }); //worker already authenticated - repeated
+                                } else {
+                                    cb({
+                                        code: 422,
+                                        content: result.authenticationHit.hit[0].Content,
+                                        type: result.authenticationHit.hit[0].Treatment, // This gonna be the treatmet
+                                        obj: {
+                                            hid: result.authenticationHit.hit[0].HITTypeId,
+                                            wid: workerId
+                                        },
+                                        assignmentId: assignmentId,
+                                        turkSubmitTo: turkSubmitTo
+                                    });//invited not authenticated
+                                }
 
+                            } else {
+                                //not authenticated for this current hitType
+                                cb({
+                                    code: 422,
+                                    content: result.authenticationHit.hit[0].Content,
+                                    type: 'shared', // This gonna be the shared
+                                    obj: {
+                                        hid: result.authenticationHit.hit[0].HITTypeId,
+                                        wid: workerId
+                                    },
+                                    assignmentId: assignmentId,
+                                    turkSubmitTo: turkSubmitTo
+                                });
+
+                            }
                         }
+
                     }
                 }
+               db.close();
             });
         })
     },
@@ -317,18 +366,18 @@ var TurkExpert = {
                         doc.forEach(function (entry) {
                             authenticatedWorkers.push(entry.WorkerId);
                         });
-                        var newType = 'shared'; //default
-                        if (authenticatedWorkers.indexOf(obj.wid) === -1) {
-                            newType = 'shared'; // new user - shared
-                        } else {
-                            newType = type;   // invited
-                        }
+                        //var newType = 'shared'; //default
+                        // if (authenticatedWorkers.indexOf(obj.wid) === -1) {
+                        //     newType = 'shared'; // new user - shared
+                        // } else {
+                        //     newType = type;   // invited
+                        // }
                         MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
                             {
                                 $set: {
                                     WorkerId: obj.wid,
                                     Code: code,
-                                    Type: newType,
+                                    Type: 'shared',
                                     Authenticated: true
                                 },
                                 $currentDate: { "lastModified": true }
@@ -339,7 +388,8 @@ var TurkExpert = {
                             }, function (r) { // authentication success - The Very First Time !!!
                                 cb({
                                     code: 200,
-                                    firstTimeUser: newType,
+                                    //firstTimeUser: newType,
+                                    type: 'shared',
                                     content: content,
                                     obj: obj,  //no more authentication params, but keep for first User process
                                     assignmentId: assignmentId,
@@ -659,9 +709,9 @@ var TurkExpert = {
                 loadHitsFromDB,
                 applyFilterLogic,
                 batchPublish,
-                persistHitIntoDB,
-                contactWorkers,
-                updateStatus
+                persistHitIntoDB
+                //contactWorkers,
+                //updateStatus
             ], function (err, result) {
                 console.timeEnd('publishTreatment');
                 cb(result);
@@ -830,8 +880,7 @@ var TurkExpert = {
                     var currentHit = hitList[0].hit;
                     var subject = "New HITs available!";
                     var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link, which will expire the code above. You'll still be eligible to receive future HIT notifications.\n<POSTPONEURL>\n\nThanks!\n\nSid";
-                    //currentWorker.WorkerId,
-                    var notice = new NOTICE('A32D5DD50BKQ6Y', subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId));
+                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId));
                     api.req('NotifyWorkers', notice).then(function (res) {
                         // Do something 
                         // console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 

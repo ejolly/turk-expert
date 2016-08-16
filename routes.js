@@ -40,7 +40,17 @@ router.get('/', function (req, res) {
     if( assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE'  ) {
        //preview
        //console.log('preview');
-       res.render('pages/info');
+       if(hitId){
+         TurkExpert.preview(hitId, function (e) {
+            if (e === 404) {
+                 res.render('pages/preview', { preview: 'first'});
+            } else {
+                res.render('pages/preview', {});
+            }
+        });
+       }else{
+          res.render('pages/preview', {});
+       } 
     }else if(!assignmentId || !hitId || !workerId || !turkSubmitTo){
        //raw crul
        //console.log('raw crul');
