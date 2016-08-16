@@ -565,9 +565,8 @@ var TurkExpert = {
                         processTreatment(null);
                     });
                 }, 30000);
-                
             }, function (err) {
-                callback(null, 'All HITs have been processed successfully!');
+                callback(null, 'Total '+ 100*k +'HITs have been processed successfully!');
             });
     },
     publishTreatments: function (treatments, index, cb) {
