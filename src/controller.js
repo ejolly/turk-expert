@@ -281,7 +281,7 @@ var TurkExpert = {
     },
     validateCode: function (type, content, obj, code, assignmentId, turkSubmitTo, cb) {
         MongoDB.connect(function (db) {
-            MongoDB.find(db, 'authentication', { HITTypeId: obj.hid, Code: code }, {}, {}, function (doc) {
+            MongoDB.find(db, 'authentication', { Code: code }, {}, {}, function (doc) { //HITTypeId: obj.hid, 
                 if (doc.length === 0) { // authentication failed
                     // save the code attempts?
                     MongoDB.update(db, 'attempt', { HITTypeID: obj.hid, WorkerId: obj.wid, Code: code },
@@ -297,7 +297,7 @@ var TurkExpert = {
                             upsert: true,
                             w: 1
                         }, function (r) {
-                            console.log('Auth code is attempting!');
+                            console.log('Wrong code is attempting!');
                             cb({
                               code: 403,
                               content: content,
@@ -305,43 +305,89 @@ var TurkExpert = {
                               obj: obj,
                               assignmentId: assignmentId,
                               turkSubmitTo: turkSubmitTo
-                          });
+                            });
                         }); 
                 } else {
-                    //save u as a new record or update invited to authenticated true
-                    var authenticatedWorkers = [];
-                    doc.forEach(function (entry) {
-                        authenticatedWorkers.push(entry.WorkerId);
-                    });
-                    var newType = 'shared'; //default
-                    if (authenticatedWorkers.indexOf(obj.wid) === -1) {
-                        newType = 'shared'; // new user - shared
-                    } else {
-                        newType = type;   // invited
-                    }
-                    MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
-                        {
-                            $set: {
-                                WorkerId: obj.wid,
-                                Code: code,
-                                Type: newType,
-                                Authenticated: true
-                            },
-                            $currentDate: { "lastModified": true }
-                        },
-                        {
-                            upsert: true,  //should always write new
-                            w: 1
-                        }, function (r) { // authentication success - The Very First Time !!!
-                            cb({
-                                code: 200,
-                                firstTimeUser: newType,
-                                content: content,
-                                obj: obj,  //no more authentication params, but keep for first User process
-                                assignmentId: assignmentId,
-                                turkSubmitTo: turkSubmitTo
-                            });
+                    //check if it's a valid HITType 
+                    var authFlg = ( doc[0].HITTypeId === obj.hid ? true: false);
+                    
+                    if(authFlg){ // udpate authentication db
+                        //save u as a new record or update invited to authenticated true
+                        var authenticatedWorkers = [];
+                        doc.forEach(function (entry) {
+                            authenticatedWorkers.push(entry.WorkerId);
                         });
+                        var newType = 'shared'; //default
+                        if (authenticatedWorkers.indexOf(obj.wid) === -1) {
+                            newType = 'shared'; // new user - shared
+                        } else {
+                            newType = type;   // invited
+                        }
+                        MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
+                            {
+                                $set: {
+                                    WorkerId: obj.wid,
+                                    Code: code,
+                                    Type: newType,
+                                    Authenticated: true
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: true,  //should always write new
+                                w: 1
+                            }, function (r) { // authentication success - The Very First Time !!!
+                                cb({
+                                    code: 200,
+                                    firstTimeUser: newType,
+                                    content: content,
+                                    obj: obj,  //no more authentication params, but keep for first User process
+                                    assignmentId: assignmentId,
+                                    turkSubmitTo: turkSubmitTo
+                                });
+                            });
+                                                    
+                    }else{
+                         //console.log('code for HITType: '+ doc[0].HITTypeId +' is attempting!');
+                         //Find the first available hit, and find the groupId redirect to hit group via url? Client need msg to show the hit.Title - updated when publish and groupId for the hit preview url
+                         MongoDB.find(db, 'hit', { HITTypeId: doc[0].HITTypeId, status:'published' }, {}, {limit:1}, function (hitList) {
+                            if(hitList.length === 1){
+                                api.req('GetHIT', { HITId: hitList[0].HITId }).then(function (res) {
+                                    console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
+                                    cb({
+                                        code: 403,
+                                        content: content,
+                                        type: type,
+                                        obj: obj,
+                                        attempt:{
+                                            hit: hitList[0],
+                                            groupId: res.GetHITResponse.HIT[0].HITGroupId[0]
+                                        },
+                                        assignmentId: assignmentId,
+                                        turkSubmitTo: turkSubmitTo
+                                    });
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    cb({
+                                        code: 403,
+                                        content: content,
+                                        type: type,
+                                        obj: obj,
+                                        attempt:{
+                                            hit: hitList[0],
+                                            groupId: null
+                                        },
+                                        assignmentId: assignmentId,
+                                        turkSubmitTo: turkSubmitTo
+                                    });
+                                });
+                            }
+                            
+                         });
+
+
+                    }
                 }
             });
         })
@@ -503,27 +549,35 @@ var TurkExpert = {
             });
         });
     },
-    
-    publishTreatments: function (treatments, cb) {
+    publishAllHits: function(treatments, k, cb){
+        //k round, must >= 1
+        var round = new Array(k);
+        for(var i=0;i<round.length;i++){
+            round[i] = i+1;
+        }
+        async.eachLimit(round, 1, function (index, processTreatment) {
+                //wait a bit
+                console.log('Publish Round ' + index + ' In 30s');
+                setTimeout(function(){ //protection 0
+                    //do what you need here
+                    console.log('Publish Round ' + index + ' Now');
+                    publishTreatments(treatments, index, function (result) {
+                        processTreatment(null);
+                    });
+                }, 30000);
+                
+            }, function (err) {
+                callback(null, 'All HITs have been processed successfully!');
+            });
+    },
+    publishTreatments: function (treatments, index, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
-        // MongoDB.connect(function (db) {
-        //     //Call the time generater, pass into publishTreatment
-        //     async.each(treatments, function (treatment, processTreatment) {
-        //         publishTreatment(db, treatment, function (result) {
-        //             processTreatment(result);
-        //         });
-        //     }, function (count) {
-        //         cb(count + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
-        //         //db.close();
-        //     })
-        //  });
         ///// To Reduce mongo connections
         async.waterfall([
             connectToDB,
             getTreatmentContent,
             publishTreatment,
             closeDB
-            //notifyWokers
         ], function (err, result) {
             console.timeEnd('publishTreatment');
             cb(result);
@@ -547,12 +601,14 @@ var TurkExpert = {
             }
             async.eachLimit(treatments, 1, function (treatment, processTreatment) {
                 var contentList = contentObj[treatment];
+                var treatmentId = treatments.indexOf(treatment)+1;
+                var titleIndex = 5*index + treatmentId;
                 //wait a bit
-                console.log('Publish ' + treatment + ' In 10s');
+                console.log('Publish Labeling Tweets '+ titleIndex +'(' + treatment + ') In 10s');
                 setTimeout(function(){ //protection 1
                     //do what you need here
-                    console.log('Publish ' + treatment + ' Now');
-                    publish(db, treatment, contentList, publishDate, function (result) {
+                    console.log('Publish Labeling Tweets '+ titleIndex +'(' + treatment + ') Now');
+                    publish(db, treatment, contentList, publishDate, titleIndex, function (result) {
                         processTreatment(null);
                     });
                 }, 10000);
@@ -598,7 +654,7 @@ var TurkExpert = {
 
 
         //private
-        function publish(db, treatment, contentList, publishDate, cb) {
+        function publish(db, treatment, contentList, publishDate, titleIndex, cb) {
             //async waterfall with named functions:
             console.time('publishTreatment');
             async.waterfall([
@@ -615,7 +671,6 @@ var TurkExpert = {
             function loadHitsFromDB(callback) {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
-                //TODO: only publish new not posponed
                 MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
@@ -628,7 +683,8 @@ var TurkExpert = {
                     var assignmentDurationInSeconds = 300;
                     var autoApprovalDelay = 1;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
-                    var hit = new HIT(entry.Title, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
+                    var canonicalTitle = 'Labeling Tweets ' + titleIndex;
+                    var hit = new HIT(canonicalTitle, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
                     var id = entry._id; //To keep the track of each hit in db.
                     var treatment = entry.Treatment;
 
@@ -654,21 +710,7 @@ var TurkExpert = {
                     array.push(i);
                 }
                 var code = generateCode(5);
-                //console.log('Code: ', code);
-                //  for(var i=0; i < targetList.length; i++){
-                //    var hitObj = targetList[i];
-                //    api.req('CreateHIT', hitObj.hit).then(function (res) {
-                //         hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
-                //         hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                //         hitObj.hit.Content = contentList[array[i]],
-                //         hitObj.hit.Code = code;
-                //         console.log('kev: wait the callback !', hitObj);
-                //    }, function (error) {
-                //         //Handle error 
-                //         console.error(error);
-                //    });
-                //  }
-                //  callback(null, targetList);
+
                 async.eachLimit(targetList, 1, function (hitObj, processPublish) {
                     // Perform operation on each HIT here.
                     //console.log('Processing HIT: ', hit);
@@ -714,32 +756,6 @@ var TurkExpert = {
                           hitObj.hit.Code = code;
                           processPublish(null);
                     });                 
-                    //setTimeout(function(){
-                     // console.log('Publish one for ' + hitObj.treatment);
-                      // api.req('CreateHIT', hitObj.hit).then(function (res) {
-                      //     //console.log('CreateHIT -> ', res.CreateHITResponse.HIT[0].HITId[0]); //res 
-
-                      //     i--;
-                      //     //console.log("ImageArray["+ i +"] = ", array[i]);
-
-                      //     // persistHitIntoDB asynchronously
-                      //     // persistHitIntoDB(hitObj.id, res.CreateHITResponse.HIT[0], array[i], code);
-
-                      //     //Update hit Object
-                      //     hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
-                      //     hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                      //     hitObj.hit.Content = contentList[array[i]],
-                      //     hitObj.hit.Code = code;
-
-                      //     processPublish(null);
-                      //     //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
-                      // }, function (error) {
-                      //     //Handle error 
-                      //     console.error(error);
-                      //     console.log('error waiting for republish'); 
-                      //     processPublish(error);
-                      // });
-                   // }, 1000);
                     
                 }, function (err) {
                     // if any of the file processing produced an error, err would equal that error
@@ -765,6 +781,7 @@ var TurkExpert = {
                             $set: {
                                 HITTypeId: hitObj.hit.HITTypeId,
                                 HITId: hitObj.hit.HITId,
+                                Title: hitObj.hit.Title,
                                 Content: hitObj.hit.Content,
                                 Code: hitObj.hit.Code,
                                 status: 'published',
@@ -1154,12 +1171,12 @@ var TurkExpert = {
                     });
                 },
                 content: function (cb) {
-                    MongoDB.find(db, 'content', {}, {}, { limit: 10 }, function (doc) {
+                    MongoDB.find(db, 'content', {}, {}, {sort: [['HITCount', -1]], limit: 100}, function (doc) {
                         cb(null, doc);
                     });
                 },
                 worker: function (cb) {
-                    MongoDB.find(db, 'worker', {}, {}, { ligmit: 10 }, function (doc) {
+                    MongoDB.find(db, 'worker', {}, {}, {}, function (doc) {
                         cb(null, doc);
                     });
                 },
