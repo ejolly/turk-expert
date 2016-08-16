@@ -73,12 +73,18 @@
         <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
         <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;" />
 				<% if(e.code === 403){ %>
-					<p class="authFeedback">This access code is incorrect!</p>
-					<% } %>
-						<div class="centered">
-							<!--<input type="submit" id="submitButton" class="btn btn-lg btn-primary" value= "Submit">-->
-							<button class="btn btn-lg btn-primary" type="submit">Submit</button>
-						</div>
+					<% if(attempt){ %>
+						<% if(attempt.hit.status === 'published'){ %>
+							<p style="text-align: center; color:#5678FF;">It looks like this access code works for a HIT called <a href="https://www.mturk.com/mturk/preview?groupId="+attempt.groupId>attempt.hit.Title</a>. Please find and accept this HIT using the access code you just entered. You will need a different access code to work on the current HIT.</p>
+						<% else if(attempt.hit.status == 'expired'){ %>
+							<p class="authFeedback">This access code has expired! You will need a different access code to work on the current HIT.</p>
+							<% } %>
+						<% } else{ %>
+							<p class="authFeedback">This access code is incorrect!</p>
+						<% } %>
+				<div class="centered">
+					<button class="btn btn-lg btn-primary" type="submit">Submit</button>
+				</div>
 			</form>
 		</div>
 		<% } else{ %>
@@ -91,7 +97,7 @@
 									<div class="instructions-t">
 										This is a limited group of 100 HITs. Once a HIT in this group is completed, it will <b>no longer be available</b> for you or other Turkers to complete.<br><br>
 										<% if ((e.firstTimeUser === 'framing') || (e.firstTimeUser === 'reciprocity') || (e.firstTimeUser === 'reputation')) { %>
-											If you like, however, you can share this HIT information and access code with other Turkers.<br><br>
+											If you like, however, you can share this HIT information and access code with other Turkers. You can do this for example, by posting your access code and this HIT information into any MTurk forums that you use, or by directly sending your access code and HIT information to other Workers.<br><br>
 											<% if (e.firstTimeUser === 'reciprocity') { %>
 												A number of other Turkers have also received similar invitations with access codes; thus, you may receive other opportunities to work on similar HITs if they decide to share with you.<br><br>
 												<% } else if (e.firstTimeUser === 'reputation') { %>
