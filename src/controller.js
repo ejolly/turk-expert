@@ -553,7 +553,7 @@ var TurkExpert = {
         //k round, must >= 1
         var round = new Array(k);
         for(var i=0;i<round.length;i++){
-            round[i] = i+1;
+            round[i] = i;
         }
         async.eachLimit(round, 1, function (index, processTreatment) {
                 //wait a bit
