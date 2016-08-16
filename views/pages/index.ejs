@@ -73,21 +73,22 @@
         <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
         <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;" />
 				<% if(e.code === 403){ %>
-					<% if(attempt){ %>
-						<% if(attempt.hit.status === 'published'){ %>
-							<p style="text-align: center; color:#5678FF;">It looks like this access code works for a HIT called <a href="https://www.mturk.com/mturk/preview?groupId="+attempt.groupId>attempt.hit.Title</a>. Please find and accept this HIT using the access code you just entered. You will need a different access code to work on the current HIT.</p>
-						<% else if(attempt.hit.status == 'expired'){ %>
+					<% if(e.attempt){ %>
+						<% if(e.attempt.hit.status === 'published'){ %>
+							<p style="text-align: center; color:#5678FF;">It looks like this access code works for a HIT called <a href="<%= e.turkSubmitTo %>/mturk/preview?groupId=<%= e.attempt.groupId %>" > <%= e.attempt.hit.Title %></a>. Please find and accept this HIT using the access code you just entered. You will need a different access code to work on the current HIT.</p>
+						<% } else { %>
 							<p class="authFeedback">This access code has expired! You will need a different access code to work on the current HIT.</p>
-							<% } %>
-						<% } else{ %>
+						<% }  %>
+				 <% } else { %>
 							<p class="authFeedback">This access code is incorrect!</p>
-						<% } %>
+					<% } %>
+				<% } %>
 				<div class="centered">
 					<button class="btn btn-lg btn-primary" type="submit">Submit</button>
 				</div>
 			</form>
 		</div>
-		<% } else{ %>
+		<% } else { %>
 
 			<% if(e.firstTimeUser){ %>
 				<div class="instructions-container">
