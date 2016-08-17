@@ -728,7 +728,7 @@ var TurkExpert = {
             function loadHitsFromDB(callback) {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 1 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
