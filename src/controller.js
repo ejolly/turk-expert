@@ -291,6 +291,7 @@ var TurkExpert = {
                                         code: 200,
                                         type: result.authenticationHit.hit[0].Treatment,
                                         content: result.authenticationHit.hit[0].Content,
+                                        hitCode: result.authenticationHit.hit[0].Code,
                                         assignmentId: assignmentId,
                                         turkSubmitTo: turkSubmitTo
                                     }); //worker already authenticated - repeated
@@ -394,6 +395,7 @@ var TurkExpert = {
                                     //firstTimeUser: newType,
                                     type: 'shared',
                                     content: content,
+                                    hitCode: code,
                                     obj: obj,  //no more authentication params, but keep for first User process
                                     assignmentId: assignmentId,
                                     turkSubmitTo: turkSubmitTo

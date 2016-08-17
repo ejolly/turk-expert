@@ -89,16 +89,19 @@
 			</form>
 		</div>
 		<% } else { %>
-
+      <div class="alert alert-info fade in">Access code for this HIT group: <b><%= e.hitCode %></b></div>
 			<% if(e.firstTimeUser){ %>
 				<div class="instructions-container">
 					<form id="First-User-Form" action="firstUser" method="POST">
 						<div class="col-xs-8 col-xs-offset-2">
-								<%if ((e.firstTimeUser != 'control') && (e.firstTimeUser != 'shared')) { %>
+							    
+								<h4>You are the first Turker to accept this task. We are providing you with the following access code that enables you to work on the HITs in this group. </h4>
+								<h4>Please make a note of this code as you or other Turkers will need it to access these HITs in the future: <b><%= e.hitCode %></b> </h4>
+								<%if (e.firstTimeUser != 'control') { %>
 									<div class="instructions-t">
 										This is a limited group of 100 HITs. Once a HIT in this group is completed, it will <b>no longer be available</b> for you or other Turkers to complete.<br><br>
 										<% if ((e.firstTimeUser === 'framing') || (e.firstTimeUser === 'reciprocity') || (e.firstTimeUser === 'reputation')) { %>
-											If you like, however, you can share this HIT information and access code with other Turkers. You can do this for example, by posting your access code and this HIT information into any MTurk forums that you use, or by directly sending your access code and HIT information to other Workers.<br><br>
+											If you like, however, you can share this HIT information and access code with other Turkers. You can do this for example, by posting your access code and this HIT information into any MTurk forums that you use, or by directly sending your access code and HIT information to other Workers. Remember, other Turkers will need the access code in order to work on the HITs.<br><br>
 											<% if (e.firstTimeUser === 'reciprocity') { %>
 												A number of other Turkers have also received similar invitations with access codes; thus, you may receive other opportunities to work on similar HITs if they decide to share with you.<br><br>
 												<% } else if (e.firstTimeUser === 'reputation') { %>
