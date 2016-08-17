@@ -603,6 +603,8 @@ var TurkExpert = {
         });
     },
     publishAllHits: function(treatments, k, cb){
+        //suffle treatments
+        shuffle(treatments);
         //k round, must >= 1
         var round = new Array(k);
         for(var i=0;i<round.length;i++){

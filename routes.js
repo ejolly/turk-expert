@@ -249,7 +249,7 @@ router.post('/uploadWorker', auth, function (req, res, next) {
 router.post('/publishHits', auth, function (req, res) {
     //Batch Call from DB - hits // "control" , "costly", "framing", "reciprocity", "reputation"
     res.redirect('manage');
-    TurkExpert.publishAllHits(["control", "costly", "framing", "reciprocity", "reputation"], 1, function (result) {
+    TurkExpert.publishAllHits(["control", "costly", "framing", "reciprocity", "reputation"], 5, function (result) {
         //res.redirect('manage?hitPublishResult=' + result);
         console.log('manage?hitPublishResult=' + result)
     });
