@@ -43,13 +43,13 @@ router.get('/', function (req, res) {
        if(hitId){
          TurkExpert.preview(hitId, function (e) {
             if (e === 404) {
-                 res.render('pages/preview', { preview: 'first'});
+                 res.render('pages/preview', { first: true});
             } else {
-                res.render('pages/preview', {});
+                res.render('pages/preview', {first: false});
             }
         });
        }else{
-          res.render('pages/preview', {});
+          res.render('pages/preview', {first: false});
        } 
     }else if(!assignmentId || !hitId || !workerId || !turkSubmitTo){
        //raw crul
@@ -249,7 +249,7 @@ router.post('/uploadWorker', auth, function (req, res, next) {
 router.post('/publishHits', auth, function (req, res) {
     //Batch Call from DB - hits // "control" , "costly", "framing", "reciprocity", "reputation"
     res.redirect('manage');
-    TurkExpert.publishAllHits(["control", "costly", "framing", "reciprocity", "reputation"], 5, function (result) {
+    TurkExpert.publishAllHits(["control", "costly", "framing", "reciprocity", "reputation"], 1, function (result) {
         //res.redirect('manage?hitPublishResult=' + result);
         console.log('manage?hitPublishResult=' + result)
     });

@@ -189,8 +189,8 @@ var TurkExpert = {
     /////////////////////////////////////////////////////////////////////////
     preview: function(hitId, cb){
          MongoDB.connect(function (db) {
-             MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {limit:1}, function (hit) {
-                  MongoDB.find(db, 'authentication', { HITTypeId: hit.HITTypeId }, {}, {}, function (auth) {
+             MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {}, function (hit) {
+                  MongoDB.find(db, 'authentication', { HITTypeId: hit[0].HITTypeId }, {}, {}, function (auth) {
                        if(auth.length === 0){ // not authenticated preview
                            cb(404);
                        } else { // authenticated preview
@@ -208,12 +208,12 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 authenticationHit: function (mongocb) {
-                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse', 'done'] } } }, {}, {}, function (doc) {
-                        if(doc.length === 0){
+                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse', 'done'] } } }, {}, {}, function (hitDoc) {
+                        if(hitDoc.length === 0){
                              cb({ code: 404 }); //hit not found or expired
                         }else{
-                            MongoDB.find(db, 'authentication', { HITTypeId: doc[0].HITTypeId }, {}, {}, function (auth) {
-                                mongocb(null, {hit: hit, auth: auth});
+                            MongoDB.find(db, 'authentication', { HITTypeId: hitDoc[0].HITTypeId }, {}, {}, function (authDoc) {
+                                mongocb(null, {hit: hitDoc, auth: authDoc});
                             });
                         }                        
                     });
@@ -235,10 +235,10 @@ var TurkExpert = {
                         MongoDB.update(db, 'authentication', { HITTypeId: result.authenticationHit.hit[0].HITTypeId, WorkerId: workerId, Code: result.authenticationHit.hit[0].Code },
                             {
                                 $set: {
-                                    HITTypeId: authenticationHit.hit[0].HITTypeId,
+                                    HITTypeId: result.authenticationHit.hit[0].HITTypeId,
                                     WorkerId: workerId,
-                                    Code: authenticationHit.hit[0].Code,
-                                    Type: authenticationHit.hit[0].Treatment,
+                                    Code: result.authenticationHit.hit[0].Code,
+                                    Type: result.authenticationHit.hit[0].Treatment,
                                     Authenticated: true
                                 },
                                 $currentDate: { "lastModified": true }
@@ -252,7 +252,10 @@ var TurkExpert = {
                                     firstTimeUser: result.authenticationHit.hit[0].Treatment,
                                     content: result.authenticationHit.hit[0].Content,
                                     hitCode: result.authenticationHit.hit[0].Code,
-                                    obj: obj,  //no more authentication params, but keep for first User process
+                                    obj: {
+                                        hid: result.authenticationHit.hit[0].HITTypeId,
+                                        wid: workerId
+                                    },  //no more authentication params, but keep for first User process
                                     assignmentId: assignmentId,
                                     turkSubmitTo: turkSubmitTo
                                 });
@@ -607,10 +610,10 @@ var TurkExpert = {
         }
         async.eachLimit(round, 1, function (index, processTreatment) {
                 //wait a bit
-                console.log('Publish Round ' + index + ' In 30s');
+                console.log('Publish Round ' + (index+1) + ' In 30s');
                 setTimeout(function(){ //protection 0
                     //do what you need here
-                    console.log('Publish Round ' + index + ' Now');
+                    console.log('Publish Round ' + (index) + ' Now');
                     publishTreatments(treatments, index, function (result) {
                         processTreatment(null);
                     });
@@ -727,7 +730,7 @@ var TurkExpert = {
                 //2. Apply publish logic filter into targetList 
                 async.mapSeries(hitList, function (entry, processModel) {
                     //map to HIT model, use Typescript compiled data schema -> /build/model
-                    var lifetimeInSeconds = 86400;
+                    var lifetimeInSeconds = 21600;
                     var assignmentDurationInSeconds = 300;
                     var autoApprovalDelay = 1;
                     var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
