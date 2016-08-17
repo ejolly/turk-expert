@@ -619,7 +619,7 @@ var TurkExpert = {
                 console.log('Publish Round ' + (index+1) + ' In 30s');
                 setTimeout(function(){ //protection 0
                     //do what you need here
-                    console.log('Publish Round ' + (index) + ' Now');
+                    console.log('Publish Round ' + (index+1) + ' Now');
                     publishTreatments(treatments, index, function (result) {
                         processTreatment(null);
                     });
