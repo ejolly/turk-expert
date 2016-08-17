@@ -627,6 +627,28 @@ var TurkExpert = {
             }, function (err) {
                 callback(null, 'Total '+ 100*k +'HITs have been processed successfully!');
         });
+        /**
+         * Shuffle array in place using Fisher-Yates Shuffle ALG
+         * @param {Array} a items The array containing the items.
+         * @returns {Array} only if you need a new object
+         */
+        function shuffle(array) {
+            var counter = array.length;
+            // While there are elements in the array
+            while (counter > 0) {
+                // Pick a random index
+                var index = Math.floor(Math.random() * counter);
+
+                // Decrease counter by 1
+                counter--;
+
+                // And swap the last element with it
+                var temp = array[counter];
+                array[counter] = array[index];
+                array[index] = temp;
+            }
+            return array;
+        }
         function publishTreatments(treatments, index, cb) {
         ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
         ///// To Reduce mongo connections
@@ -684,30 +706,6 @@ var TurkExpert = {
             var today = new Date();
             return today.toLocaleString('en-US', options) + ' PDT';
         }
-        /**
-         * Shuffle array in place using Fisher-Yates Shuffle ALG
-         * @param {Array} a items The array containing the items.
-         * @returns {Array} only if you need a new object
-         */
-        function shuffle(array) {
-            var counter = array.length;
-            // While there are elements in the array
-            while (counter > 0) {
-                // Pick a random index
-                var index = Math.floor(Math.random() * counter);
-
-                // Decrease counter by 1
-                counter--;
-
-                // And swap the last element with it
-                var temp = array[counter];
-                array[counter] = array[index];
-                array[index] = temp;
-            }
-
-            return array;
-        }
-
 
 
         //private
@@ -728,7 +726,7 @@ var TurkExpert = {
             function loadHitsFromDB(callback) {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }
