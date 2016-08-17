@@ -89,7 +89,9 @@
 			</form>
 		</div>
 		<% } else { %>
-      <div class="alert alert-info fade in">Access code for this HIT group: <b><%= e.hitCode %></b></div>
+			<% if(e.type != 'shared' && !e.firstTimeUser){ %>
+      	<div class="alert alert-info fade in">Access code for this HIT group: <b><%= e.hitCode %></b></div>
+			<% } %>
 			<% if(e.firstTimeUser){ %>
 				<div class="instructions-container">
 					<form id="First-User-Form" action="firstUser" method="POST">
@@ -130,6 +132,8 @@
 				        <input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
                 <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;" />
                 <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;" />
+								<input class="form-control" name="accessType" size="25" type="text" value="<%= e.type %>" style="display:none;" />
+								<input class="form-control" name="accessCode" size="25" type="text" value="<%= e.hitCode %>" style="display:none;" />
 								
 							<div class="col-xs-8 col-xs-offset-2 button-container">
 								<p style="text-align:center">Click below to get started</p>

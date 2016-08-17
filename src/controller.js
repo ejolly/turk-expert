@@ -447,7 +447,7 @@ var TurkExpert = {
             });
         })
     },
-    firstUser: function (nickname, content, obj, assignmentId, turkSubmitTo, cb) { //persist into mongo
+    firstUser: function (nickname, content, obj, assignmentId, turkSubmitTo, code, cb) { //persist into mongo
         MongoDB.connect(function (db) {
             MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid },
                 {
@@ -463,6 +463,8 @@ var TurkExpert = {
                     cb({
                         code: 200,
                         content: content,
+                        type: 'reputation',
+                        hitCode: code,
                         //obj: obj //no more authentication params
                         assignmentId: assignmentId,
                         turkSubmitTo: turkSubmitTo

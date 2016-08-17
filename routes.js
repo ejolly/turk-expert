@@ -302,7 +302,7 @@ router.post('/validateCode', function (req, res) {
 //Client: firstUser
 router.post('/firstUser', function (req, res) {
     if(req.body.nickname){ // Treatment reputation - persist first user input data
-        TurkExpert.firstUser(req.body.nickname, req.body.accessContent, req.body.accessObj, req.body.accessAssignmentId, req.body.accessSubmitTo, function (e) {
+        TurkExpert.firstUser(req.body.nickname, req.body.accessContent, req.body.accessObj, req.body.accessAssignmentId, req.body.accessSubmitTo, req.body.accessCode, function (e) {
             res.render('pages/index', { 
                 auth: true,
                 e: e
@@ -314,6 +314,8 @@ router.post('/firstUser', function (req, res) {
             e: {
                 code: 200,
                 content: req.body.accessContent,
+                type: req.body.accessType,
+                hitCode: req.body.accessCode,
                 assignmentId: req.body.accessAssignmentId, 
                 turkSubmitTo: req.body.accessSubmitTo
             }
