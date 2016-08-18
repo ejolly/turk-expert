@@ -190,13 +190,17 @@ var TurkExpert = {
     preview: function(hitId, cb){
          MongoDB.connect(function (db) {
              MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {}, function (hit) {
-                  MongoDB.find(db, 'authentication', { HITTypeId: hit[0].HITTypeId }, {}, {}, function (auth) {
+               if(hit.length === 0){ // rare case, app proection
+                 cb(422);
+               }else{
+                 MongoDB.find(db, 'authentication', { HITTypeId: hit[0].HITTypeId }, {}, {}, function (auth) {
                        if(auth.length === 0){ // not authenticated preview
                            cb(404);
                        } else { // authenticated preview
                           cb(200)
                        }
                   });
+               }          
              });
          }, function (err, result) {
               db.close();
@@ -405,9 +409,24 @@ var TurkExpert = {
                     }else{
                          //console.log('code for HITType: '+ doc[0].HITTypeId +' is attempting!');
                          //Find the first available hit, and find the groupId redirect to hit group via url? Client need msg to show the hit.Title - updated when publish and groupId for the hit preview url
-                         MongoDB.find(db, 'hit', { HITTypeId: doc[0].HITTypeId, status:'published' }, {}, {limit:1}, function (hitList) {
-                            if(hitList.length === 1){
-                                api.req('GetHIT', { HITId: hitList[0].HITId }).then(function (res) {
+                         MongoDB.find(db, 'hit', { HITTypeId: doc[0].HITTypeId, status:'published' }, {}, {}, function (hitList) {
+                            if(hitList.length === 0){
+                              //all expired
+                               cb({
+                                        code: 403,
+                                        content: content,
+                                        type: type,
+                                        obj: obj,
+                                        attempt:{
+                                            hit: {status:'expired'},
+                                            groupId: null
+                                        },
+                                        assignmentId: assignmentId,
+                                        turkSubmitTo: turkSubmitTo
+                                });
+                            }else{ 
+                              //some still alive
+                              api.req('GetHIT', { HITId: hitList[0].HITId }).then(function (res) {
                                     console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
                                     cb({
                                         code: 403,
@@ -437,6 +456,7 @@ var TurkExpert = {
                                         turkSubmitTo: turkSubmitTo
                                     });
                                 });
+                              
                             }
                             
                          });
@@ -667,7 +687,7 @@ var TurkExpert = {
             });
         }
         function getTreatmentContent(db, callback) {
-            MongoDB.find(db, 'content', {}, { '_id': 1, 'User': 1, 'Tweet': 1, 'Date': 1, 'Time': 1, 'HITCount': 1}, { sort: [['HITCount', 1]], limit: 500 }, function (contentTotalList) {
+            MongoDB.find(db, 'content', {}, { '_id': 1, 'User': 1, 'Tweet': 1, 'Date': 1, 'Time': 1, 'HITCount': 1}, { sort: [['HITCount', 1]], limit: 400 }, function (contentTotalList) {
                 var publishDate = makePublishTime();
                 callback(null, db, contentTotalList, publishDate);
             });
@@ -726,7 +746,7 @@ var TurkExpert = {
             function loadHitsFromDB(callback) {
                 //1. Load all hits into hitList
                 //publish only n(default n=100) hits in each treatment / period 
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 5 }, function (doc) { //Sandbox Test: limit = 1-100
+                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
                     callback(null, doc);
                 });
             }

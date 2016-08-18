@@ -37,7 +37,7 @@ router.get('/', function (req, res) {
     // console.log('kev: hitId', hitId);
     // console.log('kev: workerId', workerId);
     // console.log('kev: turkSubmitTo', turkSubmitTo);
-    if( assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE'  ) {
+    if( assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE' ) {
        //preview
        //console.log('preview');
        if(hitId){
@@ -53,7 +53,7 @@ router.get('/', function (req, res) {
        } 
     }else if(!assignmentId || !hitId || !workerId || !turkSubmitTo){
        //raw crul
-       //console.log('raw crul');
+       //console.p('raw crul');
        res.render('pages/notfound');
     }else{ 
       TurkExpert.init(assignmentId, hitId, workerId, turkSubmitTo, function (e) {
@@ -249,7 +249,7 @@ router.post('/uploadWorker', auth, function (req, res, next) {
 router.post('/publishHits', auth, function (req, res) {
     //Batch Call from DB - hits // "control" , "costly", "framing", "reciprocity", "reputation"
     res.redirect('manage');
-    TurkExpert.publishAllHits(["control", "costly", "framing", "reciprocity", "reputation"], 5, function (result) {
+    TurkExpert.publishAllHits(["control", "costly", "reciprocity", "reputation"], 1, function (result) {
         //res.redirect('manage?hitPublishResult=' + result);
         console.log('manage?hitPublishResult=' + result)
     });
