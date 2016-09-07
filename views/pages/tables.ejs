@@ -53,7 +53,11 @@
                                         <th>publishDate</th>
                                         <th>status</th>
                                         <th>MaxAssignments</th>
-                                        <th>Assignments</th>
+                                        <!--<th>Assignments</th>-->
+                                        <th>Assignments.WorkerId</th>
+                                        <th>Assignments.AcceptTime</th>
+                                        <th>Assignments.SubmitTime</th>
+                                        
                                         <th>lastModified</th>
                                     </tr>
                                 </thead>
@@ -73,7 +77,9 @@
                                             <td><%= hit[i].publishDate %></td>
                                             <td><%= hit[i].status %></td>
                                             <td><%= hit[i].MaxAssignments %></td>
-                                            <td><%= hit[i].Assignments %></td>
+                                            <td><%= hit[i].Assignments[0].WorkerId[0] %></td>
+                                            <td><%= hit[i].Assignments[0].AcceptTime[0] %></td>
+                                            <td><%= hit[i].Assignments[0].SubmitTime[0] %></td>
                                             <td><%= hit[i].lastModified %></td>
                                         </tr>
                                         <% } %>                                 
@@ -83,7 +89,48 @@
                     </div>
 
                 </div>
-                <!-- /.row -->
+               
+
+             <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h2>AUTHENTICATION </h2>
+                        <h4>Total <%= authentication.length %> Documents</h4>
+                        <div class="table-responsive">
+                            <table  id="authentication" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>_id</th>
+                                        <th>HITTypeId</th>
+                                        <th>WorkerId</th>
+                                        <th>Code</th>
+                                        <th>Type</th>
+                                        <th>Authenticated</th>
+                                        <th>Nickname</th>
+                                        <th>lastModified</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                       <% for(var i=0; i<authentication.length; i++) { %>
+                                        <tr>
+                                            <td><%= authentication[i]._id %></td>
+                                            <td><%= authentication[i].HITTypeId %></td>
+                                            <td><%= authentication[i].WorkerId %></td>
+                                            <td><%= authentication[i].Code %></td>
+                                            <td><%= authentication[i].Type %></td>
+                                            <td><%= authentication[i].Authenticated %></td>
+                                            <td><%= authentication[i].Nickname %></td>
+                                            <td><%= authentication[i].lastModified %></td>
+                                        </tr>
+                                        <% } %>                                 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+
+
+                     <!-- /.row -->
                 <div class="row">
                     <div class="col-lg-12">
                         <h2>WORKER </h2>
@@ -129,44 +176,6 @@
                     </div>
                     
                 </div>
-
-             <!-- /.row -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h2>AUTHENTICATION </h2>
-                        <h4>Total <%= authentication.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table  id="authentication" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>HITTypeId</th>
-                                        <th>WorkerId</th>
-                                        <th>Code</th>
-                                        <th>Type</th>
-                                        <th>Authenticated</th>
-                                        <th>Nickname</th>
-                                        <th>lastModified</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<authentication.length; i++) { %>
-                                        <tr>
-                                            <td><%= authentication[i]._id %></td>
-                                            <td><%= authentication[i].HITTypeId %></td>
-                                            <td><%= authentication[i].WorkerId %></td>
-                                            <td><%= authentication[i].Code %></td>
-                                            <td><%= authentication[i].Type %></td>
-                                            <td><%= authentication[i].Authenticated %></td>
-                                            <td><%= authentication[i].Nickname %></td>
-                                            <td><%= authentication[i].lastModified %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    </div>
                 <!-- /.row -->
                 <div class="row">
                     <div class="col-lg-12">

@@ -1239,7 +1239,7 @@ var TurkExpert = {
         MongoDB.connect(function (db) {
             async.parallel({
                 hit: function (cb) {
-                    MongoDB.find(db, 'hit', { status: { $in: ['published'] } }, {}, {}, function (doc) {
+                    MongoDB.find(db, 'hit', { status: { $in: ['done'] } }, {}, {}, function (doc) {
                         //MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
                         cb(null, doc);
                     });
