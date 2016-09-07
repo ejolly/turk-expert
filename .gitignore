@@ -1,7 +1,9 @@
 node_modules/
 .DS_Store
+npm-debug.log
+runtime.log
+config.json
+public/design/
+public/images/
 build/
 data/
-config.json
-.log
-

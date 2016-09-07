@@ -31,11 +31,11 @@ var mturk = require('mturk-api'),
 var Base64 = { _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function (e) { var t = ""; var n, r, i, s, o, u, a; var f = 0; e = Base64._utf8_encode(e); while (f < e.length) { n = e.charCodeAt(f++); r = e.charCodeAt(f++); i = e.charCodeAt(f++); s = n >> 2; o = (n & 3) << 4 | r >> 4; u = (r & 15) << 2 | i >> 6; a = i & 63; if (isNaN(r)) { u = a = 64 } else if (isNaN(i)) { a = 64 } t = t + this._keyStr.charAt(s) + this._keyStr.charAt(o) + this._keyStr.charAt(u) + this._keyStr.charAt(a) } return t }, decode: function (e) { var t = ""; var n, r, i; var s, o, u, a; var f = 0; e = e.replace(/[^A-Za-z0-9+/=]/g, ""); while (f < e.length) { s = this._keyStr.indexOf(e.charAt(f++)); o = this._keyStr.indexOf(e.charAt(f++)); u = this._keyStr.indexOf(e.charAt(f++)); a = this._keyStr.indexOf(e.charAt(f++)); n = s << 2 | o >> 4; r = (o & 15) << 4 | u >> 2; i = (u & 3) << 6 | a; t = t + String.fromCharCode(n); if (u != 64) { t = t + String.fromCharCode(r) } if (a != 64) { t = t + String.fromCharCode(i) } } t = Base64._utf8_decode(t); return t }, _utf8_encode: function (e) { e = e.replace(/rn/g, "n"); var t = ""; for (var n = 0; n < e.length; n++) { var r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r) } else if (r > 127 && r < 2048) { t += String.fromCharCode(r >> 6 | 192); t += String.fromCharCode(r & 63 | 128) } else { t += String.fromCharCode(r >> 12 | 224); t += String.fromCharCode(r >> 6 & 63 | 128); t += String.fromCharCode(r & 63 | 128) } } return t }, _utf8_decode: function (e) { var t = ""; var n = 0; var r = c1 = c2 = 0; while (n < e.length) { r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r); n++ } else if (r > 191 && r < 224) { c2 = e.charCodeAt(n + 1); t += String.fromCharCode((r & 31) << 6 | c2 & 63); n += 2 } else { c2 = e.charCodeAt(n + 1); c3 = e.charCodeAt(n + 2); t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63); n += 3 } } return t } }
 
 /**
- * Generate Code Randomly
+ * Make Code Randomly
  * @param {n} a number for the length of the code.
  * @returns {string} code
  */
-var generateCode = function (n) {
+var makeCode = function (n) {
     var code = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for (var i = 0; i < n; i++) {
@@ -44,6 +44,30 @@ var generateCode = function (n) {
     return code;
 }
 
+
+/**
+ * Shuffle array in place using Fisher-Yates Shuffle ALG
+ * @param {Array} a items The array containing the items.
+ * @returns {Array} only if you need a new object
+ */
+var shuffle =   function(array) {
+    var counter = array.length;
+    // While there are elements in the array
+    while (counter > 0) {
+        // Pick a random index
+        var index = Math.floor(Math.random() * counter);
+
+        // Decrease counter by 1
+        counter--;
+
+        // And swap the last element with it
+        var temp = array[counter];
+        array[counter] = array[index];
+        array[index] = temp;
+    }
+    return array;
+}
+        
 var TurkExpert = {
     //////////////////////////////////////////////////////////////////////////
     //M-Turk API Proxy
@@ -168,10 +192,10 @@ var TurkExpert = {
         });
     },
 
-    ForceExpireHIT: function (hitId, cb) {
+    ForceExpireHIT: function (id, cb) {
         //Example operation, with params 
         console.time('ForceExpireHIT');
-        api.req('ForceExpireHIT', hitId).then(function (res) {
+        api.req('ForceExpireHIT', {HITId: id}).then(function (res) {
             //Do something 
             console.log('ForceExpireHIT -> ', res);
             console.timeEnd('ForceExpireHIT');
@@ -182,171 +206,247 @@ var TurkExpert = {
             cb(error);
         });
     },
+    
+    DisableHIT: function (id, cb) {
+        //Example operation, with params 
+        console.time('DisableHIT');
+        api.req('DisableHIT', {HITId: id}).then(function (res) {
+            //Do something 
+            console.log('DisableHIT -> ', res);
+            console.timeEnd('DisableHIT');
+            cb(res);
+        }, function (error) {
+            //Handle error 
+            console.error(error);
+            cb(error);
+        });
+    },
+    
+    ExtendHIT: function (hitId, cb) {
+        //Example operation, with params 
+        var hit = {
+          HITId : hitId,
+          //MaxAssignmentsIncrement : 1,
+          ExpirationIncrementInSeconds : 3600
+        }
+        console.time('ExtendHIT');
+        api.req('ExtendHIT', hit).then(function (res) {
+            //Do something 
+            console.log('ExtendHIT -> ', res);
+            console.timeEnd('ExtendHIT');
+            cb(res);
+        }, function (error) {
+            //Handle error 
+            console.error(error);
+            cb(error);
+        });
+    },
+    
+    
 
 
     //////////////////////////////////////////////////////////////////////////
     //Turk Expert API - Core
     /////////////////////////////////////////////////////////////////////////
-    preview: function(hitId, cb){
-         MongoDB.connect(function (db) {
-             MongoDB.find(db, 'hit', { HITId: hitId, status: 'published' }, {}, {}, function (hit) {
-               if(hit.length === 0){ // rare case, app proection
-                 cb(422);
-               }else{
-                 MongoDB.find(db, 'authentication', { HITTypeId: hit[0].HITTypeId }, {}, {}, function (auth) {
-                       if(auth.length === 0){ // not authenticated preview
-                           cb(404);
-                       } else { // authenticated preview
-                          cb(200)
-                       }
-                  });
-               }          
-             });
-         }, function (err, result) {
-              db.close();
-         });
-    },
-    init: function (assignmentId, hitId, workerId, turkSubmitTo, cb) {
+    init: function (assignmentId, hitId, workerId, turkSubmitTo, db, cb) {
         //Waterfall
         //Client App Init: authentication, content loading, assignemnt Data persist, status update etc.
-        MongoDB.connect(function (db) {
-            async.parallel({
-                authenticationHit: function (mongocb) {
-                    MongoDB.find(db, 'hit', { HITId: hitId, status: { $not: { $in: ['expired', 'postponed', 'noresponse', 'done'] } } }, {}, {}, function (hitDoc) {
-                        if(hitDoc.length === 0){
-                             cb({ code: 404 }); //hit not found or expired
-                        }else{
-                            MongoDB.find(db, 'authentication', { HITTypeId: hitDoc[0].HITTypeId }, {}, {}, function (authDoc) {
-                                mongocb(null, {hit: hitDoc, auth: authDoc});
-                            });
-                        }                        
+        MongoDB.find(db, 'authentication', { WorkerId: workerId }, {}, {}, function (doc) { //TODO: optimize - sort by lastModified: -1
+                //Authenticate Logic: 1. invited User go through 2. shared user code match
+                if (doc.length === 0) { // sharee - the very first time implicit in validteCode
+                  cb({
+                      status: 422,
+                      first: true,
+                      type: 'sharee',
+                      //code: null,
+                      count: -1, // or empty
+                      treatment: '', // or empty
+                      workerId: workerId,
+                      hitId: hitId,
+                      assignmentId: assignmentId,
+                      turkSubmitTo: turkSubmitTo
                     });
-                },
-                authenticationWorker: function (mongocb) {
-                    MongoDB.find(db, 'authentication', { WorkerId: workerId }, {}, {}, function (doc) {
-                        mongocb(null, doc);
-                    });
-                }
-            }, function (err, result) {
-                //assert.equal(null, err);
-                //Authenticate Logic: 1. invited code match 2. hitId still valid - published 3. Hittype match
-                if (result.authenticationHit.hit.length === 0) {
-                    cb({ code: 404 }); //hit not found or expired
-                } else if (result.authenticationHit.hit.length === 1) {
-                    //hit available
-                   if(result.authenticationHit.auth.length === 0 && result.authenticationWorker.length === 0){ // first user win the code !!!
-                        //write u into db;
-                        MongoDB.update(db, 'authentication', { HITTypeId: result.authenticationHit.hit[0].HITTypeId, WorkerId: workerId, Code: result.authenticationHit.hit[0].Code },
+                }else if (doc.length === 1) {
+                  if(doc[0].Count > 0 ){ // code still valid
+                      if(doc[0].Type === 'invited'){ // invited users
+                        if(doc[0].Authenticated){ // invited users - repeated
+                          cb({
+                              status: 200,
+                              first: false,
+                              type: 'invited',
+                              shareCount: doc[0].ShareCount,//For invited costless shared user - give client hints!
+                              code: doc[0].Code,
+                              count: doc[0].Count,
+                              treatment: doc[0].Treatment,
+                              workerId: workerId,
+                              hitId: hitId,
+                              assignmentId: assignmentId,
+                              turkSubmitTo: turkSubmitTo
+                          });
+                        }else{ // invited users - the very First time!!!  auto auth
+                          // get one random treatment and update 
+                          var treatments = ['costly', 'costless', 'reciprocity', 'reputation', 'leverage'];
+                          shuffle(treatments);
+                          
+                          MongoDB.update(db, 'authentication', { WorkerId: workerId },
                             {
                                 $set: {
-                                    HITTypeId: result.authenticationHit.hit[0].HITTypeId,
-                                    WorkerId: workerId,
-                                    Code: result.authenticationHit.hit[0].Code,
-                                    Type: result.authenticationHit.hit[0].Treatment,
+                                    Treatment: treatments[0],
                                     Authenticated: true
                                 },
                                 $currentDate: { "lastModified": true }
                             },
                             {
-                                upsert: true,  //should always write new
+                                upsert: false,
                                 w: 1
-                            }, function (r) { // authentication success - The Very First Time !!!
+                            }, function (r) {
                                 cb({
-                                    code: 200,
-                                    firstTimeUser: result.authenticationHit.hit[0].Treatment,
-                                    content: result.authenticationHit.hit[0].Content,
-                                    hitCode: result.authenticationHit.hit[0].Code,
-                                    obj: {
-                                        hid: result.authenticationHit.hit[0].HITTypeId,
-                                        wid: workerId
-                                    },  //no more authentication params, but keep for first User process
+                                    status: 200,
+                                    first: true,
+                                    type: 'invited',
+                                    code: doc[0].Code,
+                                    count: doc[0].Count,
+                                    treatment: treatments[0],
+                                    workerId: workerId,
+                                    hitId: hitId,
                                     assignmentId: assignmentId,
                                     turkSubmitTo: turkSubmitTo
                                 });
                             });
-                    }else{
-                        if (result.authenticationWorker.length === 0) {
-                            cb({
-                                code: 422,
-                                content: result.authenticationHit.hit[0].Content,
-                                type: 'shared',
-                                obj: {
-                                    hid: result.authenticationHit.hit[0].HITTypeId,
-                                    wid: workerId
-                                },
-                                assignmentId: assignmentId,
-                                turkSubmitTo: turkSubmitTo
-                            }); //worker not found, new user
-                        } else {
-                            //result.authentication is an array 
-                            var authList = result.authenticationWorker;
-                            var flg = false;
-                            var index = 0;
-                            var i = 0;
-                            for (; i < authList.length; i++) {
-                                if (authList[i].HITTypeId === result.authenticationHit.hit[0].HITTypeId) {
-                                    flg = true;
-                                    index = i;
-                                }
-                            }
-                            if (flg) {
-                                if (authList[index].Authenticated) {
-                                    cb({
-                                        code: 200,
-                                        type: result.authenticationHit.hit[0].Treatment,
-                                        content: result.authenticationHit.hit[0].Content,
-                                        hitCode: result.authenticationHit.hit[0].Code,
-                                        assignmentId: assignmentId,
-                                        turkSubmitTo: turkSubmitTo
-                                    }); //worker already authenticated - repeated
-                                } else {
-                                    cb({
-                                        code: 422,
-                                        content: result.authenticationHit.hit[0].Content,
-                                        type: result.authenticationHit.hit[0].Treatment, // This gonna be the treatmet
-                                        obj: {
-                                            hid: result.authenticationHit.hit[0].HITTypeId,
-                                            wid: workerId
-                                        },
-                                        assignmentId: assignmentId,
-                                        turkSubmitTo: turkSubmitTo
-                                    });//invited not authenticated
-                                }
-
-                            } else {
-                                //not authenticated for this current hitType
-                                cb({
-                                    code: 422,
-                                    content: result.authenticationHit.hit[0].Content,
-                                    type: 'shared', // This gonna be the shared
-                                    obj: {
-                                        hid: result.authenticationHit.hit[0].HITTypeId,
-                                        wid: workerId
-                                    },
-                                    assignmentId: assignmentId,
-                                    turkSubmitTo: turkSubmitTo
-                                });
-
-                            }
+                          
                         }
-
+                    
+                      }else if(doc[0].Type === 'shared'){ // invited users - repeated 
+                        // Here a shared's doc[0].Authenticated was always true
+                        //  if(doc[0].Treatment === 'costless'){ // For costless share: still let you go !  - the sahrecode user
+                          // cb({
+                          //     status: 200,
+                          //     first: false,
+                          //     type: 'shared',
+                          //     code: doc[0].Code, 
+                          //     count: doc[0].Count,
+                          //     treatment: 'costless',
+                          //     workerId: workerId,
+                          //     hitId: hitId,
+                          //     assignmentId: assignmentId,
+                          //     turkSubmitTo: turkSubmitTo
+                          // });
+                        // }else{ // For all other costly share: code has been shared already, fall into sharee flow !
+                        //   cb({
+                        //       status: 422,
+                        //       first: false,
+                        //       type: 'shared',
+                        //       //accessCode: doc[0].Code,
+                        //       count: doc[0].Count,
+                        //       treatment: doc[0].Treatment,
+                        //       workerId: workerId,
+                        //       hitId: hitId,
+                        //       assignmentId: assignmentId,
+                        //       turkSubmitTo: turkSubmitTo
+                        //     });
+                          
+                        // }    
+                        
+                         cb({
+                              status: 422,
+                              first: false,
+                              type: 'shared',
+                              //accessCode: doc[0].Code,
+                              count: doc[0].Count,
+                              treatment: doc[0].Treatment,
+                              workerId: workerId,
+                              hitId: hitId,
+                              assignmentId: assignmentId,
+                              turkSubmitTo: turkSubmitTo
+                          });   
+                      }else{ // sharee - repeated
+                        // Here a sharee's doc[0].Authenticated always true 
+                           cb({
+                              status: 200,
+                              first: false,
+                              type: 'sharee',
+                              code: doc[0].Code,
+                              count: doc[0].Count,
+                              treatment: doc[0].Treatment,
+                              workerId: workerId,
+                              hitId: hitId,
+                              assignmentId: assignmentId,
+                              turkSubmitTo: turkSubmitTo
+                            });            
+                      }
+                      
+                    }else{ // code invalid
+                        // code has been used up already, fall into sharee flow.
+                        cb({
+                            status: 422,
+                            first: false,
+                            type: 'sharee',
+                            //accessCode: doc[0].Code,
+                            count: 0, // or empty
+                            treatment: doc[0].Treatment,  // or empty
+                            workerId: workerId,
+                            hitId: hitId,
+                            assignmentId: assignmentId,
+                            turkSubmitTo: turkSubmitTo
+                          });
                     }
-                }
-               db.close();
-            });
-        })
+                }else{ // doc.length > 1  - all sharees
+                  
+                  // Rules for multiple historial records: 
+                  // 1. Only one possible Code which Count > 0
+                  // 2. If 1 is true, the one is the latest record, and all previoius records have Count === 0
+                  var codeIsAvailable = false;
+                  var index = -1;
+                  for(var i=0; i < doc.length; i++){
+                    if(doc[i].Count > 0){
+                      codeIsAvailable = true;
+                      //count for how many records
+                      //break;
+                      index = i;
+                    }
+                  }
+                  
+                  if(codeIsAvailable){ //sharee - repeatd
+                      cb({
+                          status: 200,
+                          first: false,
+                          type: 'sharee', // doc[index].Type,
+                          code: doc[index].Code,
+                          count: doc[index].Count,
+                          treatment: doc[index].Treatment,
+                          workerId: workerId,
+                          hitId: hitId,
+                          assignmentId: assignmentId,
+                          turkSubmitTo: turkSubmitTo
+                        });
+                  }else{  //sharee - new code required
+                    //all codes used up, fall into new sharee flow
+                    cb({
+                      status: 422,
+                      first: false,
+                      type: 'sharee',
+                      // accessCode: doc[0].Code,
+                      count: 0,
+                      treatment: doc[0].Treatment,
+                      workerId: workerId,
+                      hitId: hitId,
+                      assignmentId: assignmentId,
+                      turkSubmitTo: turkSubmitTo
+                    });
+                  }
+               }
+         });
     },
-    validateCode: function (type, content, obj, code, assignmentId, turkSubmitTo, cb) {
-        MongoDB.connect(function (db) {
-            MongoDB.find(db, 'authentication', { Code: code }, {}, {}, function (doc) { //HITTypeId: obj.hid, 
+    validateCode: function (assignmentId, hitId, workerId, turkSubmitTo, code, db, cb) {
+            MongoDB.find(db, 'authentication', { Code: code, Type: {$ne: 'invited'} }, {}, {}, function (doc) {  //shared or sharee
                 if (doc.length === 0) { // authentication failed
-                    // save the code attempts?
-                    MongoDB.update(db, 'attempt', { HITTypeID: obj.hid, WorkerId: obj.wid, Code: code },
+                    // save the wrong code attempts 
+                    MongoDB.update(db, 'attempt', { WorkerId: workerId, Code: code },
                         {
                             $set: {
-                                HITTypeId: obj.hid,
-                                WorkerId: obj.wid,
-                                Code: code
+                                WorkerId: workerId,
+                                Code: code,
+                                Type: 'wrong'
                             },
                             $currentDate: { "lastModified": true }
                         },
@@ -356,120 +456,129 @@ var TurkExpert = {
                         }, function (r) {
                             console.log('Wrong code is attempting!');
                             cb({
-                              code: 403,
-                              content: content,
-                              type: type,
-                              obj: obj,
+                              status: 404,  // Code Not Found
+                              first: false,
+                              type: 'sharee',
+                              count: -1, // or empty
+                              treatment: '', // or empty
+                              workerId: workerId,
+                              hitId: hitId,
                               assignmentId: assignmentId,
                               turkSubmitTo: turkSubmitTo
                             });
                         }); 
-                } else {
-                    //check if it's a valid HITType 
-                    var authFlg = ( doc[0].HITTypeId === obj.hid ? true: false);
-                    
-                    if(authFlg){ // udpate authentication db
-                        //save u as a new record or update invited to authenticated true
-                        var authenticatedWorkers = [];
-                        doc.forEach(function (entry) {
-                            authenticatedWorkers.push(entry.WorkerId);
-                        });
-                        //var newType = 'shared'; //default
-                        // if (authenticatedWorkers.indexOf(obj.wid) === -1) {
-                        //     newType = 'shared'; // new user - shared
-                        // } else {
-                        //     newType = type;   // invited
-                        // }
-                        MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid, Code: code },
+                } else { //doc.length > 0 
+                  //code has records 
+                  if(doc[0].Count > 0){ // code available, since all code count are synced.
+                     //filter out costly and costless shared users
+                     var isCostlyShared = false;
+                     var isCostlessShared = false;
+                     for(var i=0; i < doc.length; i++){
+                       if(doc[i].WorkerId === workerId && doc[i].Type === 'shared'){ 
+                           isCostlyShared = true;
+                       }else if(doc[i].Treatment === 'costless' && doc[i].WorkerId === '-'+workerId){ //doc[i].WorkerId.split('-').length === 2 && doc[i].WorkerId.split('-')[1] === workerId
+                           isCostlessShared = true;
+                       }else{
+                         //do nothing
+                       }
+                     }
+                     if(isCostlyShared){ // authentication failed
+                       console.log('Costly shared user is attempting!');
+                       cb({
+                          status: 451, // Unavailable For Legal Reasons
+                          first: false,
+                          type: 'shared',
+                          count: -1, // or empty
+                          treatment: doc[0].Treatment, // or empty
+                          workerId: workerId,
+                          hitId: hitId,
+                          assignmentId: assignmentId,
+                          turkSubmitTo: turkSubmitTo
+                        });                       
+                     }else if(isCostlessShared){ // authentication failed
+                       console.log('Costless shared user is attempting after own code used up!');
+                       cb({
+                          status: 451, // Unavailable For Legal Reasons
+                          first: false,
+                          type: 'shared',
+                          count: -1, // or empty
+                          treatment: doc[0].Treatment, // or empty
+                          workerId: workerId,
+                          hitId: hitId,
+                          assignmentId: assignmentId,
+                          turkSubmitTo: turkSubmitTo
+                        });  
+                     }else{
+                       // sharee - New user pass code validate
+                       // authentication succeed
+                       MongoDB.update(db, 'authentication', { WorkerId: workerId, Code: code },
                             {
                                 $set: {
-                                    WorkerId: obj.wid,
+                                    WorkerId: workerId,
                                     Code: code,
-                                    Type: 'shared',
-                                    Authenticated: true
+                                    Type: 'sharee',
+                                    Authenticated: true,
+                                    Treatment: doc[0].Treatment, // default: code refelcts treatment
+                                    Count: doc[0].Count
                                 },
                                 $currentDate: { "lastModified": true }
                             },
                             {
                                 upsert: true,  //should always write new
                                 w: 1
-                            }, function (r) { // authentication success - The Very First Time !!!
+                            }, function (r) { // New sharee pass code validate - The Very First Time !!!
                                 cb({
-                                    code: 200,
-                                    //firstTimeUser: newType,
-                                    type: 'shared',
-                                    content: content,
-                                    hitCode: code,
-                                    obj: obj,  //no more authentication params, but keep for first User process
+                                    status: 200,
+                                    first: true,
+                                    type: 'sharee',
+                                    code: code,
+                                    count: doc[0].Count,
+                                    treatment: doc[0].Treatment,
+                                    workerId: workerId,
+                                    hitId: hitId,
                                     assignmentId: assignmentId,
                                     turkSubmitTo: turkSubmitTo
                                 });
                             });
-                                                    
-                    }else{
-                         //console.log('code for HITType: '+ doc[0].HITTypeId +' is attempting!');
-                         //Find the first available hit, and find the groupId redirect to hit group via url? Client need msg to show the hit.Title - updated when publish and groupId for the hit preview url
-                         MongoDB.find(db, 'hit', { HITTypeId: doc[0].HITTypeId, status:'published' }, {}, {}, function (hitList) {
-                            if(hitList.length === 0){
-                              //all expired
-                               cb({
-                                        code: 403,
-                                        content: content,
-                                        type: type,
-                                        obj: obj,
-                                        attempt:{
-                                            hit: {status:'expired'},
-                                            groupId: null
-                                        },
-                                        assignmentId: assignmentId,
-                                        turkSubmitTo: turkSubmitTo
-                                });
-                            }else{ 
-                              //some still alive
-                              api.req('GetHIT', { HITId: hitList[0].HITId }).then(function (res) {
-                                    console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
-                                    cb({
-                                        code: 403,
-                                        content: content,
-                                        type: type,
-                                        obj: obj,
-                                        attempt:{
-                                            hit: hitList[0],
-                                            groupId: res.GetHITResponse.HIT[0].HITGroupId[0]
-                                        },
-                                        assignmentId: assignmentId,
-                                        turkSubmitTo: turkSubmitTo
-                                    });
-                                }, function (error) {
-                                    //Handle error 
-                                    console.error(error);
-                                    cb({
-                                        code: 403,
-                                        content: content,
-                                        type: type,
-                                        obj: obj,
-                                        attempt:{
-                                            hit: hitList[0],
-                                            groupId: null
-                                        },
-                                        assignmentId: assignmentId,
-                                        turkSubmitTo: turkSubmitTo
-                                    });
-                                });
-                              
-                            }
-                            
-                         });
-
-
-                    }
-                }
-            });
-        })
+                     }
+                  }else{ // authentication failed - code used up or a.k.a. expired
+                    // find the available total number of codes
+                    MongoDB.find(db, 'authentication', { Type: 'shared', Count: {$gt: 0} }, {}, {}, function (availableCodes) {  //Sandbox Test limit: 1-w
+                          // save the expired code attempts
+                          MongoDB.update(db, 'attempt', { WorkerId: workerId, Code: code },
+                              {
+                                  $set: {
+                                      WorkerId: workerId,
+                                      Code: code,
+                                      Type: 'expired'
+                                  },
+                                  $currentDate: { "lastModified": true }
+                              },
+                              {
+                                  upsert: true,
+                                  w: 1
+                              }, function (r) {
+                                  console.log('Expired code is attempting!');
+                                  cb({
+                                    status: 410, //Gone
+                                    first: false,
+                                    type: 'sharee',
+                                    count: availableCodes.length, // specially, this is the available codes count
+                                    treatment: doc[0].Treatment,
+                                    workerId: workerId,
+                                    hitId: hitId,
+                                    assignmentId: assignmentId,
+                                    turkSubmitTo: turkSubmitTo
+                                  });
+                           }); 
+                      });
+                   }                                              
+                }   
+           });
     },
-    firstUser: function (nickname, content, obj, assignmentId, turkSubmitTo, code, cb) { //persist into mongo
-        MongoDB.connect(function (db) {
-            MongoDB.update(db, 'authentication', { HITTypeId: obj.hid, WorkerId: obj.wid },
+    firstUser: function (assignmentId, hitId, workerId, turkSubmitTo, code, nickname, db, cb) { //persist into mongo
+      if(nickname){
+         MongoDB.update(db, 'authentication', { WorkerId: workerId},
                 {
                     $set: {
                         Nickname: nickname
@@ -479,31 +588,926 @@ var TurkExpert = {
                 {
                     upsert: false,
                     w: 1
-                }, function (r) { //final response for the First Time User
+                }, function (r) { //final response for the First Time User - invited reputation treatment user only
                     cb({
-                        code: 200,
-                        content: content,
-                        type: 'reputation',
-                        hitCode: code,
-                        //obj: obj //no more authentication params
+                        status: 200,
+                        first: false,
+                        type: 'invited',
+                        code: code,
+                        count: 50,
+                        treatment: 'reputation',
+                        workerId: workerId,
+                        hitId: hitId,
                         assignmentId: assignmentId,
                         turkSubmitTo: turkSubmitTo
                     });
-                    db.close();
-                });
-        });
+         }); 
+      }else{
+         MongoDB.find(db, 'authentication', { Code: code, WorkerId: workerId }, {}, {}, function (firstUserDoc) { 
+           if(firstUserDoc.length === 1){ //always for first user.
+                  cb({
+                        status: 200,
+                        first: false,
+                        type: firstUserDoc[0].Type,
+                        code: code,
+                        count: firstUserDoc[0].Count,
+                        treatment: firstUserDoc[0].Treatment,
+                        workerId: workerId,
+                        hitId: hitId,
+                        assignmentId: assignmentId,
+                        turkSubmitTo: turkSubmitTo
+                    });
+           }else{
+                 cb({
+                        status: 422,
+                        first: false,
+                        type: 'sharee',
+                        code: '',
+                        count: -1,
+                        treatment: '',
+                        workerId: workerId,
+                        hitId: hitId,
+                        assignmentId: assignmentId,
+                        turkSubmitTo: turkSubmitTo
+                    });
+           }
+         });
+      }
+           
     },
-    postpone: function (s, cb) { //Update mongo, secret weapon
+    generateCode: function(assignmentId, hitId, workerId, turkSubmitTo, db, cb) {  // TODO: pass code from client and detect hacks
+       MongoDB.find(db, 'authentication', { WorkerId: workerId, Type:'invited' }, {}, {}, function (doc) {
+         if(doc.length === 1){ 
+            if(doc[0].Treatment === 'costless'){ // For costless share - create one shadow costly share record
+                  MongoDB.update(db, 'authentication', { _id: doc[0]._id }, //WorkerId: workerId, Code: doc[0].Code
+                  {
+                      $set: {
+                          ShareCount: doc[0].Count,  //for record dup
+                          ShareTime: new Date()  //for record dup
+                      },
+                      $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        console.log(doc[0].Treatment + ' user('+ workerId +') is Sharing!');
+                            MongoDB.insert(db, 'authentication', { 
+                              Treatment: 'costless', //doc[0].Treatment,
+                              Type: 'shared',   //for record !!!
+                              WorkerId: '-'+workerId, //shadow user!
+                              Code: doc[0].Code, 
+                              Count: 50,  //always share 50! - save money?
+                              ShareCount: doc[0].Count,  //for record
+                              ShareTime: new Date()  //for record
+                            }, function (r) { 
+                                  cb({
+                                      status: 200,
+                                      first: false,
+                                      type: 'invited', // not changing
+                                      shareCount: doc[0].Count,//For invited costless shared user - give client hints!
+                                      code: doc[0].Code, 
+                                      count: doc[0].Count,
+                                      treatment: 'costless',
+                                      workerId: workerId,
+                                      hitId: hitId,
+                                      assignmentId: assignmentId,
+                                      turkSubmitTo: turkSubmitTo
+                                  });
+                            });    
+                    });  
+              }else if(doc[0].Treatment === 'leverage'){  // For leverage shared user - double up ur current count
+                  MongoDB.update(db, 'authentication', { _id: doc[0]._id }, //WorkerId: workerId, Code: doc[0].Code
+                  {
+                      $set: {
+                          Type: 'shared',
+                          Count: 2*doc[0].Count, // match 100%
+                          ShareCount: doc[0].Count,  //for record
+                          ShareTime: new Date()  //for record
+                      },
+                      $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        cb({
+                          status: 200, 
+                          first: false,
+                          type: 'shared',
+                          code: doc[0].Code,
+                          count: doc[0].Count, 
+                          treatment: doc[0].Treatment,
+                          workerId: workerId,
+                          hitId: hitId,
+                          assignmentId: assignmentId,
+                          turkSubmitTo: turkSubmitTo
+                        });
+                   }); 
+            }else{  // For all other costly shares
+                  MongoDB.update(db, 'authentication', { _id: doc[0]._id }, //WorkerId: workerId, Code: doc[0].Code
+                  {
+                      $set: {
+                          Type: 'shared',
+                          ShareCount: doc[0].Count,  //for record
+                          ShareTime: new Date()  //for record
+                      },
+                      $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        cb({
+                          status: 200, 
+                          first: false,
+                          type: 'shared',
+                          code: doc[0].Code,
+                          count: doc[0].Count, 
+                          treatment: doc[0].Treatment,
+                          workerId: workerId,
+                          hitId: hitId,
+                          assignmentId: assignmentId,
+                          turkSubmitTo: turkSubmitTo
+                        });
+                   }); 
+            }
+         }else{
+           //should never happen - reject/nocode
+            cb({
+              status: 422, 
+              first: false,
+              type: 'shared',
+              count: -1,
+              treatment: '',
+              workerId: workerId,
+              hitId: hitId,
+              assignmentId: assignmentId,
+              turkSubmitTo: turkSubmitTo
+            });
+         }
+       });
+    },   
+    updateCodeCount: function(workerId, code, db, cb) {
+      console.log('Submit Hit from -> worker:' + workerId + ' -> code:' + code ); //count log
+      MongoDB.find(db, 'authentication', { Code: code, WorkerId: workerId }, {}, {}, function (doc) {
+         if(doc.length === 1){
+             if(doc[0].Type === 'invited'){ // only update costless invited user own code
+                   MongoDB.update(db, 'authentication', { Code: code, WorkerId: workerId }, 
+                   { 
+                      $set: {
+                          Count: doc[0].Count-1,  // -1
+                      },
+                      $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false, 
+                        w: 1
+                    }, function (r) {
+                      cb({status: 200});
+                   });
+              }else{ // Type === sharee, update all except the invited cosless user
+                  MongoDB.updateMany(db, 'authentication', { Code: code, Type:{ $ne: 'invited'}}, 
+                  {
+                    $set: {
+                        Count: doc[0].Count-1,  // -1
+                    },
+                    $currentDate: { "lastModified": true }
+                  },
+                  {
+                      upsert: false,
+                      w: 1
+                  }, function (r) {
+                    cb({status: 200});
+                  });                  
+            }
+         }else{ //something wrong
+            cb({status: 404});
+         }
+      });
+    },
+    publishHitsPool: function(db, cb){
+             //SANDBOX
+             var h = 10;  // hits pool size; //8000 for costless //16000 leverage  - estimate 5hrs to publish...
+             var w = 1; // workers size
+             var c = 50; // code limit times
+             //PROD
+             //  var h = 40000;  // hits pool size; //8000 for costless //16000 leverage  - estimate 5hrs to publish...
+             //  var w = 800; // workers size
+             //  var c = 50; // code limit times
+          
+            //async waterfall with named functions:
+            console.time('publishHitsPool');
+            async.waterfall([
+                batchPublish,
+                persistHitIntoDB,
+                contactWorkers,  //Release 3.0
+                updateStatus
+            ], function (err, result) {
+                
+                assert.equal(null, err);
+                
+                console.timeEnd('publishHitsPool');
+                cb(h);
+            });
+            function batchPublish(callback) {
+                //3. async each publish the targetList in parallel  //maybe eachLimit if reach quot
+                var i = 0,
+                //Generate targetList
+                targetList = [],
+                hitList = [],
+                //map to HIT model, use Typescript compiled data schema -> /build/model
+                lifetimeInSeconds = 3600, //72 hr 259200
+                assignmentDurationInSeconds = 300; //5 min
+                autoApprovalDelay = 1; //1 sec
+                questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>',
+                canonicalTitle = 'Rating Movie Posters',
+                description = 'This is a group of brief HITs that involve answer 2 quick questions about movie posters',
+                keywords = ' ratings, pictures, mturk. movies';
+                var hit = new HIT(canonicalTitle, description, keywords, questionString, 1, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.15, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.15' });
+               
+                for(; i < h; i++){
+                    //TODO Performance: spin "externalUrl": "https://mturksharing.azurewebsites.net" upto k
+                    // var externalUrlList = ["https://mturksharing.azurewebsites.net","https://mturksharing1.azurewebsites.net","https://mturksharing2.azurewebsites.net","https://mturksharing3.azurewebsites.net"];
+                    // externalUrl = shuffle(externalUrlList);
+                    // pick externalUrlList[0] or based on id % n !    
+                    // Shuffle content - moved to client     
+                    targetList.push(hit);
+                }
+                
+                //Gennerate content array randomly here for each n(default n=100) hits:
+                // var array = [];
+                // for (; i < targetList.length; i++) {
+                //     array.push(i);
+                // }
+                async.eachLimit(targetList, 1, function (hit, processPublish) {
+                    // Perform operation on each HIT here.
+                    //console.log('Processing HIT: ', hit);
+                    //These requests will be queued and executed at a rate of 3 per second
+
+                    //Solution1: Register First One in each group and createHit for the rest with the HITTypeId
+                    //Solution2: Async parallel publish automatically batch those into each group!!!
+                    
+                    // try calling apiMethod 10 times with exponential backoff
+                    // (i.e. intervals of 100, 200, 400, 800, 1600, ... milliseconds)
+                    var apiCreate = function(apicb, previousResult){
+                      console.log('calling create hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('CreateHIT', hit).then(function (res) {
+                                    var hitTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0];
+                                    var hitId = res.CreateHITResponse.HIT[0].HITId[0];
+                                    console.log('CreateHIT -> ', hitId); //res                                  
+                                    hitList.push(
+                                      {
+                                        HITTypeId: hitTypeId, 
+                                        HITId: hitId,
+                                        Title: hit.Title,
+                                        Description: hit.Description,
+                                        Keywords: hit.Keywords,
+                                        Question: hit.Question,
+                                        MaxAssignments: hit.MaxAssignments,
+                                        AssignmentDurationInSeconds: 300,
+                                        LifetimeInSeconds: 3600,
+                                        AutoApprovalDelayInSeconds: 1,
+                                        Reward: hit.Reward,
+                                        RequestGroup: hit.RequestGroup,
+                                        Operation: hit.Operation,
+                                        Version: hit.Version,
+                                        Timestamp: hit.Timestamp,
+                                        Signature: hit.Signature                             
+                                    });
+                                    apicb(null, res);
+                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    apicb(error, null);
+                                    //console.log('error waiting for republish'); 
+                                });
+                      }, 300);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiCreate, function(err, res) {
+                        // do something with the result 
+                        processPublish(null);
+                    });                 
+                    
+                }, function (err) {
+                    // if any of the file processing produced an error, err would equal that error
+                    if (err) {
+                        // One of the iterations produced an error.
+                        // All processing will now stop.
+                        console.log('HIT failed to process.');
+                        callback(null, []);
+                    } else {
+                        console.log(targetList.length + ' HITs have been created successfully.');
+                        //console.log('hitList -> ', hitList);
+                        //Update hit Object x
+                        // for(var j=0; j < h; j++){
+                        //    targetList[j].HITTypeId = hitList[j].HITTypeId;
+                        //    targetList[j].HITId = hitList[j].HITId;
+                        // }
+                        // console.log('targetList -> ', targetList);
+                        callback(null, hitList);
+                    }
+                });
+            }   
+            //async each - added into waterfall
+            function persistHitIntoDB(hitList, callback) {
+                async.eachLimit(hitList, 1, function (hit, processPersist) {
+                    //console.log('Persist into DB -> {' HITTypeId:' + hit.HITTypeId + ' HITId:' + hit.HITId }');
+                    MongoDB.update(db, 'hit', { HITId:  hit.HITId },
+                        {
+                            $set: {
+                                HITTypeId: hit.HITTypeId,
+                                HITId: hit.HITId,
+                                Title: hit.Title,
+                                // Content: hit.Content,
+                                Description: hit.Description,
+                                Keywords: hit.Keywords,
+                                Reward: hit.Reward,
+                                MaxAssignments: 1,
+                                status: 'published',
+                                publishDate: new Date().toISOString()
+                            },
+                            $currentDate: { "lastModified": true }
+                        },
+                        {
+                            upsert: true, //always expect insert
+                            w: 1
+                        }, function (r) {
+                            processPersist(null);
+                        });
+                    // MongoDb.insert(db, 'hit', hit, function(r){  // unit test
+                    //    processPersist(null);
+                    // });
+                }, function (err) {
+                    if (err) {
+                        console.log('HIT failed to save.');
+                        callback(null, 0);
+                    } else {
+                        console.log(hitList.length + ' HITs have been saved successfully.');
+                        callback(null, hitList);
+                    }
+                });
+            }
+            function contactWorkers(hitList, callback) {
+                // console.time('contactWorkers');
+                async.parallel({
+                    groupId: function (mturkcb) {
+                        api.req('GetHIT', { HITId: hitList[0].HITId }).then(function (res) {
+                            console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
+                            mturkcb(null, res.GetHITResponse.HIT[0].HITGroupId[0]);
+                        }, function (error) {
+                            //Handle error 
+                            console.error(error);
+                            mturkcb(error, null);
+                        });
+                    },
+                    worker: function (mongocb) {
+                        MongoDB.find(db, 'worker', { status: { $not: { $in: ['postponed', 'noresponse', 'sent'] } } }, {}, { limit: w }, function (doc) {  //Sandbox Test limit: 1-w
+                            mongocb(null, doc);
+                        });
+                    }
+                }, function (err, result) {
+                  
+                  assert.equal(null, err);
+                  
+                  var currentLifetimeInSeconds = hitList[0].lifetimeInSeconds;
+                  var currentHit = hitList[0];
+                  var subject = "New HITs available!"; 
+                  var template = "Dear Turker,\n\nWe are conducting a study on how Turkers communicate about HITs. If you would like to participate please read the information below and follow the URL at the bottom of this message to begin working on these HITs.\n\nWe have launched a group of HITs called \"Rating Movie Posters\". These HITs will be available for 72hrs or until our study completes, whichever is sooner (we will inform you by email if the study completes prior to 72hrs). Each HIT in this group involves answering a quick question about a movie poster and pays $0.15. Each HIT will take no more than 20 seconds to complete.\n\nWe have automatically granted you the ability to complete up to 50 of these HITs. Completing all 50 HITs will result in guaranteed pay of $7.50 and should take no longer than 10 minutes.\n\nYou can access these HITs at the following URL: <HITURL> \n\nThanks!\n\nSid"        
+                  
+                  var workerList = result.worker;
+                  async.eachLimit(workerList, 1, function (currentWorker, processNotify) {        
+                    //Generate access code for each worker
+                    var code = makeCode(5);
+                    currentWorker.code = code;
+                    //sandbox test: use your test worker id
+                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, code, currentLifetimeInSeconds, currentWorker, result.groupId));  
+  
+                    var apiNotify = function(apicb, previousResult){
+                      console.log('calling notify worker');
+                      setTimeout(function(){ //protection 2
+                        api.req('NotifyWorkers', notice).then(function (res) {
+                            // Do something 
+                            console.log('NotifyWorkers -> ', currentWorker.WorkerId); 
+                            //write into 
+                            apicb(null, res);
+                        }, function (error) {
+                            //Handle error 
+                            console.error(error);
+                            apicb(error, null);
+                        });
+                      }, 300);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiNotify, function(err, res) {
+                        // do something with the result
+                        processNotify(null);
+                    });                 
+                    
+                }, function (err) {
+                    // if any of the file processing produced an error, err would equal that error
+                    if (err) {
+                        // One of the iterations produced an error.
+                        // All processing will now stop.
+                        console.log('Worker failed to notify.');
+                        callback(null, []);
+                    } else {
+                        console.log(workerList.length + ' Workers have been notified successfully.');
+                        callback(null, workerList);
+                    }
+                });
+
+               });
+
+              function formatMessageText(template, hit, code, currentLifetimeInSeconds, worker, groupId) {
+                    // Define the string
+                    var posponeString = hit.HITTypeId + '_' + worker.WorkerId;
+
+                    // Encode the String
+                    var encodedPostponeString = Base64.encode(posponeString);
+                    // console.log("encodedPostponeString:",encodedPostponeString);
+
+                    var msg = template.replace('<TITLE>', hit.Title)
+                        .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds / 3600) + 'hrs')
+                        .replace('<REWARD>', hit.Reward.FormattedPrice)
+                        .replace('<CODE>', code)
+                        .replace('<HITURL>', 'https://www.mturk.com/mturk/preview?groupId=' + groupId)
+                        .replace('<POSTPONEURL>', config.externalUrl + '/postpone?s=' + encodedPostponeString);
+
+                    return msg;
+                }
+
+            }
+            function updateStatus(workerList, callback) {
+              //DB update worker status: sent
+              async.eachLimit(workerList, 1, function (currentWorker, processStatus) {        
+                                  
+                async.parallel({
+                    updateWorker: function (mongocb) {
+                        MongoDB.update(db, 'worker', { WorkerId: currentWorker.WorkerId },
+                            {
+                                $set: {
+                                    status: 'sent'
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: false,
+                                w: 1
+                            }, function (r) {
+                                mongocb(null, r)
+                            });
+                    },
+                    updateAuthentication: function (mongocb) {
+                        MongoDB.update(db, 'authentication', { WorkerId: currentWorker.WorkerId, Code: currentWorker.code },
+                            {
+                                $set: {
+                                    WorkerId: currentWorker.WorkerId,
+                                    Type: 'invited',
+                                    Count: c, //50
+                                    Authenticated: false
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: true,  //assert: should always write
+                                w: 1
+                            }, function (r) {
+                                mongocb(null, r)
+                            });
+                    }
+                    /////////////////////
+                    // Denomalize 
+                    /////////////////////                    
+                    // updateCode: function (mongocb) {
+                    //     MongoDB.update(db, 'code', { Code: currentWorker.cod },
+                    //         {
+                    //             $set: {
+                    //                 Count: c, //50
+                    //             },
+                    //             $currentDate: { "lastModified": true }
+                    //         },
+                    //         {
+                    //             upsert: true,  //assert: should always write
+                    //             w: 1
+                    //         }, function (r) {
+                    //             mongocb(null, r)
+                    //         });
+                    // }
+                }, function (err, result) {
+                    if (err) {
+                        console.error(err);
+                    }
+                    processStatus(null);
+              
+                });
+                }, function (err) {
+                    // if any of the file processing produced an error, err would equal that error
+                    if (err) {
+                        // One of the iterations produced an error.
+                        // All processing will now stop.
+                        console.log('Worker failed to notify.');
+                        callback(null, []);
+                    } else {
+                        console.log(workerList.length + ' Workers have been notified successfully.');
+                        callback(null, workerList);
+                    }
+                });
+            }
+    },
+    updateAssignments: function(db, cb) {
+        async.waterfall([
+            loadHitsFromDB,
+            getAssignments,
+            persistAssignments,
+            NotifyOwner
+        ], function (err, result) {
+            var msg = 'Updated total: ' + result.length + ' docs';
+            cb(msg);
+        });
+        //Find all current period hits with status:'published' 
+        function loadHitsFromDB(callback) {
+            //1. Load all hits into hitList
+            //publish only n(default n=100) hits in each treatment / period 
+            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
+                //all done before expire
+                callback(null, doc);
+            });
+        }
+        //Get /api/assignments/:hitId
+        function getAssignments(hitList, callback) {
+            async.eachLimit(hitList, 1, function (hit, processAssignments) {
+                 var apiAssignments = function(apicb, previousResult){
+                      console.log('calling get assignments for hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                                    console.log('GetAssignmentsForHIT -> ', hit.HITId); //res
+                                    apicb(null, res);
+                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    apicb(error, null);
+                                    //console.log('error waiting for republish'); 
+                                });
+                      }, 300);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiAssignments, function(err, res) {
+                          if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
+                              hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
+                          } else {
+                              hit.Assignments = [];
+                          }
+                          processAssignments(null);
+                    });                 
+            }, function (err) {
+                if (err) {
+                    // One of the iterations produced an error.
+                    // All processing will now stop.
+                    console.log('Assignments failed to process.');
+                    callback(null, []);
+                } else {
+                    console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
+                    callback(null, hitList);
+                }
+            });
+        }
+        //Save into db.
+        function persistAssignments(hitList, callback) {
+            async.each(hitList, function (hit, processPersist) {
+                MongoDB.update(db, 'hit', { _id: hit._id },
+                    {
+                        $set: {
+                            Assignments: hit.Assignments,
+                            status: hit.MaxAssignments === hit.Assignments.length ? 'done' : hit.status,
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        processPersist(null);
+                    });
+            }, function (err) {
+                if (err) {
+                    console.log('HIT failed to save.');
+                    callback(null);
+                } else {
+                    console.log(hitList.length + ' HITs have been updated successfully.');
+                    callback(null);
+                }
+            });
+        }
+        function NotifyOwner(callback) {
+          MongoDB.find(db, 'hit', { status: 'done' }, {}, {}, function(doc) {
+            //all done before expire - notify us //eshin: A2Z7XGBZSO11D0 //kev:
+            var notice = new NOTICE('A32D5DD50BKQ6Y', 'HITs Update', doc.length + ' HITs have been done.');
+            api.req('NotifyWorkers', notice).then(function(res) {
+              //Do something 
+              console.log('Notify Us -> ', res);
+              callback(null, doc);
+            }, function(error) {
+              //Handle error db
+              console.error(error);
+              callback(error, doc);
+            });
+          });
+        }
+
+    },
+    // Deprecated
+    //Soft get assignments first
+    expireHits: function (db, cb) {  
+        async.waterfall([
+            loadHitsFromDB,
+            getAssignments,
+            //updateContentCount,
+            persistAssignments
+        ], function (err, result) {
+            var msg = 'Updated total: ' + result.length + ' docs';
+            cb(msg);
+        });
+        //Find all current period hits with status:'published' 
+        function loadHitsFromDB(callback) {
+            //1. Load all hits into hitList
+            //publish only n(default n=100) hits in each treatment / period 
+            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
+                callback(null, doc);
+            });
+        }
+        //Get /api/assignments/:hitId
+        function getAssignments(hitList, callback) {
+            async.eachLimit(hitList, 1, function (hit, processAssignments) {
+                  var apiAssignments = function(apicb, previousResult){
+                      console.log('calling get assignments for hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
+                                    console.log('GetAssignmentsForHIT -> ', hit.HITId); //res
+                                    apicb(null, res);
+                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
+                                }, function (error) {
+                                    //Handle error 
+                                    console.error(error);
+                                    apicb(error, null);
+                                    //console.log('error waiting for republish'); 
+                                });
+                      }, 300);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiAssignments, function(err, res) {
+                          if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
+                              hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
+                          } else {
+                              hit.Assignments = [];
+                          }
+                          processAssignments(null);
+                    });  
+            }, function (err) {
+                if (err) {
+                    // One of the iterations produced an error.
+                    // All processing will now stop.
+                    console.log('Assignments failed to process.');
+                    callback(null, []);
+                } else {
+                    console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
+                    callback(null, hitList);
+                }
+            });
+        }
+        //update content count.
+        function updateContentCount(hitList, callback) {
+          async.eachLimit(hitList, 1, function (hit, processContent){
+              MongoDB.update(db, 'content', { _id: hit.Content._id },
+                            {
+                                $set: {
+                                    HITCount: hit.Content.HITCount + 1
+                                },
+                                $currentDate: { "lastModified": true }
+                            },
+                            {
+                                upsert: false,
+                                w: 1
+                            }, function (r) {
+                                processContent(null)
+               });
+          }, function (err) {
+                callback(null, hitList);
+          });
+        }
+        //Save into db.
+        function persistAssignments(hitList, callback) {
+            async.each(hitList, function (hit, processPersist) {
+                MongoDB.update(db, 'hit', { _id: hit._id },
+                    {
+                        $set: {
+                            Assignments: hit.Assignments,
+                            status: hit.MaxAssignments === hit.Assignments.length ? 'done' : 'expired',
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        processPersist(null);
+                    });
+            }, function (err) {
+                if (err) {
+                    console.log('HIT failed to save.');
+                    callback(err, 0);
+                } else {
+                    console.log(hitList.length + ' HITs have been updated successfully.');
+                    callback(null, hitList);
+                }
+            });
+        }
+    },
+    //extend 24 hrs for all, works even after disappear from mturk
+    extendHits: function (db, cb) {  
+        async.waterfall([
+            loadHitsFromDB,
+            extendAll
+            // updateHits
+        ], function (err, result) {
+            var msg = 'Updated total: ' + result.length + ' docs';
+            cb(msg);
+        });
+        //Find all current period hits with status:'published' 
+        function loadHitsFromDB(callback) {
+            //1. Load all hits into hitList
+            //publish only n(default n=100) hits in each treatment / period 
+            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
+                callback(null, doc);
+            });
+        }
+        //update content count.
+        function extendAll(hitList, callback) {
+          async.eachLimit(hitList, 1, function (hit, processExpire){
+              var apiExtendHits = function(apicb, previousResult){
+                      console.log('calling extend hit');
+                      var newhit = {
+                          HITId : hit.HITId,
+                          //MaxAssignmentsIncrement : 1,
+                          ExpirationIncrementInSeconds : 86400 //24 hrs
+                        }
+                        setTimeout(function(){ //protection 2
+                            api.req('ExtendHIT', newhit).then(function (res) {
+                                console.log('ExtendHIT -> ', newhit.HITId);
+                                apicb(null, res);
+                            }, function (error) {
+                                //Handle error 
+                                console.error(error);
+                                apicb(error, null);
+                            });
+                      }, 300);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiExtendHits, function(err, res) {
+                       processExpire(null);
+                    });   
+          }, function (err) {
+             callback(null, hitList);
+          });
+        }
+        //TODO: Save into db?
+        function updateHits(hitList, callback) {
+            async.each(hitList, function (hit, processPersist) {
+                MongoDB.update(db, 'hit', { _id: hit._id },
+                    {
+                        $set: {
+                            status: 'extended',
+                            // expireation: now day + 24hrs
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        processPersist(null);
+                    });
+            }, function (err) {
+                if (err) {
+                    console.log('HIT failed to extend.');
+                    callback(err, 0);
+                } else {
+                    console.log(hitList.length + ' HITs have been extended successfully.');
+                    callback(null, hitList);
+                }
+            });
+
+        }
+    },
+    
+    forceExpireHits: function (db, cb) {  
+        async.waterfall([
+            loadHitsFromDB,
+            forceExpire,
+            updateHits
+        ], function (err, result) {
+            var msg = 'Updated total: ' + result.length + ' docs';
+            cb(msg);
+        });
+        //Find all current period hits with status:'published' 
+        function loadHitsFromDB(callback) {
+            //1. Load all hits into hitList
+            //publish only n(default n=100) hits in each treatment / period 
+            MongoDB.find(db, 'hit', { status: { $in: ['published','done'] } }, {}, {}, function (doc) {
+                callback(null, doc);
+            });
+        }
+        //update content count.
+        function forceExpire(hitList, callback) {
+          async.eachLimit(hitList, 1, function (hit, processExpire){
+              var apiExpireHits = function(apicb, previousResult){
+                      console.log('calling forceExpire for hit');
+                      setTimeout(function(){ //protection 2
+                            api.req('ForceExpireHIT', {HITId: hit.HITId}).then(function (res) {
+                                console.log('ForceExpireHIT:'+ hit.HITId + '->' + res.ForceExpireHITResponse.ForceExpireHITResult[0].Request[0].IsValid[0]);
+                                apicb(null, res);
+                            }, function (error) {
+                                //Handle error 
+                                console.error(error);
+                                apicb(error, null);
+                            });
+                      }, 300);
+                    }
+                    async.retry({
+                      times: 5,
+                      interval: function(retryCount) {
+                        return 1000 * Math.pow(2, retryCount);
+                      }
+                    }, apiExpireHits, function(err, res) {
+                       processExpire(null);
+                    });   
+          }, function (err) {
+             callback(null, hitList);
+          });
+        }
+        //Save into db.
+        function updateHits(hitList, callback) {
+            async.each(hitList, function (hit, processPersist) {
+                MongoDB.update(db, 'hit', { _id: hit._id },
+                    {
+                        $set: {
+                            status: 'expired',
+                        },
+                        $currentDate: { "lastModified": true }
+                    },
+                    {
+                        upsert: false,
+                        w: 1
+                    }, function (r) {
+                        processPersist(null);
+                    });
+            }, function (err) {
+                if (err) {
+                    console.log('HIT failed to expire.');
+                    callback(err, 0);
+                } else {
+                    console.log(hitList.length + ' HITs have been expired successfully.');
+                    callback(null, hitList);
+                }
+            });
+
+        }
+    },
+    //Deprecated
+    postpone: function (s, db, cb) { //Update mongo, secret weapon
         var decodedPostponeString = Base64.decode(s);
         //console.log("decodedPostponeString",decodedPostponeString);
         var hitTypeId = decodedPostponeString.split('_')[0];
         var workerId = decodedPostponeString.split('_')[1];
 
         //invalidate old code
-        var newCode = generateCode(6); //6 is +1 than original
+        var newCode = makeCode(6); //6 is +1 than original
 
-        MongoDB.connect(function (db) {
-            async.parallel({
+        async.parallel({
                 hit: function (mongocb) {
                     MongoDB.updateMany(db, 'hit', { HITTypeId: hitTypeId, status: 'published' },
                         {
@@ -558,16 +1562,13 @@ var TurkExpert = {
                 }
                 //processing
                 cb(200); // Or template for user after postponed    
-                db.close();
-            });
         });
     },
-    noresponse: function (hitTypeId, workerId, cb) { //Update mongo, secret weapon
+    noresponse: function (hitTypeId, workerId, db, cb) { //Update mongo, secret weapon
         //invalidate old code
-        var newCode = generateCode(6); //6 is +1 than original
-
-        MongoDB.connect(function (db) {
-            async.parallel({
+        var newCode = makeCode(6); //6 is +1 than original
+        
+        async.parallel({
                 hit: function (mongocb) {
                     MongoDB.updateMany(db, 'hit', { HITTypeId: hitTypeId, status: 'published' },
                         {
@@ -622,602 +1623,7 @@ var TurkExpert = {
                 }
                 //processing
                 cb(200);   
-                db.close();
-            });
         });
-    },
-    publishAllHits: function(treatments, k, cb){
-        //suffle treatments
-        shuffle(treatments);
-        //k round, must >= 1
-        var round = new Array(k);
-        for(var i=0;i<round.length;i++){
-            round[i] = i;
-        }
-        async.eachLimit(round, 1, function (index, processTreatment) {
-                //wait a bit
-                console.log('Publish Round ' + (index+1) + ' In 30s');
-                setTimeout(function(){ //protection 0
-                    //do what you need here
-                    console.log('Publish Round ' + (index+1) + ' Now');
-                    publishTreatments(treatments, index, function (result) {
-                        processTreatment(null);
-                    });
-                }, 30000);
-            }, function (err) {
-                callback(null, 'Total '+ 100*k +'HITs have been processed successfully!');
-        });
-        /**
-         * Shuffle array in place using Fisher-Yates Shuffle ALG
-         * @param {Array} a items The array containing the items.
-         * @returns {Array} only if you need a new object
-         */
-        function shuffle(array) {
-            var counter = array.length;
-            // While there are elements in the array
-            while (counter > 0) {
-                // Pick a random index
-                var index = Math.floor(Math.random() * counter);
-
-                // Decrease counter by 1
-                counter--;
-
-                // And swap the last element with it
-                var temp = array[counter];
-                array[counter] = array[index];
-                array[index] = temp;
-            }
-            return array;
-        }
-        function publishTreatments(treatments, index, cb) {
-        ///// Parallel -> 5 treatments [ "control", "costly", "framing", "reciprocity", "reputation" ]
-        ///// To Reduce mongo connections
-        async.waterfall([
-            connectToDB,
-            getTreatmentContent,
-            publishTreatment,
-            closeDB
-        ], function (err, result) {
-            console.timeEnd('publishTreatment');
-            cb(result);
-        });
-        function connectToDB(callback) {
-            MongoDB.connect(function (db) {
-                callback(null, db);
-            });
-        }
-        function getTreatmentContent(db, callback) {
-            MongoDB.find(db, 'content', {}, { '_id': 1, 'User': 1, 'Tweet': 1, 'Date': 1, 'Time': 1, 'HITCount': 1}, { sort: [['HITCount', 1]], limit: 400 }, function (contentTotalList) {
-                var publishDate = makePublishTime();
-                callback(null, db, contentTotalList, publishDate);
-            });
-        }
-        function publishTreatment(db, contentTotalList, publishDate, callback) {
-            shuffle(contentTotalList);
-            var contentObj = {};
-            for (var i = 0; i < treatments.length; i++) {
-                contentObj[treatments[i]] = contentTotalList.slice(i * 100, (i + 1) * 100);
-            }
-            async.eachLimit(treatments, 1, function (treatment, processTreatment) {
-                var contentList = contentObj[treatment];
-                var treatmentId = treatments.indexOf(treatment)+1;
-                var titleIndex = 5*index + treatmentId;
-                //wait a bit
-                console.log('Publish Labeling Tweets '+ titleIndex +'(' + treatment + ') In 10s');
-                setTimeout(function(){ //protection 1
-                    //do what you need here
-                    console.log('Publish Labeling Tweets '+ titleIndex +'(' + treatment + ') Now');
-                    publish(db, treatment, contentList, publishDate, titleIndex, function (result) {
-                        processTreatment(null);
-                    });
-                }, 10000);
-                
-            }, function (err) {
-                callback(null, db, contentTotalList.length + ' HITs have been processed successfully for each Treatment.<br/>All Treatments have been processed successfully.');
-            });
-        }
-        function closeDB(db, result, callback) {
-            db.close();
-            callback(null, result);
-        }
-        //West-Coast Date Time for publishing  
-        function makePublishTime() {
-            var options = { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' };
-            var today = new Date();
-            return today.toLocaleString('en-US', options) + ' PDT';
-        }
-
-
-        //private
-        function publish(db, treatment, contentList, publishDate, titleIndex, cb) {
-            //async waterfall with named functions:
-            console.time('publishTreatment');
-            async.waterfall([
-                loadHitsFromDB,
-                applyFilterLogic,
-                batchPublish,
-                persistHitIntoDB
-                //contactWorkers,
-                //updateStatus
-            ], function (err, result) {
-                console.timeEnd('publishTreatment');
-                cb(result);
-            });
-            function loadHitsFromDB(callback) {
-                //1. Load all hits into hitList
-                //publish only n(default n=100) hits in each treatment / period 
-                MongoDB.find(db, 'hit', { Treatment: treatment, status: { $not: { $in: ['published', 'postponed', 'done', 'expired', 'noresponse'] } } }, {}, { limit: 100 }, function (doc) { //Sandbox Test: limit = 1-100
-                    callback(null, doc);
-                });
-            }
-            function applyFilterLogic(hitList, callback) {
-                //2. Apply publish logic filter into targetList 
-                async.mapSeries(hitList, function (entry, processModel) {
-                    //map to HIT model, use Typescript compiled data schema -> /build/model
-                    var lifetimeInSeconds = 21600;
-                    var assignmentDurationInSeconds = 300;
-                    var autoApprovalDelay = 1;
-                    var questionString = '<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"><ExternalURL>' + config.externalUrl + '</ExternalURL><FrameHeight>' + config.frameHeight + '</FrameHeight></ExternalQuestion>';
-                    var canonicalTitle = 'Labeling Tweets ' + titleIndex;
-                    var hit = new HIT(canonicalTitle, entry.Description + " Launched on: " + publishDate, entry.Keywords, questionString, entry.MaxAssignments, assignmentDurationInSeconds, lifetimeInSeconds, autoApprovalDelay, { 'Amount': 0.1, 'CurrencyCode': 'USD', 'FormattedPrice': '$0.10' });
-                    var id = entry._id; //To keep the track of each hit in db.
-                    var treatment = entry.Treatment;
-
-                    var hitObj = {
-                        id: id,
-                        treatment: treatment,
-                        hit: hit,
-                        lifetimeInSeconds: lifetimeInSeconds
-                    }
-                    processModel(null, hitObj);
-                }, function (err, result) {
-                    // results is now an array for each file
-                    callback(null, result);
-                });
-
-            }
-            function batchPublish(targetList, callback) {
-                //3. async each publish the targetList in parallel  //maybe eachLimit if reach quot
-                var i = 0;
-                //Gennerate content array randomly here for each n(default n=100) hits:
-                var array = [];
-                for (; i < targetList.length; i++) {
-                    array.push(i);
-                }
-                var code = generateCode(5);
-
-                async.eachLimit(targetList, 1, function (hitObj, processPublish) {
-                    // Perform operation on each HIT here.
-                    //console.log('Processing HIT: ', hit);
-                    //These requests will be queued and executed at a rate of 3 per second
-
-                    //Solution1: Register First One in each group and createHit for the rest with the HITTypeId
-                    //Solution2: Async parallel publish automatically batch those into each group!!!
-                    
-                    // try calling apiMethod 10 times with exponential backoff
-                    // (i.e. intervals of 100, 200, 400, 800, 1600, ... milliseconds)
-                    var apiCreate = function(apicb, previousResult){
-                      console.log('calling create hit');
-                      setTimeout(function(){ //protection 2
-                            api.req('CreateHIT', hitObj.hit).then(function (res) {
-                                    console.log('CreateHIT -> ', res.CreateHITResponse.HIT[0].HITId[0]); //res
-                                    apicb(null, res);
-                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
-                                }, function (error) {
-                                    //Handle error 
-                                    console.error(error);
-                                    apicb(error, null);
-                                    //console.log('error waiting for republish'); 
-                                });
-                      }, 1000);
-                    }
-                    async.retry({
-                      times: 5,
-                      interval: function(retryCount) {
-                        return 1000 * Math.pow(2, retryCount);
-                      }
-                    }, apiCreate, function(err, res) {
-                        // do something with the result
-                          i--;
-                          //console.log("ImageArray["+ i +"] = ", array[i]);
-
-                          // persistHitIntoDB asynchronously
-                          // persistHitIntoDB(hitObj.id, res.CreateHITResponse.HIT[0], array[i], code);
-
-                          //Update hit Object
-                          hitObj.hit.HITTypeId = res.CreateHITResponse.HIT[0].HITTypeId[0],
-                          hitObj.hit.HITId = res.CreateHITResponse.HIT[0].HITId[0],
-                          hitObj.hit.Content = contentList[array[i]],
-                          hitObj.hit.Code = code;
-                          processPublish(null);
-                    });                 
-                    
-                }, function (err) {
-                    // if any of the file processing produced an error, err would equal that error
-                    if (err) {
-                        // One of the iterations produced an error.
-                        // All processing will now stop.
-                        console.log('HIT failed to process.');
-                        callback(null, []);
-                    } else {
-                        console.log(targetList.length + ' HITs have been created successfully.');
-                        callback(null, targetList);
-                    }
-                });
-            }
-            
-            
-            //async each - added into waterfall
-            function persistHitIntoDB(hitList, callback) {
-                async.eachLimit(hitList, 1, function (hitObj, processPersist) {
-                    //console.log('Persist into DB -> {_id:'+ hitObj.id + ' HITTypeId:' + hitObj.hit.HITTypeId + ' HITId:' + hitObj.hit.HITId + ' Content:'+ hitObj.hit.Content + ' Code:' + hitObj.hit.Code +'}');
-                    MongoDB.update(db, 'hit', { _id: hitObj.id },
-                        {
-                            $set: {
-                                HITTypeId: hitObj.hit.HITTypeId,
-                                HITId: hitObj.hit.HITId,
-                                Title: hitObj.hit.Title,
-                                Content: hitObj.hit.Content,
-                                Code: hitObj.hit.Code,
-                                status: 'published',
-                                publishDate: publishDate
-                            },
-                            $currentDate: { "lastModified": true }
-                        },
-                        {
-                            upsert: false,
-                            w: 1
-                        }, function (r) {
-                            processPersist(null);
-                        });
-                }, function (err) {
-                    if (err) {
-                        console.log('HIT failed to save.');
-                        callback(null, 0);
-                    } else {
-                        console.log(hitList.length + ' HITs have been saved successfully.');
-                        callback(null, hitList);
-                    }
-                });
-            }
-            function contactWorkers(hitList, callback) {
-                // console.time('contactWorkers');
-                async.parallel({
-                    groupId: function (mturkcb) {
-                        api.req('GetHIT', { HITId: hitList[0].hit.HITId }).then(function (res) {
-                            //Do something 
-                            console.log('GetGroupId: ', res.GetHITResponse.HIT[0].HITGroupId[0]);
-                            mturkcb(null, res.GetHITResponse.HIT[0].HITGroupId[0]);
-                        }, function (error) {
-                            //Handle error 
-                            console.error(error);
-                            mturkcb(error, null);
-                        });
-                    },
-                    worker: function (mongocb) {
-                        MongoDB.find(db, 'worker', { Treatment: treatment, status: { $not: { $in: ['postponed', 'noresponse', 'sent'] } } }, {}, { limit: 1 }, function (doc) {  //Sandbox Test
-                            mongocb(null, doc);
-                        });
-                    }
-                }, function (err, result) {
-                    assert.equal(null, err);
-                    var currentWorker = result.worker[0];
-                    var currentTreatment = hitList[0].treatment;
-                    var currentLifetimeInSeconds = hitList[0].lifetimeInSeconds;
-                    var currentHit = hitList[0].hit;
-                    var subject = "New HITs available!";
-                    var template = "Dear Turker,\n\nYou previously indicated that you would like to be notified of future HIT opportunities from us so we're letting you know about a recently posted group of 100 HITs called <TITLE>. These HITs will be available for <LIFETIME>.\n\nThis is a simple task that involves answering questions about real tweets and pays <REWARD> per HIT. Each HIT will take no more than 1 minute to complete.\nIn order to start working on these HITs, please enter the following code which will grant you access to the HIT group: <CODE>\n\nYou can access these HITs at the following URL: <HITURL>\n\nIf you're not available, no problem, just let us know by clicking on the following link, which will expire the code above. You'll still be eligible to receive future HIT notifications.\n<POSTPONEURL>\n\nThanks!\n\nSid";
-                    var notice = new NOTICE(currentWorker.WorkerId, subject, formatMessageText(template, currentHit, currentLifetimeInSeconds, currentWorker, result.groupId));
-                    api.req('NotifyWorkers', notice).then(function (res) {
-                        // Do something 
-                        // console.log('NotifyWorkers -> ', JSON.stringify(res, null, 2)); 
-                        // console.timeEnd('contactWorkers');
-                        //write into 
-                        callback(null, hitList.length, currentWorker, currentTreatment, currentHit);
-                    }, function (error) {
-                        //Handle error 
-                        console.error(error);
-                        callback(null, 0)
-                    });
-                });
-
-                function formatMessageText(template, hit, currentLifetimeInSeconds, worker, groupId) {
-                    // Define the string
-                    var posponeString = hit.HITTypeId + '_' + worker.WorkerId;
-
-                    // Encode the String
-                    var encodedPostponeString = Base64.encode(posponeString);
-                    // console.log("encodedPostponeString:",encodedPostponeString);
-
-                    var msg = template.replace('<TITLE>', hit.Title)
-                        .replace('<LIFETIME>', parseInt(currentLifetimeInSeconds / 3600) + 'hrs')
-                        .replace('<REWARD>', hit.Reward.FormattedPrice)
-                        .replace('<CODE>', hit.Code)
-                        .replace('<HITURL>', 'https://www.mturk.com/mturk/preview?groupId=' + groupId)
-                        .replace('<POSTPONEURL>', config.externalUrl + '/postpone?s=' + encodedPostponeString);
-
-                    return msg;
-                }
-
-            }
-            function updateStatus(count, currentWorker, currentTreatment, currentHit, callback) {
-                //DB update worker status: sent
-                //'TEST' currentWorker.WorkerId                    
-                async.parallel({
-                    updateWorker: function (mongocb) {
-                        MongoDB.update(db, 'worker', { WorkerId: currentWorker.WorkerId },
-                            {
-                                $set: {
-                                    status: 'sent'
-                                },
-                                $currentDate: { "lastModified": true }
-                            },
-                            {
-                                upsert: false,
-                                w: 1
-                            }, function (r) {
-                                mongocb(null, r)
-                            });
-                    },
-                    updateAuthentication: function (mongocb) {
-                        MongoDB.update(db, 'authentication', { HITTypeId: currentHit.HITTypeId },
-                            {
-                                $set: {
-                                    WorkerId: currentWorker.WorkerId,
-                                    Code: currentHit.Code,
-                                    Type: currentTreatment,
-                                    Authenticated: false
-                                },
-                                $currentDate: { "lastModified": true }
-                            },
-                            {
-                                upsert: true,  //assert: should always write
-                                w: 1
-                            }, function (r) {
-                                mongocb(null, r)
-                            });
-                    }
-                }, function (err, result) {
-                    if (err) {
-                        console.error(err);
-                        callback(null, 0);
-                    } else {
-                        callback(null, count);
-                    }
-                });
-            }
-        }
-      }
-    },
-    updateAssignments: function (cb) {
-        async.waterfall([
-            connectToDB,
-            loadHitsFromDB,
-            getAssignments,
-            persistAssignments,
-            loadUpdatedHitsFromDB
-        ], function (err, result) {
-            var msg = 'Updated total: ' + result.length + ' docs';
-            cb(msg);
-        });
-        function connectToDB(callback) {
-            MongoDB.connect(function (db) {
-                callback(null, db);
-            });
-        }
-        //Find all current period hits with status:'published' 
-        function loadHitsFromDB(db, callback) {
-            //1. Load all hits into hitList
-            //publish only n(default n=100) hits in each treatment / period 
-            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
-                //all done before expire
-                callback(null, db, doc);
-            });
-        }
-        //Get /api/assignments/:hitId
-        function getAssignments(db, hitList, callback) {
-            async.eachLimit(hitList, 1, function (hit, processAssignments) {
-                 var apiAssignments = function(apicb, previousResult){
-                      console.log('calling get assignments for hit');
-                      setTimeout(function(){ //protection 2
-                            api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
-                                    console.log('GetAssignmentsForHIT -> ', hit.HITId); //res
-                                    apicb(null, res);
-                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
-                                }, function (error) {
-                                    //Handle error 
-                                    console.error(error);
-                                    apicb(error, null);
-                                    //console.log('error waiting for republish'); 
-                                });
-                      }, 1000);
-                    }
-                    async.retry({
-                      times: 5,
-                      interval: function(retryCount) {
-                        return 1000 * Math.pow(2, retryCount);
-                      }
-                    }, apiAssignments, function(err, res) {
-                          if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
-                              hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
-                          } else {
-                              hit.Assignments = [];
-                          }
-                          processAssignments(null);
-                    });                 
-            }, function (err) {
-                if (err) {
-                    // One of the iterations produced an error.
-                    // All processing will now stop.
-                    console.log('Assignments failed to process.');
-                    callback(null, db, []);
-                } else {
-                    console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
-                    callback(null, db, hitList);
-                }
-            });
-        }
-        //Save into db.
-        function persistAssignments(db, hitList, callback) {
-            async.each(hitList, function (hit, processPersist) {
-                MongoDB.update(db, 'hit', { _id: hit._id },
-                    {
-                        $set: {
-                            Assignments: hit.Assignments,
-                            status: hit.MaxAssignments === hit.Assignments.length ? 'done' : hit.status,
-                        },
-                        $currentDate: { "lastModified": true }
-                    },
-                    {
-                        upsert: false,
-                        w: 1
-                    }, function (r) {
-                        processPersist(null);
-                    });
-            }, function (err) {
-                if (err) {
-                    console.log('HIT failed to save.');
-                    callback(null, db);
-                } else {
-                    console.log(hitList.length + ' HITs have been updated successfully.');
-                    callback(null, db);
-                }
-            });
-        }
-        function loadUpdatedHitsFromDB(db, callback) {
-          MongoDB.find(db, 'hit', { status: 'done' }, {}, {}, function(doc) {
-            //all done before expire - notify us
-            var notice = new NOTICE('A2Z7XGBZSO11D0', 'HITs Update', doc.length + ' HITs have been done.');
-            api.req('NotifyWorkers', notice).then(function(res) {
-              //Do something 
-              console.log('Notify Us -> ', res);
-              callback(null, doc);
-            }, function(error) {
-              //Handle error 
-              console.error(error);
-              callback(error, doc);
-            });
-          });
-        }
-
-    },
-
-
-    expireHits: function (cb) {
-        async.waterfall([
-            connectToDB,
-            loadHitsFromDB,
-            getAssignments,
-            updateContentCount,
-            persistAssignments
-        ], function (err, result) {
-            var msg = 'Updated total: ' + result.length + ' docs';
-            cb(msg);
-        });
-        function connectToDB(callback) {
-            MongoDB.connect(function (db) {
-                callback(null, db);
-            });
-        }
-        //Find all current period hits with status:'published' 
-        function loadHitsFromDB(db, callback) {
-            //1. Load all hits into hitList
-            //publish only n(default n=100) hits in each treatment / period 
-            MongoDB.find(db, 'hit', { status: 'published' }, {}, {}, function (doc) {
-                callback(null, db, doc);
-            });
-        }
-        //Get /api/assignments/:hitId
-        function getAssignments(db, hitList, callback) {
-            async.eachLimit(hitList, 1, function (hit, processAssignments) {
-                  var apiAssignments = function(apicb, previousResult){
-                      console.log('calling get assignments for hit');
-                      setTimeout(function(){ //protection 2
-                            api.req('GetAssignmentsForHIT', { HITId: hit.HITId }).then(function (res) {
-                                    console.log('GetAssignmentsForHIT -> ', hit.HITId); //res
-                                    apicb(null, res);
-                                    //callback(null, res); //  { CreateHITResponse: { OperationRequest: [ [Object] ], HIT: [ [Object] ] } }
-                                }, function (error) {
-                                    //Handle error 
-                                    console.error(error);
-                                    apicb(error, null);
-                                    //console.log('error waiting for republish'); 
-                                });
-                      }, 1000);
-                    }
-                    async.retry({
-                      times: 5,
-                      interval: function(retryCount) {
-                        return 1000 * Math.pow(2, retryCount);
-                      }
-                    }, apiAssignments, function(err, res) {
-                          if (res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].TotalNumResults > 0) {
-                              hit.Assignments = res.GetAssignmentsForHITResponse.GetAssignmentsForHITResult[0].Assignment;
-                          } else {
-                              hit.Assignments = [];
-                          }
-                          processAssignments(null);
-                    });  
-            }, function (err) {
-                if (err) {
-                    // One of the iterations produced an error.
-                    // All processing will now stop.
-                    console.log('Assignments failed to process.');
-                    callback(null, db, []);
-                } else {
-                    console.log('Assignments have been pulled successfully for ' + hitList.length + 'Hits');
-                    callback(null, db, hitList);
-                }
-            });
-        }
-        //update content count.
-        function updateContentCount(db, hitList, callback) {
-          async.eachLimit(hitList, 1, function (hit, processContent){
-              MongoDB.update(db, 'content', { _id: hit.Content._id },
-                            {
-                                $set: {
-                                    HITCount: hit.Content.HITCount + 1
-                                },
-                                $currentDate: { "lastModified": true }
-                            },
-                            {
-                                upsert: false,
-                                w: 1
-                            }, function (r) {
-                                processContent(null)
-               });
-          }, function (err) {
-                callback(null, db, hitList);
-          });
-        }
-        //Save into db.
-        function persistAssignments(db, hitList, callback) {
-            async.each(hitList, function (hit, processPersist) {
-                MongoDB.update(db, 'hit', { _id: hit._id },
-                    {
-                        $set: {
-                            Assignments: hit.Assignments,
-                            status: hit.MaxAssignments === hit.Assignments.length ? 'done' : 'expired',
-                        },
-                        $currentDate: { "lastModified": true }
-                    },
-                    {
-                        upsert: false,
-                        w: 1
-                    }, function (r) {
-                        processPersist(null);
-                    });
-            }, function (err) {
-                if (err) {
-                    console.log('HIT failed to save.');
-                    callback(null, 0);
-                } else {
-                    console.log(hitList.length + ' HITs have been updated successfully.');
-                    callback(null, hitList);
-                }
-            });
-
-        }
     },
 
 
@@ -1234,10 +1640,9 @@ var TurkExpert = {
      * @param {Callbak} cb
      * @return {Array} result
      */
-    find: function (cb) {
+    find: function (db, cb) {
         console.time('DB Data find');
-        MongoDB.connect(function (db) {
-            async.parallel({
+         async.parallel({
                 hit: function (cb) {
                     MongoDB.find(db, 'hit', { status: { $in: ['published'] } }, {}, {}, function (doc) {
                         //MongoDB.find(db, 'hit', {}, {}, {limit:100}, function (doc) {
@@ -1255,7 +1660,7 @@ var TurkExpert = {
                     });
                 },
                 authentication: function (cb) {
-                    MongoDB.find(db, 'authentication', {}, {}, {}, function (doc) {
+                    MongoDB.find(db, 'authentication', {}, {}, {sort: [['Count', 1]]}, function (doc) {
                         cb(null, doc);
                     });
                 },
@@ -1266,11 +1671,9 @@ var TurkExpert = {
                 }
             }, function (err, result) {
                 assert.equal(null, err);
-                db.close();
                 cb(result);
                 console.timeEnd('DB Data find');
             });
-        })
     }
 }
 

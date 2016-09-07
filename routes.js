@@ -6,7 +6,15 @@ var express = require('express'),
     fs = require('fs-extra'),      //File System - for file manipulation
     TurkExpert = require('./src/controller');
 
+//global db from mongo connection pool
+var db = null;
+
 router.use(function (req, res, next) {
+    //console.log("req.db", req.db); 
+    if(!db){
+      db = req.db; //intial once!
+      console.log('Connect to mongo pool only ONCE - DB: ', db.s.databaseName);
+    }
     console.log(req.method + req.url);
     next();
 });
@@ -37,42 +45,51 @@ router.get('/', function (req, res) {
     // console.log('kev: hitId', hitId);
     // console.log('kev: workerId', workerId);
     // console.log('kev: turkSubmitTo', turkSubmitTo);
-    if( assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE' ) {
-       //preview
-       //console.log('preview');
-       if(hitId){
-         TurkExpert.preview(hitId, function (e) {
-            if (e === 404) {
-                 res.render('pages/preview', { first: true});
-            } else {
-                res.render('pages/preview', {first: false});
-            }
-        });
-       }else{
-          res.render('pages/preview', {first: false});
-       } 
+    if(assignmentId === 'ASSIGNMENT_ID_NOT_AVAILABLE') {
+      //preview
+      console.log('preview');
+      res.render('pages/preview');
     }else if(!assignmentId || !hitId || !workerId || !turkSubmitTo){
-       //raw crul
-       //console.p('raw crul');
        res.render('pages/notfound');
     }else{ 
-      TurkExpert.init(assignmentId, hitId, workerId, turkSubmitTo, function (e) {
-          if (e.code === 404) {
-              res.render('pages/notfound');
-          } else if (e.code === 422) {
-             res.render('pages/index', { // not yet authenticated
-                  auth: false,
-                  e: e
-              });
-          } else if (e.code === 200) {
-              res.render('pages/index', { // already authenticated
-                  auth: true,
-                  e: e
-              });
-          }
+      TurkExpert.init(assignmentId, hitId, workerId, turkSubmitTo, db, function (e) {
+          //skip 404s
+          res.render('pages/index', {e: e});
       });
     }
 });
+
+//Client: valideYourCode
+router.post('/validateCode', function (req, res) {
+  TurkExpert.validateCode(req.body.assignmentId, req.body.hitId, req.body.workerId, req.body.turkSubmitTo, req.body.code, db, function (e) {
+    res.render('pages/index', {e: e});       
+  });
+});
+
+//Client: firstUser
+router.post('/firstUser', function (req, res) {
+  var nickname = req.body.nickname || false;
+  TurkExpert.firstUser(req.body.assignmentId, req.body.hitId, req.body.workerId, req.body.turkSubmitTo, req.body.code, req.body.nickname, db, function (e) {
+    res.render('pages/index', {e: e});
+  });
+});
+
+//Client: generateCode
+router.post('/generateCode', function (req, res) {
+  TurkExpert.generateCode(req.body.assignmentId, req.body.hitId, req.body.workerId, req.body.turkSubmitTo, db, function (e) {
+     res.render('pages/index', {e: e});
+  });
+});
+
+
+//Client: updateCodeCount
+router.post('/updateCodeCount', function (req, res) {
+  TurkExpert.updateCodeCount(req.body.workerId, req.body.code, db, function (e) {  //req.body.assignmentId, req.body.hitId, req.body.workerId, req.body.turkSubmitTo
+     res.render('pages/index', {e: e});
+  });
+});
+
+
 
 //TODO: v2.0 
 // router.get('/leaderboard', function (req, res) {
@@ -120,7 +137,7 @@ router.get('/charts', auth, function (req, res) {
 //Query all the db collections - TODO Modulize
 router.get('/tables', auth, function (req, res) {
     //basicAuth(req,res,'pages/tables');
-    TurkExpert.find(function (result) {
+    TurkExpert.find(db, function (result) {
         res.render('pages/tables', result);
     });
 });
@@ -171,8 +188,6 @@ router.post('/uploadHit', auth, function (req, res, next) {
         });
     });
 });
-
-
 //uploadContent
 router.post('/uploadContent', auth, function (req, res, next) {
     var fstream;
@@ -208,7 +223,6 @@ router.post('/uploadContent', auth, function (req, res, next) {
         });
     });
 });
-
 //uploadWorker
 router.post('/uploadWorker', auth, function (req, res, next) {
     var fstream;
@@ -245,11 +259,12 @@ router.post('/uploadWorker', auth, function (req, res, next) {
     });
 });
 
+
+// Server side:
 //batchCreateHits
 router.post('/publishHits', auth, function (req, res) {
-    //Batch Call from DB - hits // "control" , "costly", "framing", "reciprocity", "reputation"
     res.redirect('manage');
-    TurkExpert.publishAllHits(["control", "costly", "reciprocity", "reputation"], 1, function (result) {
+    TurkExpert.publishHitsPool(db, function (result) {
         //res.redirect('manage?hitPublishResult=' + result);
         console.log('manage?hitPublishResult=' + result)
     });
@@ -258,7 +273,7 @@ router.post('/publishHits', auth, function (req, res) {
 router.post('/updateAssignments', auth, function (req, res) {
     //Batch Call from DB - hits
     res.redirect('manage');
-    TurkExpert.updateAssignments(function (result) {
+    TurkExpert.updateAssignments(db, function (result) {
         //res.redirect('manage?assignmentUpdateResult=' + result);
         console.log('manage?assignmentUpdateResult=' + result);
     });
@@ -267,84 +282,41 @@ router.post('/updateAssignments', auth, function (req, res) {
 router.post('/expireHits', auth, function (req, res) {
     //Batch Call from DB - hits
     res.redirect('manage');
-    TurkExpert.expireHits(function (result) {
+    TurkExpert.forceExpireHits(db, function (result) {
         //res.redirect('manage?hitExpireResult=' + result);
         console.log('manage?hitExpireResult=' + result);
     });
 });
-
-//Client: valideYourCode
-router.post('/validateCode', function (req, res) {
+//batchExtendHits
+router.post('/extendHits', auth, function (req, res) {
     //Batch Call from DB - hits
-    // console.log(req.body.accessObj.wid);
-    // console.log(req.body.accessObj.hid);
-    // console.log(req.body.accessCode);
-    // console.log(req.body.accessContent);
-    // console.log(req.body.accessType);
-    //turkSubmitTo
-    //assignmentId
-
-    TurkExpert.validateCode(req.body.accessType, req.body.accessContent, req.body.accessObj, req.body.accessCode, req.body.accessAssignmentId, req.body.accessSubmitTo, function (e) {
-        if(e.code === 200){
-            res.render('pages/index', { // first time authenticated
-                auth: true,
-                e: e
-            });
-        }else if(e.code === 403){
-            res.render('pages/index', { // authentication failed
-                auth: false,
-                e: e
-            });
-        }        
+    res.redirect('manage');
+    TurkExpert.extendHits(db, function (result) {
+        //res.redirect('manage?hitExpireResult=' + result);
+        console.log('manage?hitExtendResult=' + result);
     });
-});
-
-//Client: firstUser
-router.post('/firstUser', function (req, res) {
-    if(req.body.nickname){ // Treatment reputation - persist first user input data
-        TurkExpert.firstUser(req.body.nickname, req.body.accessContent, req.body.accessObj, req.body.accessAssignmentId, req.body.accessSubmitTo, req.body.accessCode, function (e) {
-            res.render('pages/index', { 
-                auth: true,
-                e: e
-            });
-        });
-    }else{
-        res.render('pages/index', { // other treatments - render diretly.
-            auth: true,
-            e: {
-                code: 200,
-                content: req.body.accessContent,
-                type: req.body.accessType,
-                hitCode: req.body.accessCode,
-                assignmentId: req.body.accessAssignmentId, 
-                turkSubmitTo: req.body.accessSubmitTo
-            }
-        });
-    }    
 });
 
 //pontpone
-router.get('/postpone', function (req, res) {
-  if(!req.query.s){
-       res.render('pages/notfound');
-  }else{
-    TurkExpert.postpone(req.query.s,function (e) {
-        res.render('pages/postpone');
-    });
-  }
-});
-
-
+// router.get('/postpone', function (req, res) {
+//   if(!req.query.s){
+//        res.render('pages/notfound');
+//   }else{
+//     TurkExpert.postpone(req.query.s, db, function (e) {
+//         res.render('pages/postpone');
+//     });
+//   }
+// });
 //noresponse
-router.get('/noresponse', function (req, res) {
-  if(!req.query.hitTypeId || !req.query.workerId ){
-       res.render('pages/notfound');
-  }else{
-    TurkExpert.noresponse(req.query.hitTypeId, req.query.workerId, function (e) {
-        res.render('pages/postpone');
-    });
-  }
-});
+// router.get('/noresponse', function (req, res) {
+//   if(!req.query.hitTypeId || !req.query.workerId ){
+//        res.render('pages/notfound');
+//   }else{
+//     TurkExpert.noresponse(req.query.hitTypeId, req.query.workerId, db, function (e) {
+//         res.render('pages/postpone');
+//     });
+//   }
+// });
 
 //TBD
 router.get('/forms', auth, function (req, res) {
@@ -404,6 +376,15 @@ router.get('/api/expire/:id', auth, function (req, res) {
     });
 });
 
+router.get('/api/extend/:id', auth, function (req, res) {
+    //required: id -> HITId
+    TurkExpert.ExtendHIT(req.params.id, function (e) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(e, null, 2));
+    });
+});
+
+
 router.get('/api/assignment/:id', auth, function (req, res) {
     //required: id -> AssignmentId
     TurkExpert.GetAssignment(req.params.id, function (e) {
@@ -427,7 +408,6 @@ router.post('/api/hit', auth, function (req, res) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(e, null, 2));
     });
-
 });
 
 router.post('/api/hits', auth, function (req, res) {

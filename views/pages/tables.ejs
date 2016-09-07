@@ -3,252 +3,372 @@
 
 <% include ../includes/head %>
 
-<body>
+  <body>
 
     <div id="wrapper">
 
-        <!-- Navigation -->
-        <% include ../includes/nav %>
+      <!-- Navigation -->
+      <% include ../includes/nav %>
 
         <div id="page-wrapper">
 
-            <div class="container-fluid">
+          <div class="container-fluid">
 
-                <!-- Page Heading -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
+            <!-- Page Heading -->
+            <div class="row">
+              <div class="col-lg-12">
+                <h1 class="page-header">
                             Database
                         </h1>
-                        <ol class="breadcrumb">
-                            <li>
-                                <i class="fa fa-dashboard"></i>  <a href="index.html">Dashboard</a>
-                            </li>
-                            <li class="active">
-                                <i class="fa fa-table"></i> Database
-                            </li>
-                        </ol>
-                    </div>
-                </div>
-                <!-- /.row -->
+                <ol class="breadcrumb">
+                  <li>
+                    <i class="fa fa-dashboard"></i> <a href="index.html">Dashboard</a>
+                  </li>
+                  <li class="active">
+                    <i class="fa fa-table"></i> Database
+                  </li>
+                </ol>
+              </div>
+            </div>
+            <!-- /.row -->
 
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h2>HIT </h2>
-                        <h4>Total <%= hit.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table id="hit" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>Treatment</th>
-                                        <th>HITTypeId</th>
-                                        <th>HITId</th>
-                                        <th>Content</th>
-                                        <th>Code</th>
-                                        <th>Title</th>
-                                        <th>Description</th>
-                                        <th>Keywords</th>
-                                        <th>Reward</th>
-                                        <th>publishDate</th>
-                                        <th>status</th>
-                                        <th>MaxAssignments</th>
-                                        <th>Assignments</th>
-                                        <th>lastModified</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<hit.length; i++) { %>
-                                        <tr>
-                                            <td><%= hit[i]._id %></td>
-                                            <td><%= hit[i].Treatment %></td>
-                                            <td><%= hit[i].HITTypeId %></td>
-                                            <td><%= hit[i].HITId %></td>
-                                            <td><%= hit[i].Content %></td>
-                                            <td><%= hit[i].Code %></td>
-                                            <td><%= hit[i].Title %></td>
-                                            <td><%= hit[i].Description %></td>
-                                            <td><%= hit[i].Keywords %></td>
-                                            <td><%= hit[i].Reward %></td>
-                                            <td><%= hit[i].publishDate %></td>
-                                            <td><%= hit[i].status %></td>
-                                            <td><%= hit[i].MaxAssignments %></td>
-                                            <td><%= hit[i].Assignments %></td>
-                                            <td><%= hit[i].lastModified %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
+            <div class="row">
+              <div class="col-lg-12">
+                <h2>HIT </h2>
+                <h4>Total <%= hit.length %> Documents</h4>
+                <div class="table-responsive">
+                  <table id="hit" class="table table-bordered table-hover table-striped">
+                    <thead>
+                      <tr>
+                        <th>_id</th>
+                        <th>Treatment</th>
+                        <th>HITTypeId</th>
+                        <th>HITId</th>
+                        <th>Content</th>
+                        <th>Code</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Keywords</th>
+                        <th>Reward</th>
+                        <th>publishDate</th>
+                        <th>status</th>
+                        <th>MaxAssignments</th>
+                        <th>Assignments</th>
+                        <th>lastModified</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for(var i=0; i<hit.length; i++) { %>
+                        <tr>
+                          <td>
+                            <%= hit[i]._id %>
+                          </td>
+                          <td>
+                            <%= hit[i].Treatment %>
+                          </td>
+                          <td>
+                            <%= hit[i].HITTypeId %>
+                          </td>
+                          <td>
+                            <%= hit[i].HITId %>
+                          </td>
+                          <td>
+                            <%= hit[i].Content %>
+                          </td>
+                          <td>
+                            <%= hit[i].Code %>
+                          </td>
+                          <td>
+                            <%= hit[i].Title %>
+                          </td>
+                          <td>
+                            <%= hit[i].Description %>
+                          </td>
+                          <td>
+                            <%= hit[i].Keywords %>
+                          </td>
+                          <td>
+                            <%= hit[i].Reward %>
+                          </td>
+                          <td>
+                            <%= hit[i].publishDate %>
+                          </td>
+                          <td>
+                            <%= hit[i].status %>
+                          </td>
+                          <td>
+                            <%= hit[i].MaxAssignments %>
+                          </td>
+                          <td>
+                            <%= hit[i].Assignments %>
+                          </td>
+                          <td>
+                            <%= hit[i].lastModified %>
+                          </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                  </table>
                 </div>
-                <!-- /.row -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h2>WORKER </h2>
-                        <h4>Total <%= worker.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table  id="worker" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>Treatment</th>
-                                        <th>WorkerId</th>
-                                        <th>age</th>
-                                        <th>country</th>
-                                        <th>gender</th>
-                                        <th>forumVisits</th>
-                                        <th>forumPosts</th>
-                                        <th>numKnown</th>
-                                        <th>workerType</th>
-                                        <th>status</th>
-                                        <th>lastModified</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<worker.length; i++) { %>
-                                        <tr>
-                                            <td><%= worker[i]._id %></td>
-                                            <td><%= worker[i].Treatment %></td>
-                                            <td><%= worker[i].WorkerId %></td>
-                                            <td><%= worker[i].age %></td>
-                                            <td><%= worker[i].country %></td>
-                                            <td><%= worker[i].gender %></td>
-                                            <td><%= worker[i].forumVisits %></td>
-                                            <td><%= worker[i].forumPosts %></td>
-                                            <td><%= worker[i].numKnown %></td>
-                                            <td><%= worker[i].workerType %></td>
-                                            <td><%= worker[i].status %></td>
-                                            <td><%= worker[i].lastModified %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                </div>
-
-             <!-- /.row -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h2>AUTHENTICATION </h2>
-                        <h4>Total <%= authentication.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table  id="authentication" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>HITTypeId</th>
-                                        <th>WorkerId</th>
-                                        <th>Code</th>
-                                        <th>Type</th>
-                                        <th>Authenticated</th>
-                                        <th>Nickname</th>
-                                        <th>lastModified</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<authentication.length; i++) { %>
-                                        <tr>
-                                            <td><%= authentication[i]._id %></td>
-                                            <td><%= authentication[i].HITTypeId %></td>
-                                            <td><%= authentication[i].WorkerId %></td>
-                                            <td><%= authentication[i].Code %></td>
-                                            <td><%= authentication[i].Type %></td>
-                                            <td><%= authentication[i].Authenticated %></td>
-                                            <td><%= authentication[i].Nickname %></td>
-                                            <td><%= authentication[i].lastModified %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    </div>
-                <!-- /.row -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h2>CONTENT </h2>
-                        <h4>Total <%= content.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table  id="content" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>User</th>
-                                        <th>Tweet</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>HITCount</th>
-                                        <th>Storm</th>
-                                        <!--<th>DateTime</th>-->
-                                        <th>UserId</th>
-                                        <th>TweetId</th>
-                                        <th>Location</th>
-                                        <th>Latitude</th>
-                                        <th>Longitude</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<content.length; i++) { %>
-                                        <tr>
-                                            <td><%= content[i]._id %></td>
-                                            <td><%= content[i].User %></td>
-                                            <td><%= content[i].Tweet %></td>
-                                            <td><%= content[i].Date %></td>
-                                            <td><%= content[i].Time %></td>
-                                            <td><%= content[i].HITCount %></td>
-                                            <td><%= content[i].Storm %></td>
-                                            <!--<td><%= content[i].DateTime %></td>-->
-                                            <td><%= content[i].UserId %></td>
-                                            <td><%= content[i].TweetId %></td>
-                                            <td><%= content[i].Location %></td>
-                                            <td><%= content[i].Latitude %></td>
-                                            <td><%= content[i].Longitude %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                                <!-- /.row -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h2>ATTEMPT </h2>
-                        <h4>Total <%= attempt.length %> Documents</h4>
-                        <div class="table-responsive">
-                            <table  id="attempt" class="table table-bordered table-hover table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>_id</th>
-                                        <th>HITTypeId</th>
-                                        <th>WorkerId</th>
-                                        <th>Code</th>
-                                        <th>lastModified</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                       <% for(var i=0; i<attempt.length; i++) { %>
-                                        <tr>
-                                            <td><%= attempt[i]._id %></td>
-                                            <td><%= attempt[i].HITTypeId %></td>
-                                            <td><%= attempt[i].WorkerId %></td>
-                                            <td><%= attempt[i].Code %></td>
-                                            <td><%= attempt[i].lastModified %></td>
-                                        </tr>
-                                        <% } %>                                 
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+              </div>
 
             </div>
-            <!-- /.container-fluid -->
+
+            <!-- /.row -->
+            <div class="row">
+              <div class="col-lg-12">
+                <h2>AUTHENTICATION </h2>
+                <h4>Total <%= authentication.length %> Documents</h4>
+                <div class="table-responsive">
+                  <table id="authentication" class="table table-bordered table-hover table-striped">
+                    <thead>
+                      <tr>
+                        <th>_id</th>
+                        <th>Treatment</th>
+                        <th>Type</th>
+                        <th>WorkerId</th>
+                        <th>Code</th>
+                        <th>Count</th>     
+                        <th>Authenticated</th>
+                        <th>lastModified</th>
+                        <th>ShareCount</th>
+                        <th>ShareTime</th>
+                        <th>Nickname</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for(var i=0; i<authentication.length; i++) { %>
+                        <tr>
+                          <td>
+                            <%= authentication[i]._id %>
+                          </td>
+                          <td>
+                            <%= authentication[i].Treatment %>
+                          </td>
+                          <td>
+                            <%= authentication[i].Type %>
+                          </td>
+                          <td>
+                            <%= authentication[i].WorkerId %>
+                          </td>
+                          <td>
+                            <%= authentication[i].Code %>
+                          </td>
+                          <td>
+                            <%= authentication[i].Count %>
+                          </td>
+                          <td>
+                            <%= authentication[i].Authenticated %>
+                          </td>
+                          <td>
+                            <%= authentication[i].lastModified %>
+                          </td>
+                          <td>
+                            <%= authentication[i].ShareCount %>
+                          </td>
+                          <td>
+                            <%= authentication[i].ShareTime %>
+                          </td>
+                          <td>
+                            <%= authentication[i].Nickname %>
+                          </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+
+
+            <!-- /.row -->
+            <div class="row">
+              <div class="col-lg-12">
+                <h2>WORKER </h2>
+                <h4>Total <%= worker.length %> Documents</h4>
+                <div class="table-responsive">
+                  <table id="worker" class="table table-bordered table-hover table-striped">
+                    <thead>
+                      <tr>
+                        <th>_id</th>
+                        <th>Treatment</th>
+                        <th>WorkerId</th>
+                        <th>age</th>
+                        <th>country</th>
+                        <th>gender</th>
+                        <th>forumVisits</th>
+                        <th>forumPosts</th>
+                        <th>numKnown</th>
+                        <th>workerType</th>
+                        <th>status</th>
+                        <th>lastModified</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for(var i=0; i<worker.length; i++) { %>
+                        <tr>
+                          <td>
+                            <%= worker[i]._id %>
+                          </td>
+                          <td>
+                            <%= worker[i].Treatment %>
+                          </td>
+                          <td>
+                            <%= worker[i].WorkerId %>
+                          </td>
+                          <td>
+                            <%= worker[i].age %>
+                          </td>
+                          <td>
+                            <%= worker[i].country %>
+                          </td>
+                          <td>
+                            <%= worker[i].gender %>
+                          </td>
+                          <td>
+                            <%= worker[i].forumVisits %>
+                          </td>
+                          <td>
+                            <%= worker[i].forumPosts %>
+                          </td>
+                          <td>
+                            <%= worker[i].numKnown %>
+                          </td>
+                          <td>
+                            <%= worker[i].workerType %>
+                          </td>
+                          <td>
+                            <%= worker[i].status %>
+                          </td>
+                          <td>
+                            <%= worker[i].lastModified %>
+                          </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- /.row -->
+            <div class="row">
+              <div class="col-lg-12">
+                <h2>CONTENT </h2>
+                <h4>Total <%= content.length %> Documents</h4>
+                <div class="table-responsive">
+                  <table id="content" class="table table-bordered table-hover table-striped">
+                    <thead>
+                      <tr>
+                        <th>_id</th>
+                        <th>User</th>
+                        <th>Tweet</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>HITCount</th>
+                        <th>Storm</th>
+                        <!--<th>DateTime</th>-->
+                        <th>UserId</th>
+                        <th>TweetId</th>
+                        <th>Location</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for(var i=0; i<content.length; i++) { %>
+                        <tr>
+                          <td>
+                            <%= content[i]._id %>
+                          </td>
+                          <td>
+                            <%= content[i].User %>
+                          </td>
+                          <td>
+                            <%= content[i].Tweet %>
+                          </td>
+                          <td>
+                            <%= content[i].Date %>
+                          </td>
+                          <td>
+                            <%= content[i].Time %>
+                          </td>
+                          <td>
+                            <%= content[i].HITCount %>
+                          </td>
+                          <td>
+                            <%= content[i].Storm %>
+                          </td>
+                          <!--<td><%= content[i].DateTime %></td>-->
+                          <td>
+                            <%= content[i].UserId %>
+                          </td>
+                          <td>
+                            <%= content[i].TweetId %>
+                          </td>
+                          <td>
+                            <%= content[i].Location %>
+                          </td>
+                          <td>
+                            <%= content[i].Latitude %>
+                          </td>
+                          <td>
+                            <%= content[i].Longitude %>
+                          </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- /.row -->
+            <div class="row">
+              <div class="col-lg-12">
+                <h2>ATTEMPT </h2>
+                <h4>Total <%= attempt.length %> Documents</h4>
+                <div class="table-responsive">
+                  <table id="attempt" class="table table-bordered table-hover table-striped">
+                    <thead>
+                      <tr>
+                        <th>_id</th>
+                        <th>HITTypeId</th>
+                        <th>WorkerId</th>
+                        <th>Code</th>
+                        <th>lastModified</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for(var i=0; i<attempt.length; i++) { %>
+                        <tr>
+                          <td>
+                            <%= attempt[i]._id %>
+                          </td>
+                          <td>
+                            <%= attempt[i].HITTypeId %>
+                          </td>
+                          <td>
+                            <%= attempt[i].WorkerId %>
+                          </td>
+                          <td>
+                            <%= attempt[i].Code %>
+                          </td>
+                          <td>
+                            <%= attempt[i].lastModified %>
+                          </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <!-- /.container-fluid -->
 
         </div>
         <!-- /#page-wrapper -->
@@ -262,13 +382,13 @@
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
 
-    
-    <script src="//code.jquery.com/jquery-1.12.3.js"></script> 
-    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script> 
+
+    <script src="//code.jquery.com/jquery-1.12.3.js"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js "></script>
 
     <script>
-        jQuery(document).ready(function() {
+      jQuery(document).ready(function() {
             jQuery('#hit').DataTable();
             jQuery('#authentication').DataTable();
             jQuery('#worker').DataTable();
@@ -277,6 +397,6 @@
         } );
     </script>
 
-</body>
+  </body>
 
 </html>

@@ -25,6 +25,7 @@
                                         <i class="fa fa-file"></i> Management
                                     </li>
                                 </ol>
+                   
                             </div>
                         </div>
                         <!-- /.row -->
@@ -179,7 +180,7 @@
                                 <div class="panel panel-success">
                                     <div class="panel-heading">
                                         <h3 class="panel-title">
-                                            <legend>Publish HITs From DB (Notify Workers)</legend>
+                                            <legend>Publish HITs From DB</legend>
                                         </h3>
                                     </div>
                                     <div class="panel-body">
@@ -344,6 +345,27 @@
                                                     <input class="form-control" min="30" max="3153600" value="43200" name="ExpirationIncrementInSeconds" required="" type="number">
                                                 </div>
                                             </div>
+                                            <button class="btn btn-info pull-right" type="submit">Extend</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">
+                                            <legend>Extend HITs</legend>
+                                        </h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <form method='post' action='extendHits' class="form-horizontal">
+                                                <label id ="HIT-Extend-Result" class="col-sm-9">
+                                                    <script>
+                                                    var hitExtendResult = window.location.href.split('hitExtendResult=')[1];
+                                                    if(hitExtendResult){
+                                                        document.getElementById("HIT-Extend-Result").innerHTML = '<p>Result:<br/>'+ decodeURIComponent(hitExtendResult) +'</p>';
+                                                    }
+                                                    </script>
+                                                </label>
                                             <button class="btn btn-info pull-right" type="submit">Extend</button>
                                         </form>
                                     </div>

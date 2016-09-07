@@ -1,30 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css"/>
-<link rel="stylesheet" type="text/css" href="/public/css/client.css"/>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="css/client.css" />
 </head>
 
 <body style="text-align: center;">
+  <div class="alert alert-warning">
+    <h4><strong><i>Note:</i></strong> &nbsp; <i>Please read the instruction below before you accept the HIT.</i></h4>
+  </div>
 
 
-	<% if(first) { %>
 
-			<h3>This HIT group involves answering questions about real tweets and usually takes less than 1 minute per HIT. </h3><br/>
-			<h3>Please accept this HIT to learn more.</h3>
+  <div class="panel panel-primary" style="margin:50px;">
+    <div class="panel-heading"><strong>Instructions</strong></div>
 
-	<%  } else { %>  
+    <div class="panel-body">
 
-		<h3>You will need a code to access HITs in this group to verify that you are a human worker. </h3><br/>
-		<h3>We have provided access codes to a number of Turkers already working on these HITs and similar HIT groups. <h3><br/>
-		<h3>Each HIT group has a different access code, which you need only enter the first time you access the HITs.</h3><br/>
-		<h3>Turkers are free to share access codes, so if you do not have one you may obtain it from another Turker.</h3>
 
-	<%  }  %> 
+      <div style="text-align:left; padding-left:20%;padding-right:20%;">
 
+        <ol style="font-family: Verdana, Geneva, sans-serif; font-size: 17.7px; line-height: 35.8px;">
+          <li>These HITs are part of a research study on how Turkers communicate about HITs. </li>
+          <li>Each HIT involves answering two quick questions about famous movies.</li>
+          <li>You will need an <b> access code </b> to work on these HITs. We have provided access codes to a number of Turkers.
+            If you do not have a code, you may be able to obtain one from a Turker who has one. You will only be required to enter a valid code once.</li>
+          <li><b>We regret that we cannot respond to requests for access codes.</b></li>
+        </ol>
+
+        <br/>
+
+        <div class="panel panel-info" style="margin:25px;">
+          <div class="panel-heading btn" data-toggle="collapse" data-target="#hit-preview"><strong>HIT Preview</strong></div>
+          <i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a preview, please accept the HIT to begin working.</i>
+          <div id="hit-preview" class="collapse in">
+            <div class="panel-body">
+              <img src="design/screenshot-film.PNG" style="width:60%; margin-left:20%;" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- jQuery -->
+    <!--<script src="js/jquery.js"></script>-->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+    crossorigin="anonymous"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <!--<script src="js/bootstrap.min.js"></script>-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 
 </body>
 
 </html>
-

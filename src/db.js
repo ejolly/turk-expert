@@ -65,7 +65,7 @@ var MongoDB = {
         // assert.equal(1, r.matchedCount);
         // assert.equal(1, r.modifiedCount);
         // assert.equal(0, r.upsertedCount); 
-        console.log('Update DB -> ', query);    //+ r.result.n + ' docs'
+        console.log('Update One DB -> ', query);    //+ r.result.n + ' docs'
         cb(r);
     });
   },
@@ -76,7 +76,13 @@ var MongoDB = {
         // assert.equal(1, r.matchedCount);
         // assert.equal(1, r.modifiedCount);
         // assert.equal(0, r.upsertedCount); 
-        console.log('Update DB -> ', query);    //+ r.result.n + ' docs'
+        console.log('Update Many DB -> ', query);    //+ r.result.n + ' docs'
+        cb(r);
+    });
+  },
+  findAndModify: function(db, name, query, fields, options, cb){
+    db.collection(name).findAndModify(query, fields, options).then(function(r) {
+        console.log('FindAndModify DB -> ', query);    //+ r.result.n + ' docs'
         cb(r);
     });
   },

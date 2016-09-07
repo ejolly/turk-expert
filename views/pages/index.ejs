@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,340 +11,484 @@
 
   <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
   crossorigin="anonymous"></script>
-  <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.min.css" />
+  
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="/public/css/client.css" />
 </head>
 
 <body>
-  <script>
-    //global
-  var submitReady = true;
-		function showSubquestion(id){
-			$('#'+id).show(100);
-      $('#'+id+'-input').attr('required', true);
-		}
-		function hideSubquestion(id){
-			$('#'+id).hide(100);
-      $('#'+id+'-input').removeAttr('required');
-		}
-    function showCheckbox(id){
-      $('#'+id).show(100);
-    }
-    function hideCheckbox(id){
-       $('#'+id).hide(100);
-    }
-    function validateForm(){    
-     if($('div.checkbox :checkbox:checked').length == 0 && $('div.unreadable :checkbox:checked').length == 0 && $('input[name=aboutDamage]:checked').val() == '1'){
-        $('#validate-checkbox').css('display','block');
-        submitReady = false;
-      }else{
-        submitReady = true;
-      }   
-      return submitReady;
-    }
-    function validateHumanWorker(){
-      if($('#verifyHumanWorker').val() === $('#hitCode').text()){
-        return true;
-      }else{
-        $('#validate-codeBox').css('display','block');
-        return false;
-      }
-    }
-		$(document).ready(function() {
-			$('#unreadable').change(function() {
-        if($(this).is(":checked")) {
-            $('#HIT-Form').attr('novalidate','novalidate');
-            $('#requiredDiv').hide();
-        }else{
-						$('#requiredDiv').show();
-            $('#HIT-Form').removeAttr('novalidate');
-				}
-    	});
-		});
-  </script>
-  <% if(!auth){ %>
-    <!--Auth form -->
-    <div class="form-group col-xs-4 col-xs-offset-4 centered">
-      <form method='post' action='validateCode' class='form-horizontal'>
-        <label>Please enter an access code to work on this HIT so we can verify you are a human worker.</label>
-        <label>If you do not have an access code you can obtain one from another Turker who has worked on this HIT group.</label>
-        <input class="form-control" name="accessCode" size="25" type="text" />
-        <input class="form-control" name="accessType" size="25" type="text" value="<%= e.type %>" style="display:none;" />
-        <input class="form-control" name="accessContent[Tweet]" size="25" type="text" value="<%= e.content.Tweet %>" style="display:none;"
-        />
-        <input class="form-control" name="accessContent[User]" size="25" type="text" value="<%= e.content.User %>" style="display:none;"
-        />
-        <input class="form-control" name="accessContent[Date]" size="25" type="text" value="<%= e.content.Date %>" style="display:none;"
-        />
-        <input class="form-control" name="accessContent[Time]" size="25" type="text" value="<%= e.content.Time %>" style="display:none;"
-        />
-        <input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
-        <input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
-        <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"
-        />
-        <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"
-        />
-        <% if(e.code === 403){ %>
-          <% if(e.attempt){ %>
-            <% if(e.attempt.hit.status === 'published'){ %>
-              <p style="text-align: center; color:#5678FF;">It looks like this access code works for a HIT called
-                <a href="<%= e.turkSubmitTo %>/mturk/preview?groupId=<%= e.attempt.groupId %>">
-                  <%= e.attempt.hit.Title %>
-                </a>Please find and accept this HIT using the access code you just entered. You will need a different access
-                code to work on the current HIT.</p>
-              <% } else { %>
-                <p class="authFeedback">This access code has expired! You will need a different access code to work on the current HIT.</p>
-                <% }  %>
-                  <% } else { %>
-                    <p class="authFeedback">This access code is incorrect!</p>
-                    <% } %>
-                      <% } %>
-                        <div class="centered">
-                          <button class="btn btn-lg btn-primary" type="submit">Submit</button>
-                        </div>
-      </form>
-    </div>
-    <% } else { %>
-      <% if(e.type != 'shared' && !e.firstTimeUser){ %>
-        <div class="alert alert-info fade in">Access code for this HIT group: <b><%= e.hitCode %></b></div>
-        <% } %>
-          <% if(e.firstTimeUser){ %>
-            <div class="instructions-container">
-              <form id="First-User-Form" action="firstUser" method="POST">
-                <div class="col-xs-8 col-xs-offset-2">
-                  <div class="instructions-t">
-                    <p>You are the first Turker to accept this task. To verify that you are a human worker you must enter the following access code to start working on these HITs: <b><span id="hitCode"><%= e.hitCode %></span></b></p>
-                    <p>You only need to enter this code once.</p>
-                    <p>Only you have this code. If you wish to share this HIT group with other Turkers you must also give them this access code.</p>
-                  </div>
-                  <%if (e.firstTimeUser != 'control') { %>
-                    <div class="instructions-t">
-                      This is a limited group of 100 HITs. Once a HIT in this group is completed, it will <b>no longer be available</b> for you or other Turkers to complete.
-                      <br/>
-                      <br/>
-                      <% if (e.firstTimeUser === 'reciprocity') { %>
-                        We have launched a number of similar HIT groups to which other Turkers have the access codes. Sharing your code with them may encourage them to share with you.
-                        <br/>
-                        <br/>
-                        <% } else if (e.firstTimeUser === 'reputation') { %>
-                          Once we have finished data collection, we will publish a list of Turkers who have shared the largest number of HITs, using
-                          nicknames to protect privacy.
-                          <br/>
-                          <br/>
-                          <p style="text-align:center">Please enter a nickname that you will recognize and that you would be happy for us to publish:</p>
-                          <div class="input-group col-centered">
-                            <input name="nickname" size="1" style="height: 1.5em; width: 15em" type="text" required/>
-                          </div>
-                          <% } %>
-                    </div>
-                    <% } %>
-                      <h3 style="text-align:center"><u>HIT Instructions</u></h3>
-                      <p class="instructions-body">For each HIT in this group you will be presented with a single real tweet that was tweeted during tropical
-                        storm Pablo or Yolanda, which hit the Philippines in 2012 and 2013 respectively.
-                        <br/>
-                        <br/> We would like you to answer three questions about each tweet:
-                      </p>
-                      <ol>
-                        <li>Is this tweet written in English?</li>
-                        <li>Does this tweet contain a website URL, and if so to what kind of content does it link?</li>
-                        <li>Does this tweet refer to a specific kind of storm-related damage (selecting from a list)?</li>
-                      </ol>
-                </div>
-                <input class="form-control" name="accessContent[Tweet]" size="25" type="text" value="<%= e.content.Tweet %>" style="display:none;"
-                />
-                <input class="form-control" name="accessContent[User]" size="25" type="text" value="<%= e.content.User %>" style="display:none;"
-                />
-                <input class="form-control" name="accessContent[Date]" size="25" type="text" value="<%= e.content.Date %>" style="display:none;"
-                />
-                <input class="form-control" name="accessContent[Time]" size="25" type="text" value="<%= e.content.Time %>" style="display:none;"
-                />
+ <!--<b>Test:</b><%= JSON.stringify(e) %>-->
+  
+<% if(e.status != 200){ %>
+	<!-- e.status != 200 - Not yet authed users, popup auth form -->
+	<div class="form-group col-xs-6 col-xs-offset-3 centered">
+		<form method='post' action='validateCode' class='form-horizontal'>   
+      <div class="previewBox">
+        <ol style="font-family: Verdana, Geneva, sans-serif; font-size: 17.7px; line-height: 35.8px;">
+          <li>These HITs are part of a research study on how Turkers communicate about HITs. </li>
+          <li>Each HIT involves answering two quick questions about famous movies.</li>
+          <li>You will need an <b> access code </b> to work on these HITs. We have provided access codes to a number of Turkers.
+            If you do not have a code, you may be able to obtain one from a Turker who has one.</li>
+          <li><b>We regret that we cannot respond to requests for access codes.</b></li>
+        </ol>
+      </div>
+          
+			<label><font style="font-family: Verdana, Geneva, sans-serif; font-size: 17.7px; line-height: 35.8px;">Please enter an access code to work on this HIT</font></label> 
+			
+      <input class="form-control" name="code" size="25" type="text" />
+			<!--<input class="form-control" name="type" size="25" type="text" value="<%= e.type %>" style="display:none;"/>
+      <input class="form-control" name="count" size="25" type="text" value="<%= e.count %>" style="display:none;"/>
+      <input class="form-control" name="treatment" size="25" type="text" value="<%= e.treatment %>" style="display:none;"/>-->
+			<input class="form-control" name="workerId" size="25" type="text" value="<%= e.workerId %>" style="display:none;"/>
+			<input class="form-control" name="hitId" size="25" type="text" value="<%= e.hitId %>" style="display:none;"/>
+      <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"/>
+      <input class="form-control" name="turkSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"/>
+      
+      <!-- Validate code failed users - detailed by status code-->
+			<% if(e.status === 404){ %> 
+      <!-- wrong attempts -->
+			  <p class="authFeedback">This access code is invalid!</p> 
+			<% } else  if(e.status === 410){ %> 
+      <!-- code used up -->
+			  <p class="authFeedback">This access code has expired! But there are still <%= e.count %> valid codes that you can obtain from other Turkers. </p> 
+			<% } else if(e.status === 451){ %> 
+			  <p class="authFeedback">You have chosen to share this access code and can no longer use it.</p> 
+			<% } else if(e.status === 422) {  %> 
+      <!-- first time -->
+			  <p class="authFeedback"><!--Waiting for input--></p> 
+			<% } else {  %> 
+      <!-- default -->
+			  <p class="authFeedback">This access code is invalid!</p> 
+			<% } %>
+			<div class="centered">
+				<button class="btn btn-lg btn-primary" type="submit">Submit</button>
+			</div>
+		</form>
+	</div>
+ <% } else { %>  
 
-                <input class="form-control" name="accessObj[wid]" size="25" type="text" value="<%= e.obj.wid %>" style="display:none;" />
-                <input class="form-control" name="accessObj[hid]" size="25" type="text" value="<%= e.obj.hid %>" style="display:none;" />
-                <input class="form-control" name="accessAssignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"
-                />
-                <input class="form-control" name="accessSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"
-                />
-                <input class="form-control" name="accessType" size="25" type="text" value="<%= e.type %>" style="display:none;" />
-                <input class="form-control" name="accessCode" size="25" type="text" value="<%= e.hitCode %>" style="display:none;" />
+  <% if(e.first && e.first === true){ %>
+    <!-- The very first time for users, logic based on different types and treatment -->
+    <div id="First-User-Div" class="instructions-container">
+           <form id="First-User-Form" action="firstUser" method="POST">
+                <div class="treatmentBox col-xs-8 col-xs-offset-2">
+                 <% if(e.type === 'invited'){%>    
+                    <div class="instructions-t">
+                      <p>We have given you access to complete up to <b>50 HITs</b> within this HIT group. Completing all <b>50 HITs</b> will result in guaranteed pay of <b>$7.50</b> and should take less than <b>10 minutes</b>.</p>
+                      <p>Other Turkers will <b>require</b> an access code to complete any HITs!</p>
+                      <p>To share these HITs with other Turkers you must:</p>
+                      <ol>
+                        <li>Generate an access code by pushing the "generate code" button you'll see when doing the HITs.</li>
+                        <li>Give the code to friends or post it on forums.</li>
+                      </ol>
+                      <h4 style="text-align:center"><u><b>Please Note:</b></u></h4>
+                      <% if(e.treatment === 'costless'){%>
+                      <p style="font-size: 20.7px;">Generating a code will <b>NOT</b> prevent you from completing any of the 50 HITs that you have not yet completed.</p>
+                      <%} else if(e.treatment === 'costly'){%>
+                      <p style="font-size: 20.7px;">Generating a code <b>WILL</b> prevent you from completing any of the 50 HITs that you have not yet completed.</p>
+                      <%} else if(e.treatment === 'reciprocity'){%>
+                      <p style="font-size: 20.7px;">Generating a code <b>WILL</b> prevent you from completing any of the 50 HITs that you have not yet completed.</p>
+                      <p style="font-size: 20.7px;">Other Turkers have also received similar invitations with access codes. </p>
+                      <p style="font-size: 20.7px;">You may receive other opportunities to work on HITs in this group if they decide to share with you.</p>
+                      <%} else if(e.treatment === 'reputation'){%>
+                      <p style="font-size: 20.7px;">Generating a code <b>WILL</b> prevent you from completing any of the 50 HITs that you have not yet completed.</p>
+                      <p style="font-size: 20.7px;">Once we have finished data collection, we will publish a list of Turkers who have shared the largest number of HITs, using nicknames to protect privacy.</p>
+                      <p style="font-size: 20.7px;">Please enter a nickname that you will recognize and that you would be happy for us to publish:</p>
+                      <center>
+                        <input id="nicknameInput" name="nickname" size="1" style="height: 1.5em; margin: 1em auto; width: 100px;" type="text" />
+                        <p id="nicknameFeedback" class="authFeedback" style="visibility:hidden;">Please enter a nickname to begin!</p>
+                      </center>
+                      <%} else if(e.treatment === 'leverage'){%>
+                      <p style="font-size: 20.7px;">Generating a code <b>WILL</b> prevent you from completing any of the 50 HITs that you have not yet completed.</p>
+                      <p style="font-size: 20.7px;">We will match any uncompleted HITs, doubling the number you make available to other Turkers</p>
+                      <%}%>
+                    </div>       
+                  <%} %>
+                  <h3 style="text-align:center"><u>HIT Instructions</u></h3>
+                  <div class="controlBox col-xs-8 col-xs-offset-2">
+                      <p class="instructions-body">For each HIT in this HIT Group you will see a movie poster and answer two questions:</p>
+                      <ol>
+                        <li>Have you seen this film before?</li>
+                        <li>If you have, how much did you enjoy it? Or If you haven’t, how likely are you to go see it?</li>
+                      </ol>
+                  </div>
+                </div>
                 
+                <!--<input class="form-control" name="type" size="25" type="text" value="<%= e.type %>" style="display:none;"/>
+                <input class="form-control" name="count" size="25" type="text" value="<%= e.count %>" style="display:none;"/>-->
+                <input class="form-control" name="code" size="25" type="text" value="<%= e.code %>" style="display:none;"/>
+                <input class="form-control" name="treatment" size="25" type="text" value="<%= e.treatment %>" style="display:none;"/>
+                <input class="form-control" name="workerId" size="25" type="text" value="<%= e.workerId %>" style="display:none;"/>
+                <input class="form-control" name="hitId" size="25" type="text" value="<%= e.hitId %>" style="display:none;"/>
+                <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"/>
+                <input class="form-control" name="turkSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"/>
                 
                 <div class="col-xs-8 col-xs-offset-2 button-container">
-                  <label>Please enter the access code and click begin to work on this HIT</label>
-                  <input id="verifyHumanWorker" class="form-control" name="FakeAccessCode" size="5" type="text"  style="margin: 1em auto; width: 100px;"/>
-                  <p class="validationMessage" id="validate-codeBox">Please input the correct access code</p>
-                  <input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin">
+                  <input type="submit" id="beginButton" class="btn btn-lg btn-success" value="Begin" onclick="return beginProcess('<%= e.type %>','<%= e.treatment %>');">
                 </div>
-
               </form>
-
+              
+                <script type="text/javascript">
+                  function beginProcess(type, treatment){
+                      if(type === 'invited' && treatment === 'reputation'){
+                        if($('#nicknameInput').val() && /\S/.test($('#nicknameInput').val())){
+                          $('#First-User-Div').hide();
+                          return true;
+                        }else{
+                          $('#nicknameFeedback').css('visibility','visible');
+                          return false;
+                        }
+                      }else{
+                        $('#First-User-Div').hide();
+                        return true;
+                      }
+                  }
+                </script>
+                
             </div>
-            
-             <script type="text/javascript">
-               window.onload = function() {
-                document.getElementById('beginButton').setAttribute('onclick', 'return validateHumanWorker()');
-							}
-              </script>
-
+                   
+<% } else if(e.type === 'shared' && e.treatment != 'costless'){ %>
+<!-- For costly shared repeated users -->
+<div id="Shared-User-Div" class="instructions-container">
+    <div class="previewBox" style="margin:auto;">
+      <div style="font-family: Verdana, Geneva, sans-serif; font-size: 17.7px; line-height: 35.8px;">
+        <center><h2><u>You have chosen to share your code</u></h2></center>
+        <center><h2>Code: <span style="font-weight:18px;color:red;"><%= e.code %></span> </h2></center>
+        <li>Now you can go ahead and give the code to other Turkers or post it in forums.</li>
+        <li>You can complete additional HITs in this group if other Turkers share their codes with you.</li>
+      </div>
+    </div>
+</div>
+<% } else { %>
+<!-- For all repeated users -->
+    <% if(e.type === 'invited'){ %>
+    <!--For costless shared repeated user-->
+    <!--<div style="position: absolute;top: 100px;right: 150px;width: 300px;display: block;z-index: 1;"><center><h4><strong>HITs Remaining For You: <%= e.count %></strong></h4></center></div>
+              -->
+    <div class="alert alert-info">
+      
+      <center><h4><strong>HITs Remaining For You: <%= e.count %></strong></h4></center>
+           
+    </div>
+    
+    <form id="Share-Code-Form" action="generateCode" method="POST">        
+      <div id="Share-Code-Form-Div" class=" panel panel-success" style="position: absolute;top: 150px;right: 5%;width: 300px;display: block;z-index: 1; float: none;
+     margin-left: auto;
+     margin-right: auto;"">
+        <div class="panel-heading"><center><strong>Sharing Instructions</strong></center></div>
+          <div class="panel-body">
+            <% if(e.treatment === 'costless'){%>
+            <%  if(e.shareCount && e.shareCount > 0){ %>
+            <center><h2>Code: <span style="font-weight:18px;color:red;"><%= e.code %></span> </h2></center>
+            <li>Now you can go ahead and give the code to other Turkers or post it in forums.</li>
             <% } else { %>
+            <p>Click the button below at any time to generate an access code.</p>
+            <p>By sharing this code with other Turkers you can grant them access to an additional 50 HITs.</p>
+            <p><b>Sharing this code will not affect the HITs to which you have access.</b></p>
+            <% } %>
+            <%} else if(e.treatment === 'costly'){%>
+            <p>Click the button below at any time to generate an access code.</p>
+            <p>By sharing this code with other Turkers you can grant them access to any HITs that you have not yet completed. </p>
+            <p><b>Once you create this code you will lose access to any remaining HITs.</b></p>
+            <%} else if(e.treatment === 'reciprocity'){%>
+            <p>Click the button below at any time to generate an access code.</p>
+            <p>By sharing this code with other Turkers you can grant them access to any HITs that you have not yet completed. </p>
+            <p><b>Once you create this code you will lose access to any remaining HITs.</b></p>
+            <p><b>Other Turkers have also received similar invitations with access codes. You may receive other opportunities to work HITs in this group if they decide to share with you.</b></p>
+            <%} else if(e.treatment === 'reputation'){%>
+            <p>Click the button below at any time to generate an access code.</p>
+            <p>By sharing this code with other Turkers you can grant them access to any HITs that you have not yet completed. </p>
+            <p><b>Once you create this code you will lose access to any remaining HITs.</b></p>
+            <p><b>Once we have finished data collection, we will publish a list of Turkers who have shared the largest number of HITs, using nicknames to protect privacy.</b></p>
+            <%} else if(e.treatment === 'leverage'){%>
+            <p>Click the button below at any time to generate an access code.</p>
+            <p>By sharing this code with other Turkers you can grant them access to any HITs that you have not yet completed. </p>
+            <p><b>Once you create this code you will lose access to any remaining HITs.</b></p>
+            <p><b>We will match any uncompleted HITs, doubling the number you make available to other Turkers.</b></p>
+            <%} %>
+            <br/>
+            <br/>
+              <input class="form-control" name="workerId" size="25" type="text" value="<%= e.workerId %>" style="display:none;"/>
+              <input class="form-control" name="hitId" size="25" type="text" value="<%= e.hitId %>" style="display:none;"/>
+              <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"/>
+              <input class="form-control" name="turkSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"/>
+            <% if(!(e.treatment === 'costless'&& e.shareCount && e.shareCount > 0)){ %>
+            <center><button id="shareIt" type="submit" class="btn btn-success">Generate Code To Share</button></center>
+            <% } %>
+          </div>
+      </div>
+    </form>
+    <%} else if(e.type === 'invited'){%>    
+     <div style="position: absolute;top: 100px;right: 150px;width: 300px;display: block;z-index: 1;"><center><h4><strong>HITs Remaining For You: <%= e.count %></strong></h4></center></div>
+     <div class="panel panel-success" style="position: absolute;top: 150px;right: 150px;width: 300px;display: block;z-index: 1;">
+        <div class="panel-heading"><center><strong>Sharing Instructions</strong></center></div>
+         <div class="panel-body">
+          <center><h2>Code: <span style="font-weight:18px;color:red;"><%= e.code %></span> </h2></center>
+          <li>You have already chosen to share your code, now you can go ahead and tell your friend or post in forums.</li>
+          <li>Thank you for your participating! </li>
+        </div>
+      </div>
+     </div>
+    <%} else {%>
+    <!--For every one-->
+    <div class="alert alert-info">
+      <center><h4><strong>HITs Remaining For This Code: <%= e.count %></strong></h4></center>
+    </div>
+  
+    <%} %>
 
-              <!-- Main HIT Content -->
-              <div class="col-xs-6 col-xs-offset-3">
-                <blockquote class="twitter-tweet">
-                  <p>
-                    <%= e.content.Tweet %>
-                      <br/> - @
-                      <%= e.content.User %>
-                        <%= e.content.Time %>,
-                          <%= e.content.Date %>
-                  </p>
-                </blockquote>
-              </div>
-              <div class="row">
-                <div class="greybox col-xs-6 col-xs-offset-3">
-                  <h4 style="text-align:center">Please answer the following questions about the tweet above</h4>
-                  <p style="text-align:center">
-                    <label>
-                      <input id="unreadable" class="unreadable" name="unreadable" type="checkbox" value="unreadable" /> It's not possible to understand this tweet</label>
-                  </p>
-                  <form class="form" role="form" id="HIT-Form" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
-                    <div id="requiredDiv">
-                      <fieldset id="q1">
-                        <h5><strong>1) Is this tweet in English?</strong></h5>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="inEnglish" required="" type="radio" value="1" />Yes</label>
-                        </div>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="inEnglish" required="" type="radio" value="0" />No</label>
-                        </div>
-                      </fieldset>
+	<!-- Main HIT Content -->
+  <script>
+    //global
+   function showQuestion1(){
+      $('#validate-box-q1').css('display','none');
+      $('#q1-2 input').removeAttr('required');
+      $('#q1-2').hide(100);
+      $('#q1-1 input').attr('required', true);
+      $('#q1-1').show(100);
+      
+    }
+    
+   function showQuestion2(){
+      $('#validate-box-q1').css('display','none');
+      $('#q1-1 input').removeAttr('required');
+      $('#q1-1').hide(100);
+      $('#q1-2 input').attr('required', true);
+      $('#q1-2').show(100);
+    }
+    
+    function clearValidate(){
+      $('#validate-box-q1-1').css('display','none');
+      $('#validate-box-q1-2').css('display','none');
+    }
+    
+    
+    
+    function mturkSubmit() {
+        var submitReady = false;
+        //TODO: js submit logic
+        //1. update code count -1 (costly | costless)
+        //2. submit to mturk
+        
+        //try parallel
+        //document.getElementById("Code-Form").submit();
+        //document.getElementById("HIT-Form").submit();
+       
+        //try callback
+        // document.getElementById("Code-Form").submit(function(e){
+        //     alert('calledback!');
+        //     document.getElementById("HIT-Form").submit();
+        // });
+        
+        //valid form manually
+          var elements_q1 = document.getElementsByName('seenFilm');
+          var flag_q1_yes = false;
+          var flag_q1_no = false;
+          if (elements_q1[0].checked){
+            $('#validate-box-q1').css('display','none');
+            flag_q1_yes = true; 
+            var elements_q1_1 = document.getElementsByName('ratingFilm');
+            var flag_q1_1 = false;
+            for (var i = 0; i < elements_q1_1.length; i++){
+              if (elements_q1_1[i].checked){
+                flag_q1_1 = true;
+              }
+            }
+            if(flag_q1_1){
+              //pass
+              $('#validate-box-q1-1').css('display','none');
+              submitReady = true;;
+            }else{
+              //invalid
+              $('#validate-box-q1-1').css('display','block');
+              return submitReady;
+            }
+          }else if(elements_q1[1].checked){
+            $('#validate-box-q1').css('display','none');
+            flag_q1_no = true; 
+            var elements_q1_2 = document.getElementsByName('expectFilm');
+            var flag_q1_2 = false;
+            for (var i = 0; i < elements_q1_2.length; i++){
+              if (elements_q1_2[i].checked){
+                flag_q1_2 = true;
+              }
+            }
+            if(flag_q1_2){
+              //pass
+              $('#validate-box-q1-2').css('display','none');
+              submitReady = true;
+            }else{
+              //invalid
+              $('#validate-box-q1-2').css('display','block');
+              return submitReady;
+            }
+          }else{
+            //invalid for yes/no
+            $('#validate-box-q1').css('display','block');
+              return submitReady;
+          }
 
-                      <fieldset id="q2">
-                        <h5><strong>2) Does this tweet contain a URL?</strong></h5>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="hasURL" required="" type="radio" value="1" />Yes</label>
-                        </div>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="hasURL" required="" type="radio" value="0" />No</label>
-                        </div>
-                      </fieldset>
-
-                      <fieldset id="q2-1">
-                        <p>Is this a working URL?</p>
-                        <p class="subheading">You can skip this question if you answered No above</p>
-                        <div class="radio-inline">
-                          <label>
-                            <input id="valid-url-input" name="validURL" type="radio" value="1" />Yes</label>
-                        </div>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="validURL" type="radio" value="0" />No</label>
-                        </div>
-                      </fieldset>
-
-                      <fieldset id="q2-2">
-                        <p>What kind of page does it point to?</p>
-                        <p class="subheading">E.g. News story, video, image, etc</p>
-                        <p class="subheading">You can skip this question if you answered No above</p>
-                        <div class="input-group">
-                          <input id="valid-url-sub-input" name="URLcontent" size="1" style="height: 2em; width: 15em" type="text"
-                          />
-                        </div>
-                      </fieldset>
-
-                      <fieldset id="q3">
-                        <h5><strong>3) Does the tweet refer to a specific kind of hurricane-related damage? </strong></h5>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="aboutDamage" required="" type="radio" value="1" onclick="showCheckbox('damage-detail')"
-                            />Yes</label>
-                        </div>
-                        <div class="radio-inline">
-                          <label>
-                            <input name="aboutDamage" required="" type="radio" value="0" onclick="hideCheckbox('damage-detail')"
-                            />No</label>
-                        </div>
-                      </fieldset>
-
-                      <fieldset id="q3-1">
-                        <p>What kind of damage is referred to?</p>
-                        <p class="subheading">Check all that apply</p>
-                        <p class="subheading">You can skip this question if you answered No above</p>
-                        <div class="checkbox-group checkbox" required="">
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="bridges" />Damaged bridges</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="crops" />Damaged crops</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="healthFacilities" />Damaged hospitals/health facilities</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="housing" />Damaged housing</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="roads" />Damaged roads</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="schools" />Damaged schools</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="vehicles" />Damaged vehicles</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="infrastructure" />Damaged infrastructure</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="deaths" />Deaths reported</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="displacedPopulation" />Displaced population</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="evacCenter" />Evacuation center</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="flooding" />Flooding</label>
-                          <br />
-                          <label>
-                            <input class="damage" name="damage" type="checkbox" value="other" />Other</label>
-                          <input name="otherDamage" size="1" style="height: 2em; width: 10em" type="text"
-                          />
-                          <br />
-                          <p class="validationMessage" id="validate-checkbox">Please check at least one box</p>
-                      </fieldset>
-                      </div>
-                    </div>
-                </div>
-
-                <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"
-                />
-                <div class="row">
-                  <div class="centered">
-                    <input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit">
-                  </div>
-                </div>
-                </form>
-
-              </div>
-
-              <script type="text/javascript">
-               window.onload = function() {
-								document.getElementById('submitButton').setAttribute('onclick', 'return validateForm()');
-							}
-              </script>
+        if(submitReady){
+          //try ajax
+          $.ajax({
+              url: "/updateCodeCount",    //give your url here
+              type: 'POST',
+              dataType: "json",
+              data: { 
+                workerId: document.getElementsByName("workerId")[0].value,
+                code: document.getElementsByName("code")[0].value
+              },
+              // success: function ( data ){
+              //   console.log('data:', data);    //  do your stuff
+              //   //return true;
+              // },
+              // error: function ( data ){
+              //   console.log('err:', data);    // do your stuff
+              //   //return true;
+              // },
+              statusCode: {
+                404: function() {
+                  alert( "page not found" );
+                  return false;
+                },
+                200: function() {
+                  //alert( "submit!" );
+                  //manually wait 3s?
+                  setTimeout(function(){
+                    alert( "submit!" );
+                    //document.getElementById("HIT-Form").submit();  
+                    return true;
+                  }, 3000);
+                 
+                }
+              }
+          });
+        }
+    }
+    function getIndex(codeCount, treatment) {
+      if(treatment === 'leverage'){
+        var x = Math.floor((Math.random() * 5) + 1); //1-5
+        return parseInt(5*(codeCount-1) + x);
+      }else{
+        var x = Math.floor((Math.random() * 10) + 1); //1-10
+        return parseInt(10*(codeCount-1) + x);
+      }
+    }
+    $(document).ready(function() {
+        //console.log( "ready!" );
+        //update img
+        var imgId = getIndex(parseInt(document.getElementsByName("count")[0].value), parseInt(document.getElementsByName("treatment")[0].value));
+        document.getElementById('HIT-Image').src = 'images/' + imgId +'.jpeg';
+        document.getElementById('HIT-Image-Name').value = imgId;
+    });
+    
+  </script>
 
 
-              <% } %>
+  <form class="form" role="form" id="HIT-Form" action="<%= e.turkSubmitTo %>/mturk/externalSubmit" method="POST">
+    <div id="requiredDiv" class="col-xs-4 col-xs-offset-4" style="min-width: 600px; float: none;
+     margin-left: auto;
+     margin-right: auto;">
+      <div class="experiment-content">
+        <img id="HIT-Image" alt="image_url" class="imagecontainer" style="width: 400px; height:600px;"/>
+      </div>
+       <fieldset id="q0" style="display:none;">
+        <input id="HIT-Image-Name" name="imageName" type="text" value="0"/>
+      </fieldset>
+      <fieldset id="q1">
+          <h5><strong>1) Have you seen this film before?</strong></h5>
+          <div class="radio-inline">
+          <label>
+              <input name="seenFilm" type="radio" value="1" onclick="showQuestion1()"/>Yes</label>
+          </div>
+          <div class="radio-inline">
+            <label>
+              <input name="seenFilm" type="radio" value="0" onclick="showQuestion2()"/>No</label>
+          </div>
+      </fieldset>
+      <p class="validationMessage" id="validate-box-q1">Please select one of these options.</p>
+      
+      <fieldset id="q1-1" style="display:none;">
+          <h5><strong>2) How much did you enjoy it?</strong></h5>
+          <div class="radio-inline">
+              <label><input name="ratingFilm" type="radio" value="1" onclick="clearValidate()"/>Not At All</label>
+          </div>
+          <div class="radio-inline">
+              <label><input name="ratingFilm" type="radio" value="2" onclick="clearValidate()"/>Not Really </label>
+          </div>
+          <div class="radio-inline">
+              <label><input name="ratingFilm" type="radio" value="3" onclick="clearValidate()"/>Neutral</label>
+          </div>
+          <div class="radio-inline">
+              <label><input name="ratingFilm" type="radio" value="4" onclick="clearValidate()"/>Somewhat</label>
+          </div>
+          <div class="radio-inline">
+              <label><input name="ratingFilm" type="radio" value="5" onclick="clearValidate()"/>Very Much</label>
+          </div>
+      </fieldset>
+      <p class="validationMessage" id="validate-box-q1-1">Please select one of these options.</p>
+      
+      
+        <fieldset id="q1-2" style="display:none;">
+          <h5><strong>2) How much do you want to see it?</strong></h5>
+          <div class="radio-inline">
+            <label><input name="expectFilm" type="radio" value="1" onclick="clearValidate()"/>Not At All</label>
+          </div>
+          <div class="radio-inline">
+            <label><input name="expectFilm" type="radio" value="2" onclick="clearValidate()"/>Not Really</label>
+          </div>
+          <div class="radio-inline">
+            <label><input name="expectFilm" type="radio" value="3" onclick="clearValidate()"/>Neutral</label>
+          </div>
+          <div class="radio-inline">
+            <label><input name="expectFilm" type="radio" value="4" onclick="clearValidate()"/>Somewhat</label>
+          </div>
+          <div class="radio-inline">
+            <label><input name="expectFilm" type="radio" value="5" onclick="clearValidate()"/>Very Much</label>
+          </div>
+      </fieldset>
+      <p class="validationMessage" id="validate-box-q1-2">Please select one of these options.</p>
+      
+      
+       <!--For img content-->
+       <input class="form-control" name="count" size="25" type="text" value="<%= e.count %>" style="display:none;"/>
+       <input class="form-control" name="treatment" size="25" type="text" value="<%= e.treatment %>" style="display:none;"/>
+       <!--For code udpate-->
+        <input class="form-control" name="code" size="25" type="text" value="<%= e.code %>" style="display:none;"/>
+       <!--For mturk submit-->
+        <input class="form-control" name="workerId" size="25" type="text" value="<%= e.workerId %>" style="display:none;"/>
+        <input class="form-control" name="hitId" size="25" type="text" value="<%= e.hitId %>" style="display:none;"/>
+        <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"/>
+        <input class="form-control" name="turkSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"/>     
+      
+      <div class="centered">
+        <input type="submit" id="submitButton" class="btn btn-lg btn-primary" value="Submit" onclick="return mturkSubmit();"/>
+      </div>
+	  </div>
+	</form>
+
+  <!--For code count submit-->
+  <!--<form class="form" role="form" id="Code-Form" action="updateCodeCount" method="POST" style="display:none;">
+    <input class="form-control" name="workerId" size="25" type="text" value="<%= e.workerId %>" style="display:none;"/>
+    <input class="form-control" name="hitId" size="25" type="text" value="<%= e.hitId %>" style="display:none;"/>
+    <input class="form-control" name="assignmentId" size="25" type="text" value="<%= e.assignmentId %>" style="display:none;"/>
+    <input class="form-control" name="turkSubmitTo" size="25" type="text" value="<%= e.turkSubmitTo %>" style="display:none;"/>
+  </form>   -->
+  <!--<script type="text/javascript">
+      window.onload = function() {
+        document.getElementById('submitButton').setAttribute('onclick', 'return mturkSubmit()');
+      }
+  </script>-->
+  
+
+	<% } %>
 
 
-                <% } %>
+<% } %>
 
+<br/>
+<br/>
+<br/>
 </body>
 
 </html>

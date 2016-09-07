@@ -10,7 +10,7 @@
     "tsc": "tsc",
     "tsc:w": "tsc -w --outDir build/model",
     "test": "concurrent \"npm run tsc:w\" \"node server.js\" \"lite-server\"",
-    "start": "concurrent \"npm run tsc:w\" \"node server.js\""
+    "start": "node server.js"
   },
   "license": "private",
   "dependencies": {
